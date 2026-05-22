@@ -1,7 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 
 const TeacherProfileManagement = () => {
+  const teacherProfileData = {
+    name: 'Dr. Elena Vance',
+    role: 'Senior Faculty, Science Dept',
+    status: 'Active Status',
+    email: 'elena.vance@academy.edu',
+    phone: '+1 (555) 234-8901',
+    specializations: ['Advanced Physics', 'Quantum Mechanics', 'Applied Mathematics'],
+    lastLogin: 'Oct 24, 2023 - 09:42 AM',
+    securityInsight:
+      'Your password was last changed 142 days ago. We recommend updating it quarterly for optimal account security.',
+  };
+
+  useEffect(() => {
+    console.log('Teacher profile data:', teacherProfileData);
+  }, []);
+
   return (
     <MainLayout title="Teacher Profile">
       <div className="max-w-4xl mx-auto space-y-8 pb-24 md:pb-8">

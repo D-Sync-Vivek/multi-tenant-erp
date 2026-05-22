@@ -208,13 +208,38 @@ export const getAttendanceRecords = (sectionId, academicYearId, date) => {
  * Get grades
  * GET /api/v1/operations/grades/
  */
-export const getGrades = (subjectId) => {
+export const getGrades = (subjectId, examId) => {
   let endpoint = "/api/v1/operations/grades/";
-  if (subjectId) {
-    endpoint += `?subject=${subjectId}`;
+  const params = new URLSearchParams();
+  if (subjectId) params.append("subject", subjectId);
+  if (examId) params.append("exam", examId);
+  
+  const query = params.toString();
+  if (query) {
+    endpoint += `?${query}`;
   }
   return fetchAllPages(endpoint);
 };
+
+/**
+ * Update grade
+ * PATCH /api/v1/operations/grades/{id}/
+ */
+export const updateGrade = (id, data) => 
+  apiCall(`/api/v1/operations/grades/${id}/`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+/**
+ * Bulk submit grades
+ * POST /api/v1/operations/grades/bulk-submit/
+ */
+export const bulkSubmitGrades = (data) =>
+  apiCall("/api/v1/operations/grades/bulk-submit/", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 
 /**
  * Get all exams
@@ -237,6 +262,8 @@ export default {
   bulkRecordAttendance,
   getAttendanceRecords,
   getGrades,
+  updateGrade,
+  bulkSubmitGrades,
   getExam,
   getExams,
   API_BASE_URL,
