@@ -174,6 +174,13 @@ export const getStudentProfile = (studentId) =>
   apiCall(`/api/v1/profiles/students/${studentId}/`);
 
 /**
+ * Get individual teacher profile details
+ * GET /api/v1/profiles/teachers/<id>/
+ */
+export const getTeacherProfile = (teacherId) =>
+  apiCall(`/api/v1/profiles/teachers/${teacherId}/`);
+
+/**
  * Bulk record attendance
  * POST /api/v1/operations/attendance/bulk-record/
  */
@@ -213,7 +220,7 @@ export const getGrades = (subjectId, examId) => {
   const params = new URLSearchParams();
   if (subjectId) params.append("subject", subjectId);
   if (examId) params.append("exam", examId);
-  
+
   const query = params.toString();
   if (query) {
     endpoint += `?${query}`;
@@ -225,7 +232,7 @@ export const getGrades = (subjectId, examId) => {
  * Update grade
  * PATCH /api/v1/operations/grades/{id}/
  */
-export const updateGrade = (id, data) => 
+export const updateGrade = (id, data) =>
   apiCall(`/api/v1/operations/grades/${id}/`, {
     method: "PATCH",
     body: JSON.stringify(data),
@@ -259,6 +266,7 @@ export default {
   getTeacherAssignment,
   getSectionEnrollments,
   getStudentProfile,
+  getTeacherProfile,
   bulkRecordAttendance,
   getAttendanceRecords,
   getGrades,
