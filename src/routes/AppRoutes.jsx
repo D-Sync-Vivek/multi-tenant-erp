@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route , Navigate } from "react-router-dom";
+import { StudentProvider } from "../context/StudentProvider";
 
 /* COMMON */
 import Landing from "../pages/Landing";
@@ -180,27 +181,147 @@ return(
 
 
 {/* ================= STUDENT ================= */}
-<Route path="/student" element={<StudentDashboard />} />
-<Route path="/student/notifications" element={<Notifications />} />
+<Route path="/students" element={<Navigate to="/student" replace />} />
+<Route
+	path="/student"
+	element={
+		<StudentProvider>
+			<StudentDashboard />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/notifications"
+	element={
+		<StudentProvider>
+			<Notifications />
+		</StudentProvider>
+	}
+/>
 
-<Route path="/student/assignments" element={<Assignments />} />
-<Route path="/student/attendance" element={<Attendance />} />
-<Route path="/student/fees" element={<FeesPayments />} />
-<Route path="/student/help" element={<HelpDesk />} />
+<Route
+	path="/student/assignments"
+	element={
+		<StudentProvider>
+			<Assignments />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/attendance"
+	element={
+		<StudentProvider>
+			<Attendance />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/fees"
+	element={
+		<StudentProvider>
+			<FeesPayments />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/help"
+	element={
+		<StudentProvider>
+			<HelpDesk />
+		</StudentProvider>
+	}
+/>
 
-<Route path="/student/materials" element={<LearningMaterialsHub />} />
-<Route path="/student/materials/view" element={<LearningMaterialDetailView />} />
+<Route
+	path="/student/materials"
+	element={
+		<StudentProvider>
+			<LearningMaterialsHub />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/materials/view"
+	element={
+		<StudentProvider>
+			<LearningMaterialDetailView />
+		</StudentProvider>
+	}
+/>
 
-<Route path="/student/quiz" element={<PracticeQuizHub />} />
-<Route path="/student/quiz/active" element={<ActiveQuiz />} />
-<Route path="/student/quiz/result" element={<QuizResult />} />
+<Route
+	path="/student/quiz"
+	element={
+		<StudentProvider>
+			<PracticeQuizHub />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/quiz/active"
+	element={
+		<StudentProvider>
+			<ActiveQuiz />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/quiz/result"
+	element={
+		<StudentProvider>
+			<QuizResult />
+		</StudentProvider>
+	}
+/>
 
-<Route path="/student/profile" element={<Profile />} />
-<Route path="/student/subjects" element={<Subjects />} />
-<Route path="/student/settings" element={<Settings />} />
-<Route path="/student/recommendations" element={<Recommendations />} />
-<Route path="/student/ai-tutor" element={<AiTutor />} />
-<Route path="/student/grades" element={<GradesCard />} />
+<Route
+	path="/student/profile"
+	element={
+		<StudentProvider>
+			<Profile />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/subjects"
+	element={
+		<StudentProvider>
+			<Subjects />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/settings"
+	element={
+		<StudentProvider>
+			<Settings />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/recommendations"
+	element={
+		<StudentProvider>
+			<Recommendations />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/ai-tutor"
+	element={
+		<StudentProvider>
+			<AiTutor />
+		</StudentProvider>
+	}
+/>
+<Route
+	path="/student/grades"
+	element={
+		<StudentProvider>
+			<GradesCard />
+		</StudentProvider>
+	}
+/>
 
 {/* ================= TEACHER ================= */}
 

@@ -1,4 +1,6 @@
-import api from "./api";
+import api from "./axiosClient";
+
+const isNotFoundError = (error) => error?.response?.status === 404;
 
 export const getStudentProfile = async (studentId) => {
   const response = await api.get(`/profiles/students/${studentId}/`);
@@ -19,7 +21,9 @@ export const getStudentDashboardData = async (studentId) => {
 };
 
 export const getStudentAttendanceRecords = async (studentId) => {
-  const response = await api.get(`/operations/attendance/?student=${studentId}`);
+  const response = await api.get(
+    `/operations/attendance/?student=${studentId}`,
+  );
   return response.data.results;
 };
 
@@ -35,13 +39,27 @@ export const getAcademicYear = async () => {
 };
 
 export const getAssignments = async () => {
-  const response = await api.get(`/operations/assignments`);
-  return response.data.results;
+  try {
+    const response = await api.get(`/operations/assignments/`);
+    return response.data.results || [];
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return [];
+    }
+    throw error;
+  }
 };
 
 export const getSubmissions = async () => {
-  const response = await api.get(`/operations/submissions/`);
-  return response.data.results;
+  try {
+    const response = await api.get(`/operations/submissions/`);
+    return response.data.results || [];
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return [];
+    }
+    throw error;
+  }
 };
 
 export const submitAssignment = async (formData) => {
@@ -52,7 +70,9 @@ export const submitAssignment = async (formData) => {
 };
 
 export const getStudentEnrollment = async (studentId) => {
-  const response = await api.get(`/academics/enrollments/?student=${studentId}`);
+  const response = await api.get(
+    `/academics/enrollments/?student=${studentId}`,
+  );
   return response.data.results?.length > 0 ? response.data.results[0] : null;
 };
 

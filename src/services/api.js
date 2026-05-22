@@ -1,21 +1,3 @@
-import axios from 'axios'
-
-const api = axios.create({
-    baseURL: 'http://localhost:8000/api/v1',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-})
-
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('access_token')
-    if(token){
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    return config;
-});
-
-export default api
 /**
  * API Service - Centralized API endpoint management
  *
@@ -25,7 +7,8 @@ export default api
  */
 
 // Get API base URL from environment or use default
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+export const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 console.log("[API SERVICE] Initialized with base URL:", API_BASE_URL);
 
@@ -277,20 +260,3 @@ export const getExams = () => fetchAllPages("/api/v1/operations/exams/");
  * GET /api/v1/operations/exams/<id>/
  */
 export const getExam = (id) => apiCall(`/api/v1/operations/exams/${id}/`);
-
-export default {
-  getMyProfile,
-  getTeacherClasses,
-  getTeacherAssignment,
-  getSectionEnrollments,
-  getStudentProfile,
-  getTeacherProfile,
-  bulkRecordAttendance,
-  getAttendanceRecords,
-  getGrades,
-  updateGrade,
-  bulkSubmitGrades,
-  getExam,
-  getExams,
-  API_BASE_URL,
-};

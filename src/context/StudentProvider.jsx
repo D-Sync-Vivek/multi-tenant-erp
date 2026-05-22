@@ -11,7 +11,6 @@ import {
   getStudentEnrollment,
   getStudentParents,
   getAcademicYear,
-  getAssignments,
   getSubmissions,
   getStudentAttendanceRecords,
 } from "../services/studentAPIs";
@@ -51,8 +50,6 @@ export const StudentProvider = ({ children }) => {
           enrollment,
           parentsData,
           academic,
-          assignments,
-          submissions,
           attendanceRecords,
         ] = await Promise.all([
           getStudentProfile(studentId),
@@ -60,8 +57,6 @@ export const StudentProvider = ({ children }) => {
           getStudentEnrollment(studentId),
           getStudentParents(),
           getAcademicYear(),
-          getAssignments(),
-          getSubmissions(),
           getStudentAttendanceRecords(studentId),
         ]);
 
@@ -71,8 +66,8 @@ export const StudentProvider = ({ children }) => {
           enrollment,
           parents: parentsData.filter((p) => p.student === studentId),
           academic,
-          assignments,
-          submissions,
+          assignments: [],
+          submissions: [],
           attendanceRecords,
         });
       } catch (err) {
