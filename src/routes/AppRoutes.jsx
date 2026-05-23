@@ -109,7 +109,6 @@ import { StudentProvider } from "../context/StudentProvider";
 
 function AppRoutes() {
   return (
-    <StudentProvider>
       <BrowserRouter>
         <Routes>
           {/* COMMON */}
@@ -427,7 +426,6 @@ function AppRoutes() {
           <Route path="/parent/settings" element={<ParentPortalSettings />} />
         </Routes>
       </BrowserRouter>
-    </StudentProvider>
   );
 }
 
