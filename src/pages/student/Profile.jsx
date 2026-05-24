@@ -110,7 +110,7 @@ export default function Profile() {
                   Attendance
                 </p>
                 <p className="text-3xl font-black text-on-surface font-headline">
-                  {attendanceRate} %
+                  {attendanceRate} % 
                 </p>
               </div>
 
