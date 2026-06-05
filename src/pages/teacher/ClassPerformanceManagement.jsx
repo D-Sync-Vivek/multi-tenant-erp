@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 import Card from "../../components/erp/teacher/Card";
@@ -8,6 +8,7 @@ import { RevalidatingBar, SkeletonRow } from "../../components/erp/teacher/Loadi
 
 const ClassPerformanceManagement = () => {
   const { id } = useParams();
+  const [showAllStudents, setShowAllStudents] = useState(false);
 
   const {
     data: payload,
@@ -80,6 +81,38 @@ const ClassPerformanceManagement = () => {
   const students = payload?.students ?? [];
   const attendanceMap = payload?.attendanceMap ?? {};
   const gradesMap = payload?.gradesMap ?? {};
+
+  // Analytics Calculations
+  let totalAttendanceRecords = 0;
+  let totalPresent = 0;
+  
+  // Only calculate based on the students actually in this class
+  students.forEach(student => {
+    const sId = student.student?.id || student.student || student.student_id;
+    const att = attendanceMap[sId];
+    if (att) {
+      totalAttendanceRecords += att.total;
+      totalPresent += att.present;
+    }
+  });
+
+  const avgAttendance = totalAttendanceRecords > 0 
+    ? ((totalPresent / totalAttendanceRecords) * 100).toFixed(1) 
+    : 0;
+
+  let totalMarks = 0;
+
+  students.forEach(student => {
+    const sId = student.student?.id || student.student || student.student_id;
+    const grade = gradesMap[sId];
+    if (grade) {
+      totalMarks += parseFloat(grade.marks_obtained || 0);
+    }
+  });
+
+  const avgPerformance = students.length > 0
+    ? (totalMarks / students.length).toFixed(1)
+    : 0;
 
   if (error && !payload) {
     return (
@@ -227,16 +260,16 @@ const ClassPerformanceManagement = () => {
             },
             {
               label: 'Avg Performance',
-              value: '84.5%',
+              value: loading && !payload ? '—' : `${avgPerformance}%`,
               sub: '+2.1',
               subColor: 'text-green-600',
               subIcon: 'trending_up',
             },
             {
               label: 'Attendance Rate',
-              value: '96.2%',
+              value: loading && !payload ? '—' : `${avgAttendance}%`,
               bar: true,
-              barWidth: '96%',
+              barWidth: `${avgAttendance}%`,
             },
             {
               label: 'Submissions',
@@ -297,10 +330,9 @@ const ClassPerformanceManagement = () => {
                   <span className="material-symbols-outlined text-sm">filter_list</span> Filter
                 </button>
               </div>
-
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                 <table className="w-full text-left border-collapse">
-                  <thead>
+                  <thead className="sticky top-0 z-10 bg-white outline outline-1 outline-surface-container-low/50">
                     <tr className="bg-surface-container-low/50">
                       {['Student', 'Roll No.', 'Attendance', 'Grade', ''].map((h) => (
                         <th
@@ -315,7 +347,7 @@ const ClassPerformanceManagement = () => {
                   <tbody className="divide-y divide-surface-container-low/50">
                     {loading && !payload
                       ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={5} />)
-                      : students.map((student) => {
+                      : (showAllStudents ? students : students.slice(0, 5)).map((student) => {
                           const sId = student.student?.id || student.student || student.student_id;
                           const att = attendanceMap[sId];
                           const attPercentage = att && att.total > 0
@@ -368,11 +400,16 @@ const ClassPerformanceManagement = () => {
                 </table>
               </div>
 
-              <div className="p-4 bg-slate-50/50 text-center border-t border-slate-100">
-                <button className="text-xs font-bold text-primary uppercase tracking-widest hover:underline transition-all outline-none">
-                  View All {totalStudents} Students
-                </button>
-              </div>
+              {totalStudents > 5 && (
+                <div className="p-4 bg-slate-50/50 text-center border-t border-slate-100">
+                  <button 
+                    onClick={() => setShowAllStudents(!showAllStudents)}
+                    className="text-xs font-bold text-primary uppercase tracking-widest hover:underline transition-all outline-none"
+                  >
+                    {showAllStudents ? 'Show Less' : `View All ${totalStudents} Students`}
+                  </button>
+                </div>
+              )}
             </Card>
 
             {/* Side Panels */}

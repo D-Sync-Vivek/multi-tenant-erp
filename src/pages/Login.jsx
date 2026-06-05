@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { clearCacheAndInitProfile } from "../hooks/useStaleData";
 
 export default function Login(){
 const navigate = useNavigate();
@@ -52,6 +53,9 @@ const handleLoginSubmit = async (e) => {
     localStorage.setItem('user_data', JSON.stringify(profileData));
     console.log("Profile Data API Response:", profileData);
     
+    // Clear SWR cache and initialize with the new profile data
+    clearCacheAndInitProfile(profileData);
+    
     // Extract the primary role from the roles array (which contains strings like "School Admin") 
     // Fallback to checking the profiles object (e.g. if teacher profile exists)
     // Fallback to "Global Admin" if is_superuser is true
@@ -76,7 +80,7 @@ const handleLoginSubmit = async (e) => {
     } else if(lowerRole.includes("school")){
       navigate("/school-admin");
     } else if(lowerRole.includes("teacher")){
-      navigate("/teacher");
+      navigate("/teacher/dashboard");
     } else if(lowerRole.includes("student")){
       navigate("/student");
     } else if(lowerRole.includes("parents")){
@@ -93,28 +97,30 @@ const handleLoginSubmit = async (e) => {
 };
 
 const handleRoleLogin = (role) => {
+  // Clear any existing stale cache on demo role switch
+  clearCacheAndInitProfile(null);
 
-if(role === "Global Admin"){
-navigate("/global-admin");
-}
+  if(role === "Global Admin"){
+  navigate("/global-admin");
+  }
 
-else if(role === "School Admin"){
-navigate("/school-admin");
-}
+  else if(role === "School Admin"){
+  navigate("/school-admin");
+  }
 
-else if(role === "Teacher"){
-navigate("/teacher");
-}
+  else if(role === "Teacher"){
+  navigate("/teacher/dashboard");
+  }
 
-else if(role === "Student"){
-navigate("/student");
-}
+  else if(role === "Student"){
+  navigate("/student");
+  }
 
-else if(role === "Parent"){
-navigate("/parent");
-}
+  else if(role === "Parent"){
+  navigate("/parent");
+  }
 
-};
+  };
 
 return (
 

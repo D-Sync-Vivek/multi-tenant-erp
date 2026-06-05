@@ -395,46 +395,7 @@ function AppRoutes() {
 
 <Route path="/teacher/notifications" element={<TeacherNotificationsHub />} />
 
-<Route 
-path="/teacher/analytics/student/:id" 
-element={<DetailedStudentAnalytics />} 
-/>
-        
 
-
-
-          <Route
-            path="/teacher/grades"
-            element={<GradesAssessmentOverview />}
-          />
-          <Route
-            path="/teacher/grades/enter"
-            element={<EnterStudentGrades />}
-          />
-
-          <Route
-            path="/teacher/ai-tools"
-            element={<ContentAIToolsDashboard />}
-          />
-          <Route
-            path="/teacher/ai-tools/lesson-plan"
-            element={<AIToolWorkspaceLessonPlan />}
-          />
-
-          <Route
-            path="/teacher/analytics"
-            element={<StudentAnalyticsOverview />}
-          />
-          <Route
-            path="/teacher/analytics/student/:id"
-            element={<DetailedStudentAnalytics />}
-          />
-
-          <Route
-            path="/teacher/profile"
-            element={<TeacherProfileManagement />}
-          />
-          <Route path="/teacher/settings" element={<TeacherSystemSettings />} />
 
 
 

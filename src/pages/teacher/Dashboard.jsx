@@ -3,13 +3,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 import Card from "../../components/erp/teacher/Card";
 import { useStaleData } from "../../hooks/useStaleData";
-import { getMyProfile, getTeacherClasses } from "../../services/api";
+import { getMyProfile, getTeacherClasses, getSectionEnrollments, getAttendanceRecords, getGrades } from "../../services/api";
 
 const Dashboard = () => {
   const navigate = useNavigate();
 
   const { data: profile } = useStaleData("profile:me", getMyProfile);
   const teacherId = profile?.profiles?.teacher?.id || profile?.identity?.id;
+
+  const teacherName = profile?.profiles?.teacher?.full_name
+    || profile?.profiles?.teacher?.name
+    || [profile?.profiles?.teacher?.first_name, profile?.profiles?.teacher?.last_name].filter(Boolean).join(' ')
+    || profile?.identity?.name
+    || [profile?.identity?.first_name, profile?.identity?.last_name].filter(Boolean).join(' ')
+    || 'Teacher';
 
   const { data: assignmentsData, loading, revalidating } = useStaleData(
     `teacher:classes:${teacherId}`,
@@ -19,13 +26,123 @@ const Dashboard = () => {
 
   const classes = assignmentsData?.results || [];
 
+  const { data: stats, loading: statsLoading } = useStaleData(
+    `teacher:stats:${teacherId}`,
+    async () => {
+      const assignments = await getTeacherClasses(teacherId);
+      const classesList = assignments?.results || [];
+
+      if (classesList.length === 0) {
+        return { avgAttendance: 0, avgPerformancePercentage: 0 };
+      }
+
+      // Fetch all section enrollments, attendance, and grades for all classes in parallel
+      const promises = classesList.map(async (cls) => {
+        const sectionId = typeof cls.section === 'object'
+          ? cls.section?.id
+          : cls.section || cls.section_id;
+        const academicYearId = typeof cls.academic_year === 'object'
+          ? cls.academic_year?.id
+          : cls.academic_year || cls.academic_year_id;
+        const subjectId = typeof cls.subject === 'object'
+          ? cls.subject?.id
+          : cls.subject || cls.subject_id;
+
+        if (!sectionId) return { students: [], attendanceMap: {}, gradesMap: {} };
+
+        try {
+          const [enrollmentsData, attendanceData, gradesData] = await Promise.all([
+            getSectionEnrollments(sectionId, academicYearId),
+            getAttendanceRecords(sectionId, academicYearId),
+            subjectId ? getGrades(subjectId) : Promise.resolve({ results: [] })
+          ]);
+
+          const students = Array.isArray(enrollmentsData)
+            ? enrollmentsData
+            : enrollmentsData.results || [];
+
+          const records = Array.isArray(attendanceData)
+            ? attendanceData
+            : attendanceData.results || [];
+
+          const attendanceMap = {};
+          records.forEach(record => {
+            const sId = record.student_id || record.student;
+            if (!attendanceMap[sId]) attendanceMap[sId] = { present: 0, total: 0 };
+            attendanceMap[sId].total += 1;
+            if (record.status === 'Present' || record.status === 'Late') {
+              attendanceMap[sId].present += 1;
+            }
+          });
+
+          const grades = Array.isArray(gradesData)
+            ? gradesData
+            : gradesData.results || [];
+            
+          const gradesMap = {};
+          grades.forEach(grade => {
+            const sId = grade.student_id || grade.student;
+            if (!gradesMap[sId] || parseFloat(grade.marks_obtained) > parseFloat(gradesMap[sId].marks_obtained)) {
+              gradesMap[sId] = grade;
+            }
+          });
+
+          return { students, attendanceMap, gradesMap };
+        } catch (err) {
+          console.error("Error loading class data for stats:", err);
+          return { students: [], attendanceMap: {}, gradesMap: {} };
+        }
+      });
+
+      const results = await Promise.all(promises);
+
+      let overallTotalAttendanceRecords = 0;
+      let overallTotalPresent = 0;
+      let overallTotalObtainedMarks = 0;
+      let overallTotalMaxMarks = 0;
+
+      results.forEach(({ students, attendanceMap, gradesMap }) => {
+        students.forEach(student => {
+          const sId = student.student?.id || student.student || student.student_id;
+          
+          // Attendance
+          const att = attendanceMap[sId];
+          if (att) {
+            overallTotalAttendanceRecords += att.total;
+            overallTotalPresent += att.present;
+          }
+
+          // Grades
+          const grade = gradesMap[sId];
+          if (grade) {
+            overallTotalObtainedMarks += parseFloat(grade.marks_obtained || 0);
+            overallTotalMaxMarks += parseFloat(grade.max_marks || 0);
+          }
+        });
+      });
+
+      const avgAttendance = overallTotalAttendanceRecords > 0
+        ? ((overallTotalPresent / overallTotalAttendanceRecords) * 100).toFixed(1)
+        : 0;
+
+      const avgPerformancePercentage = overallTotalMaxMarks > 0
+        ? ((overallTotalObtainedMarks / overallTotalMaxMarks) * 100).toFixed(1)
+        : 0;
+
+      return { avgAttendance, avgPerformancePercentage };
+    },
+    { skip: !teacherId }
+  );
+
+
+
+
   return (
     <MainLayout title="The Academic Architect">
       {/* TopAppBar Context */}
       <div className="flex flex-col md:flex-row md:items-center justify-between w-full mb-10 gap-4">
         <div>
-          <h2 className="font-display text-3xl font-extrabold text-on-surface tracking-tight">Good morning, Dr. Elena Vance</h2>
-          <p className="text-on-surface-variant font-medium mt-1">Department of Theoretical Physics & Mathematics</p>
+          <h2 className="font-display text-3xl font-extrabold text-on-surface tracking-tight">{`Good morning, ${teacherName}`}</h2>
         </div>
       </div>
 
@@ -59,8 +176,10 @@ const Dashboard = () => {
               <span className="material-symbols-outlined text-sm">trending_up</span> 2.1%
             </span>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Avg Attendance</p>
-          <h3 className="font-display text-4xl font-black mt-1 text-slate-800">94.2%</h3>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Avg Attendance</p>
+          <h3 className="font-display text-4xl font-black mt-1 text-slate-800">
+            {statsLoading ? '—' : `${stats?.avgAttendance ?? 0}%`}
+          </h3>
         </Card>
         <Card hoverable className="group">
           <div className="flex justify-between items-start mb-4">
@@ -69,7 +188,9 @@ const Dashboard = () => {
             </div>
           </div>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Avg Performance</p>
-          <h3 className="font-display text-4xl font-black mt-1 text-slate-800">B+</h3>
+          <h3 className="font-display text-4xl font-black mt-1 text-slate-800">
+            {statsLoading ? '—' : `${stats?.avgPerformancePercentage ?? 0}%`}
+          </h3>
         </Card>
       </section>
 

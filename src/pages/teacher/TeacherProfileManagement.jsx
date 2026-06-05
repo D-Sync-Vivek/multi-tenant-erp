@@ -3,36 +3,58 @@ import MainLayout from "../../components/erp/teacher/MainLayout";
 import { getMyProfile, getTeacherProfile } from "../../services/api";
 
 const TeacherProfileManagement = () => {
-  const [profileData, setProfileData] = useState(null);
+  const [profileData, setProfileData] = useState(() => {
+    try {
+      const local = localStorage.getItem("user_data");
+      return local ? JSON.parse(local) : null;
+    } catch {
+      return null;
+    }
+  });
   const [teacherProfile, setTeacherProfile] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadTeacherProfile = async () => {
+      // 1. Get initial teacherId if profileData is pre-populated
+      let teacherId = profileData?.profiles?.teacher?.id || profileData?.identity?.id;
+
+      // Define a helper to load the detailed teacher profile
+      const fetchTeacherDetails = async (id) => {
+        if (!id) return;
+        try {
+          const teacherData = await getTeacherProfile(id);
+          if (isMounted) {
+            setTeacherProfile(teacherData);
+            console.log("[TeacherProfileManagement] Teacher profile data:", teacherData);
+          }
+        } catch (error) {
+          console.error("[TeacherProfileManagement] Failed to load teacher details:", error);
+        }
+      };
+
+      // 2. Start fetching teacher details immediately if we already have the ID
+      if (teacherId) {
+        fetchTeacherDetails(teacherId);
+      }
+
+      // 3. Fetch/revalidate the latest user profile in the background
       try {
         const currentUserProfile = await getMyProfile();
-        const teacherId = currentUserProfile?.profiles?.teacher?.id || currentUserProfile?.identity?.id;
-
         if (isMounted) {
           setProfileData(currentUserProfile);
-          console.log("[TeacherProfileManagement] Current user profile:", currentUserProfile);
+          localStorage.setItem('user_data', JSON.stringify(currentUserProfile));
+          console.log("[TeacherProfileManagement] Revalidated current user profile:", currentUserProfile);
         }
 
-        if (!teacherId) {
-          throw new Error("Teacher profile id not found on current user profile.");
-        }
-
-        const teacherData = await getTeacherProfile(teacherId);
-
-        if (isMounted) {
-          setTeacherProfile(teacherData);
-          console.log("[TeacherProfileManagement] Teacher profile data:", teacherData);
+        const newTeacherId = currentUserProfile?.profiles?.teacher?.id || currentUserProfile?.identity?.id;
+        // If the teacher ID changed or wasn't loaded initially, fetch teacher details
+        if (newTeacherId && newTeacherId !== teacherId) {
+          fetchTeacherDetails(newTeacherId);
         }
       } catch (error) {
-        if (isMounted) {
-          console.error("[TeacherProfileManagement] Failed to load teacher profile:", error);
-        }
+        console.error("[TeacherProfileManagement] Failed to load current user profile:", error);
       }
     };
 
@@ -41,6 +63,7 @@ const TeacherProfileManagement = () => {
     return () => {
       isMounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const identity = profileData?.identity;

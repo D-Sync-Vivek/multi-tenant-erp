@@ -5,7 +5,7 @@ import Button from "../../components/erp/teacher/Button";
 import Card from "../../components/erp/teacher/Card";
 import Input from "../../components/erp/teacher/Input";
 import Select from "../../components/erp/teacher/Select";
-import { getMyProfile, getTeacherClasses, getSectionEnrollments } from "../../services/api";
+import { getMyProfile, getTeacherClasses, getSectionEnrollments, getGrades } from "../../services/api";
 import { useStaleData } from "../../hooks/useStaleData";
 import { RevalidatingBar, SkeletonCard } from "../../components/erp/teacher/LoadingPrimitives";
 
@@ -27,32 +27,66 @@ const MyClassesHub = () => {
     const classesArray = Array.isArray(classesData) ? classesData : classesData.results || [];
 
     // Fetch student counts for each class concurrently
-    const studentCounts = await Promise.all(
+    const classMetrics = await Promise.all(
       classesArray.map(async (cls) => {
         const sectionId = typeof cls.section === 'object' ? cls.section?.id : cls.section || cls.section_id;
         const academicYearId = typeof cls.academic_year === 'object' ? cls.academic_year?.id : cls.academic_year || cls.academic_year_id;
-        if (!sectionId) return { sectionId: null, count: 0 };
+        const subjectId = typeof cls.subject === 'object' ? cls.subject?.id : cls.subject || cls.subject_id;
+        
+        if (!sectionId) return { sectionId: null, count: 0, avgPerformance: 'N/A' };
         try {
-          const enrollmentsData = await getSectionEnrollments(sectionId, academicYearId);
-          const arr = Array.isArray(enrollmentsData) ? enrollmentsData : enrollmentsData.results || [];
-          return { sectionId, count: arr.length };
+          const [enrollmentsData, gradesData] = await Promise.all([
+            getSectionEnrollments(sectionId, academicYearId),
+            subjectId ? getGrades(subjectId) : Promise.resolve({ results: [] })
+          ]);
+          
+          const students = Array.isArray(enrollmentsData) ? enrollmentsData : enrollmentsData.results || [];
+          const grades = Array.isArray(gradesData) ? gradesData : gradesData.results || [];
+          
+          let gradesMap = {};
+          grades.forEach(grade => {
+            const sId = grade.student_id || grade.student;
+            if (!gradesMap[sId] || parseFloat(grade.marks_obtained) > parseFloat(gradesMap[sId].marks_obtained)) {
+              gradesMap[sId] = grade;
+            }
+          });
+          
+          let totalMarks = 0;
+          students.forEach(student => {
+            const sId = student.student?.id || student.student || student.student_id;
+            const grade = gradesMap[sId];
+            if (grade) {
+              totalMarks += parseFloat(grade.marks_obtained || 0);
+            }
+          });
+          
+          const avgPerformance = students.length > 0
+            ? (totalMarks / students.length).toFixed(1)
+            : 'N/A';
+
+          return { sectionId, count: students.length, avgPerformance };
         } catch {
-          return { sectionId, count: 0 };
+          return { sectionId, count: 0, avgPerformance: 'N/A' };
         }
       })
     );
 
     const studentsMap = {};
-    studentCounts.forEach(({ sectionId, count }) => {
-      if (sectionId) studentsMap[sectionId] = count;
+    const performanceMap = {};
+    classMetrics.forEach(({ sectionId, count, avgPerformance }) => {
+      if (sectionId) {
+        studentsMap[sectionId] = count;
+        performanceMap[sectionId] = avgPerformance;
+      }
     });
 
-    return { profile: profileData, classes: classesArray, studentsMap };
+    return { profile: profileData, classes: classesArray, studentsMap, performanceMap };
   });
 
   const profile = classesPayload?.profile ?? null;
   const classes = classesPayload?.classes ?? [];
   const studentsMap = classesPayload?.studentsMap ?? {};
+  const performanceMap = classesPayload?.performanceMap ?? {};
 
   if (error && !classesPayload) {
     return (
@@ -91,6 +125,7 @@ const MyClassesHub = () => {
           classes.map((cls) => {
             const sectionId = typeof cls.section === 'object' ? cls.section?.id : cls.section || cls.section_id;
             const studentCount = studentsMap[sectionId] ?? 0;
+            const avgPerformance = performanceMap[sectionId] ?? 'N/A';
             const subjectName = cls.subject_name || 'Subject';
             const levelClean = cls.class_level_name?.replace('Grade ', '') || '';
             const className = `${subjectName} ${levelClean}-${cls.section_name || ''}`;
@@ -126,10 +161,10 @@ const MyClassesHub = () => {
                     </div>
                   </div>
                   <div className="bg-surface-container-low p-4 rounded-md">
-                    <p className="text-[10px] uppercase font-bold text-outline tracking-wider mb-1">Avg. Performance</p>
+                    <p className="text-[10px] uppercase font-bold  text-outline tracking-wider mb-1">Avg. Performance</p>
                     <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-sm text-slate-400">horizontal_rule</span>
-                      <span className="text-lg font-bold font-display text-slate-400">N/A</span>
+                      <span className="material-symbols-outlined text-sm text-black">horizontal_rule</span>
+                      <span className="text-lg font-bold text-black font-display">{avgPerformance !== 'N/A' ? `${avgPerformance}%` : 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -153,7 +188,7 @@ const MyClassesHub = () => {
       </div>
 
       {/* Empty State / Callout */}
-      {!loading && (
+      {/* {!loading && (
         <div className="mt-16 flex flex-col items-center justify-center py-12 px-6 bg-surface-container-low rounded-xl border-2 border-dashed border-outline-variant/30 text-center">
           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-outline-variant mb-4 shadow-sm">
             <span className="material-symbols-outlined text-3xl">add</span>
@@ -164,7 +199,7 @@ const MyClassesHub = () => {
             Request Assignment
           </button>
         </div>
-      )}
+      )} */}
     </MainLayout>
   );
 };

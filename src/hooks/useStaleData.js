@@ -54,6 +54,16 @@ export function useStaleData(
       cache.set(k, stored.data);
       return stored.data;
     }
+    if (k === "profile:me") {
+      try {
+        const local = localStorage.getItem("user_data");
+        if (local) {
+          const parsed = JSON.parse(local);
+          cache.set(k, parsed);
+          return parsed;
+        }
+      } catch {}
+    }
     return null;
   };
 
@@ -124,4 +134,29 @@ export function invalidateCache(cacheKey) {
   try {
     sessionStorage.removeItem(STORAGE_PREFIX + cacheKey);
   } catch {}
+}
+
+/** Clear all cached SWR data and optionally pre-populate profile:me */
+export function clearCacheAndInitProfile(profileData) {
+  cache.clear();
+  try {
+    const keys = [];
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key && key.startsWith(STORAGE_PREFIX)) {
+        keys.push(key);
+      }
+    }
+    keys.forEach((k) => sessionStorage.removeItem(k));
+  } catch {}
+
+  if (profileData) {
+    cache.set("profile:me", profileData);
+    try {
+      sessionStorage.setItem(
+        STORAGE_PREFIX + "profile:me",
+        JSON.stringify({ data: profileData, ts: Date.now() }),
+      );
+    } catch {}
+  }
 }
