@@ -1,0 +1,8214 @@
+
+================================================================================
+FILE: CreateRole.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+
+export default function CreateRole(){
+
+const navigate = useNavigate();
+
+const [permissions,setPermissions] = useState({
+users:false,
+academics:true,
+attendance:true,
+grades:false,
+finance:false,
+ai:false
+});
+
+const toggle = (key)=>{
+setPermissions({...permissions,[key]:!permissions[key]});
+};
+
+const handleSave=(e)=>{
+e.preventDefault();
+
+alert("Role created successfully");
+
+navigate("/school-admin/roles");
+};
+
+return(
+
+<SchoolLayout title="Roles & Permissions">
+
+<div className="px-12 py-10 max-w-6xl mx-auto">
+
+<div className="flex justify-between items-start mb-10">
+
+{/* LEFT */}
+
+<div>
+
+<h1 className="text-3xl font-semibold tracking-tight text-[#0b1c30]">
+Create New Role
+</h1>
+
+<p className="text-[#6b7280] mt-1 max-w-xl">
+Define administrative access and feature scope for institutional staff.
+</p>
+
+</div>
+
+
+
+{/* RIGHT */}
+
+<button
+onClick={()=>navigate("/school-admin/roles")}
+className="flex items-center gap-2 px-4 py-2.5 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0058be] font-semibold rounded-md shadow-sm transition mt-1"
+>
+
+<span className="material-symbols-outlined text-[18px]">
+arrow_back
+</span>
+
+Go Back
+
+</button>
+
+</div>
+
+
+
+<div className="grid lg:grid-cols-3 gap-10">
+
+{/* LEFT */}
+
+<div className="lg:col-span-2 space-y-8">
+
+{/* role info */}
+
+<div className="bg-white p-8 rounded-lg shadow-sm">
+
+<h2 className="text-xl font-bold mb-8 flex gap-3 items-center">
+
+<span className="w-2 h-8 bg-[#0058be] rounded-full"></span>
+
+Role Information
+
+</h2>
+
+
+<div className="space-y-6">
+
+<div>
+
+<label className="text-sm font-bold ml-1 block mb-2">
+Role Name
+</label>
+
+<input
+placeholder="Senior Department Head"
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+<div>
+
+<label className="text-sm font-bold ml-1 block mb-2">
+Description
+</label>
+
+<textarea
+rows="4"
+placeholder="Briefly describe the responsibilities associated with this role..."
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* permissions */}
+
+<div className="bg-white p-8 rounded-lg shadow-sm">
+
+<div className="flex justify-between mb-8">
+
+<h2 className="text-xl font-bold flex gap-3 items-center">
+
+<span className="w-2 h-8 bg-[#6b38d4] rounded-full"></span>
+
+Module Permissions
+
+</h2>
+
+
+<span className="text-xs font-bold text-[#6b38d4] bg-[#e9ddff] px-3 py-1 rounded-full">
+Full Control
+</span>
+
+</div>
+
+
+<div className="grid md:grid-cols-2 gap-4">
+
+{[
+{key:"users",name:"Users",icon:"group",color:"#0058be"},
+{key:"academics",name:"Academics",icon:"school",color:"#6b38d4"},
+{key:"attendance",name:"Attendance",icon:"fact_check",color:"#924700"},
+{key:"grades",name:"Grades",icon:"grade",color:"#ba1a1a"},
+{key:"finance",name:"Finance",icon:"account_balance",color:"#0f9d58"},
+{key:"ai",name:"AI Insights",icon:"auto_awesome",color:"#6b38d4"}
+].map(p=>(
+
+<div
+key={p.key}
+className="p-6 rounded-lg bg-[#eff4ff] hover:bg-white border transition"
+>
+
+<div className="flex justify-between mb-4">
+
+<div className="flex gap-3 items-center">
+
+<div
+className="w-10 h-10 rounded-md flex items-center justify-center"
+style={{background:`${p.color}22`}}
+>
+
+<span
+className="material-symbols-outlined"
+style={{color:p.color}}
+>
+
+{p.icon}
+
+</span>
+
+</div>
+
+<span className="font-bold">
+{p.name}
+</span>
+
+</div>
+
+
+<input
+type="checkbox"
+checked={permissions[p.key]}
+onChange={()=>toggle(p.key)}
+className="w-5 h-5"
+/>
+
+</div>
+
+
+<p className="text-xs text-[#6b7280]">
+
+Module access permission
+
+</p>
+
+</div>
+
+))}
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* RIGHT */}
+
+<div className="space-y-8">
+
+
+{/* tips */}
+
+<div className="bg-gradient-to-br from-[#0058be] to-[#2170e4] p-8 rounded-lg text-white shadow-lg">
+
+<h3 className="text-2xl font-bold mb-4">
+Security Best Practices
+</h3>
+
+
+<ul className="space-y-4 text-sm">
+
+<li className="flex gap-2">
+
+<span className="material-symbols-outlined text-sm">
+check_circle
+</span>
+
+Follow least privilege principle
+
+</li>
+
+
+<li className="flex gap-2">
+
+<span className="material-symbols-outlined text-sm">
+check_circle
+</span>
+
+Restrict finance modules
+
+</li>
+
+
+<li className="flex gap-2">
+
+<span className="material-symbols-outlined text-sm">
+check_circle
+</span>
+
+Roles editable anytime
+
+</li>
+
+</ul>
+
+</div>
+
+
+
+{/* summary */}
+
+<div className="bg-[#e5eeff] p-8 rounded-lg">
+
+<h4 className="font-bold mb-4">
+Quick Summary
+</h4>
+
+
+<div className="space-y-4 text-sm">
+
+<div className="flex justify-between">
+
+<span>
+Modules Selected
+</span>
+
+<span className="font-bold text-[#0058be]">
+
+{Object.values(permissions).filter(Boolean).length} / 6
+
+</span>
+
+</div>
+
+
+<div className="flex justify-between">
+
+<span>
+Access Type
+</span>
+
+<span className="font-bold">
+Standard
+</span>
+
+</div>
+
+
+<button
+onClick={handleSave}
+className="w-full py-4 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white rounded-md font-bold mt-4"
+>
+
+Save Role
+
+</button>
+
+</div>
+
+</div>
+
+
+
+{/* image */}
+
+<div className="h-48 rounded-lg overflow-hidden relative">
+
+<img
+src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzU8QYY-ri01FT5iCd265N_bDVZF5vK-A8iREV56KOXzqJeNF5Kl4vSo3CcBGRKQjem9nH-bq70BEk25SGIBd3TvilLHwWDhgGgwQ1kzkNGFSpJJf3SabXfpLiQcKvLCvKLeVMs8OfB-gK1As749xq6obwUiBA0GVakeZRqf_r7HnYRqbsBnfEUwkTiYDdfjfb6za0zcJZkC1jie9qh-2SLQ6xpIbNNYZ4DdcxiCZ6-QdvifvMMDyXvVIXVLkAwhGLfedMIjbhnw"
+className="w-full h-full object-cover"
+/>
+
+
+<div className="absolute inset-0 bg-[#0058be]/40 flex items-center justify-center p-6">
+
+<p className="text-white font-bold text-center">
+
+Empowering Institutions through Intelligent Design
+
+</p>
+
+</div>
+
+</div>
+
+
+</div>
+
+</div>
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: AssignTeacher.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+
+export default function AssignTeacher(){
+
+const navigate = useNavigate();
+
+const [form,setForm]=useState({
+teacher:"",
+subject:"",
+classSection:""
+});
+
+const change=(e)=>{
+setForm({...form,[e.target.name]:e.target.value});
+};
+
+const submit=(e)=>{
+e.preventDefault();
+
+alert("Teacher assigned successfully");
+
+navigate("/school-admin/teacher-assignment");
+};
+
+const resetForm=()=>{
+setForm({
+teacher:"",
+subject:"",
+classSection:""
+});
+};
+
+return(
+
+<SchoolLayout title="Teacher Assignment">
+
+<div className="max-w-6xl mx-auto">
+
+
+{/* heading */}
+
+<div className="flex justify-between items-center mb-8">
+
+<div className="mb-10">
+
+<h1 className="text-4xl font-bold mb-2">
+
+Assign Teacher
+
+</h1>
+
+<p className="text-[#6b7280] text-lg">
+
+Allocate faculty members to specific subjects and classrooms for the 2024-25 academic year.
+
+</p>
+
+</div>
+
+<button
+onClick={()=>navigate("/school-admin/teacher-assignment")}
+className="flex items-center gap-2 px-4 py-2 bg-[#eff4ff] text-[#0058be] rounded-md font-semibold">
+
+<span className="material-symbols-outlined text-sm">
+arrow_back
+</span>
+
+Go Back
+
+</button>
+
+</div>
+
+
+
+<div className="grid grid-cols-12 gap-8">
+
+
+{/* form */}
+
+<div className="col-span-12 lg:col-span-8 space-y-8">
+
+
+<div className="bg-white p-8 rounded-lg shadow-sm">
+
+
+<form onSubmit={submit} className="space-y-8">
+
+
+{/* teacher */}
+
+<div>
+
+<label className="block text-sm font-semibold mb-3">
+
+Select Teacher
+
+</label>
+
+
+<div className="relative">
+
+<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#6b7280]">
+person_search
+</span>
+
+
+<select
+name="teacher"
+value={form.teacher}
+onChange={change}
+className="w-full pl-12 pr-4 py-4 bg-[#eff4ff] rounded-md outline-none">
+
+<option value="">
+Search by name or department...
+</option>
+
+<option>
+Dr. Alistair Vance (Science Dept.)
+</option>
+
+<option>
+Prof. Sarah Jenkins (Math Dept.)
+</option>
+
+<option>
+Mr. Julian Thorne (History Dept.)
+</option>
+
+</select>
+
+
+<span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280]">
+expand_more
+</span>
+
+
+</div>
+
+</div>
+
+
+
+{/* subject + class */}
+
+<div className="grid md:grid-cols-2 gap-6">
+
+
+<div>
+
+<label className="block text-sm font-semibold mb-3">
+
+Subject Selection
+
+</label>
+
+
+<select
+name="subject"
+value={form.subject}
+onChange={change}
+className="w-full px-4 py-4 bg-[#eff4ff] rounded-md outline-none">
+
+<option value="">
+Choose Subject
+</option>
+
+<option>
+Advanced Physics (PHY-401)
+</option>
+
+<option>
+Calculus II (MTH-202)
+</option>
+
+<option>
+World History
+</option>
+
+</select>
+
+</div>
+
+
+
+<div>
+
+<label className="block text-sm font-semibold mb-3">
+
+Class & Section
+
+</label>
+
+
+<select
+name="classSection"
+value={form.classSection}
+onChange={change}
+className="w-full px-4 py-4 bg-[#eff4ff] rounded-md outline-none">
+
+<option value="">
+Select Grade/Section
+</option>
+
+<option>
+Grade 10 - Section A
+</option>
+
+<option>
+Grade 11 - Section C
+</option>
+
+<option>
+Grade 12 - Honors
+</option>
+
+</select>
+
+</div>
+
+
+</div>
+
+
+
+{/* AI insight */}
+
+<div className="bg-[#ffdcc6] p-4 rounded-md flex gap-3">
+
+<span className="material-symbols-outlined text-[#924700]">
+auto_awesome
+</span>
+
+
+<div>
+
+<p className="text-sm font-semibold">
+
+Intelligent Schedule Check
+
+</p>
+
+<p className="text-xs text-[#924700]">
+
+No scheduling conflicts found for Dr. Alistair Vance. He currently has 14 hours available in the weekly roster.
+</p>
+
+</div>
+
+</div>
+
+
+
+{/* buttons */}
+
+<div className="flex justify-end gap-4">
+
+
+<button
+type="button"
+onClick={resetForm}
+className="px-6 py-3 text-[#0058be] font-semibold">
+
+Clear Form
+
+</button>
+
+
+<button
+type="submit"
+className="px-10 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-bold rounded-md shadow">
+
+Assign Teacher
+
+</button>
+
+
+</div>
+
+
+</form>
+
+
+</div>
+
+
+
+{/* capacity */}
+
+<div className="grid md:grid-cols-2 gap-6">
+
+
+<div className="bg-[#eff4ff] p-6 rounded-lg">
+
+
+<h3 className="font-semibold mb-4">
+
+Teaching Capacity
+
+</h3>
+
+
+<div className="space-y-4">
+
+
+<div>
+
+<div className="flex justify-between text-sm">
+
+Science Department
+
+<span className="font-semibold">
+
+85% Assigned
+</span>
+
+</div>
+
+
+<div className="h-2 bg-white rounded-full mt-2">
+
+<div className="h-full w-[85%] bg-[#0058be] rounded-full"></div>
+
+</div>
+
+
+</div>
+
+
+
+<div>
+
+<div className="flex justify-between text-sm">
+
+Math Department
+
+<span className="font-semibold">
+
+62% Assigned
+
+</span>
+
+</div>
+
+
+<div className="h-2 bg-white rounded-full mt-2">
+
+<div className="h-full w-[62%] bg-[#6b38d4] rounded-full"></div>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+<div className="bg-[#eff4ff] p-6 rounded-lg">
+
+
+<h3 className="font-semibold mb-4">
+
+Upcoming Deadlines
+
+</h3>
+
+
+<div className="space-y-3 text-sm">
+
+
+<div className="flex gap-3">
+
+<div className="w-2 h-2 bg-red-500 rounded-full mt-1"></div>
+
+Finalize Q1 electives
+
+<span className="ml-auto text-[#6b7280]">
+
+2d left
+
+</span>
+
+</div>
+
+
+
+<div className="flex gap-3">
+
+<div className="w-2 h-2 bg-[#0058be] rounded-full mt-1"></div>
+
+Faculty orientation
+
+<span className="ml-auto text-[#6b7280]">
+
+Sep 12
+
+</span>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+{/* right panel */}
+
+<div className="col-span-12 lg:col-span-4 space-y-8">
+
+
+<div className="bg-white p-6 rounded-lg shadow-sm">
+
+
+<h4 className="font-semibold mb-6">
+
+Current Stats
+
+</h4>
+
+
+<div className="space-y-6">
+
+
+<div>
+
+<p className="text-3xl font-bold text-[#0058be]">
+
+124
+
+</p>
+
+<p className="text-xs text-[#6b7280] uppercase">
+
+Teachers Assigned
+
+</p>
+
+</div>
+
+
+
+<div>
+
+<p className="text-3xl font-bold text-[#6b38d4]">
+
+08
+
+</p>
+
+<p className="text-xs text-[#6b7280] uppercase">
+
+Unmapped Subjects
+
+</p>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+<div className="bg-[#eff4ff] p-6 rounded-lg">
+
+
+<h4 className="font-semibold mb-4">
+
+Assignment Tips
+
+</h4>
+
+
+<ul className="space-y-3 text-sm">
+
+
+<li className="flex gap-3">
+
+<span className="font-bold text-[#0058be]">
+01
+</span>
+
+Ensure teacher is active
+
+</li>
+
+
+
+<li className="flex gap-3">
+
+<span className="font-bold text-[#0058be]">
+02
+</span>
+
+Check room capacity
+
+</li>
+
+
+
+<li className="flex gap-3">
+
+<span className="font-bold text-[#0058be]">
+03
+</span>
+
+Can revise within 24 hours
+
+</li>
+
+
+</ul>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: Notifications.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useState } from "react";
+
+export default function Notifications(){
+
+const [filter,setFilter]=useState("all");
+
+const notifications=[
+{
+id:1,
+type:"student",
+title:"New Student Registered",
+desc:"Emma Wilson has been added to Grade 8-A",
+time:"2 min ago",
+read:false,
+icon:"school",
+color:"bg-[#e5eeff] text-[#0058be]"
+},
+
+{
+id:2,
+type:"teacher",
+title:"Teacher Assigned",
+desc:"Dr. Robert Miller assigned to Physics",
+time:"1 hour ago",
+read:false,
+icon:"person",
+color:"bg-[#e9ddff] text-[#6b38d4]"
+},
+
+{
+id:3,
+type:"alert",
+title:"Attendance Alert",
+desc:"High absence rate detected in Class 9-B",
+time:"3 hours ago",
+read:true,
+icon:"warning",
+color:"bg-[#ffdad6] text-[#ba1a1a]"
+},
+
+{
+id:4,
+type:"system",
+title:"System Update",
+desc:"New grading feature added",
+time:"Yesterday",
+read:true,
+icon:"settings",
+color:"bg-[#eff4ff] text-[#0058be]"
+},
+
+{
+id:5,
+type:"mapping",
+title:"Parent Mapping Complete",
+desc:"Parent linked successfully with student",
+time:"Yesterday",
+read:false,
+icon:"diversity_1",
+color:"bg-[#e5eeff] text-[#0058be]"
+}
+
+];
+
+const filtered=
+filter==="all"
+?notifications
+:notifications.filter(n=>
+filter==="unread"
+?!n.read
+:n.type==="alert"
+);
+
+return(
+
+<SchoolLayout title="Notifications">
+
+<div className="max-w-5xl mx-auto">
+
+
+{/* header */}
+
+<div className="flex justify-between items-center mb-8">
+
+<div>
+
+<h1 className="text-3xl font-bold mb-1">
+Notifications
+</h1>
+
+<p className="text-[#6b7280]">
+Track system alerts and updates
+</p>
+
+</div>
+
+
+
+<button className="text-sm font-semibold text-[#0058be]">
+Mark all as read
+</button>
+
+</div>
+
+
+
+{/* filters */}
+
+<div className="flex gap-4 mb-8">
+
+{[
+{key:"all",label:"All"},
+{key:"unread",label:"Unread"},
+{key:"alert",label:"Alerts"}
+].map(item=>(
+
+<button
+key={item.key}
+onClick={()=>setFilter(item.key)}
+className={`px-4 py-2 rounded-md text-sm font-semibold transition ${
+filter===item.key
+?"bg-[#0058be] text-white"
+:"bg-[#eff4ff] text-[#0b1c30]"
+}`}>
+
+{item.label}
+
+</button>
+
+))}
+
+</div>
+
+
+
+{/* list */}
+
+<div className="space-y-4">
+
+
+{filtered.map(n=>(
+
+<div
+key={n.id}
+className={`bg-white p-5 rounded-lg shadow-sm flex gap-4 items-start border ${
+!n.read?"border-[#0058be]/30":"border-transparent"
+}`}>
+
+{/* icon */}
+
+<div className={`w-10 h-10 rounded-md flex items-center justify-center ${n.color}`}>
+
+<span className="material-symbols-outlined text-lg">
+{n.icon}
+</span>
+
+</div>
+
+
+
+{/* content */}
+
+<div className="flex-1">
+
+<p className="font-semibold text-[#0b1c30]">
+{n.title}
+</p>
+
+<p className="text-sm text-[#6b7280] mt-1">
+{n.desc}
+</p>
+
+<p className="text-xs text-[#9aa1b1] mt-2">
+{n.time}
+</p>
+
+</div>
+
+
+
+{/* status */}
+
+{!n.read && (
+
+<div className="w-2 h-2 bg-[#0058be] rounded-full mt-2"></div>
+
+)}
+
+</div>
+
+))}
+
+
+</div>
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: CreateAcademicYear.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+
+export default function CreateAcademicYear(){
+
+const navigate = useNavigate();
+
+const [active,setActive] = useState(true);
+
+/* save */
+
+const handleSubmit = (e)=>{
+
+e.preventDefault();
+
+alert("Academic Year created successfully");
+
+navigate("/school-admin/academic-years");
+
+};
+
+/* go back */
+
+const goBack = ()=>{
+
+navigate("/school-admin/academic-years");
+
+};
+
+return(
+
+<SchoolLayout title="Academic Years">
+
+<div className="p-12 max-w-5xl mx-auto">
+
+{/* breadcrumb + go back */}
+
+<div className="flex justify-between items-center mb-8">
+
+<div className="flex items-center gap-2 text-sm text-gray-500">
+
+<span className="cursor-pointer hover:text-[#0058be]" onClick={()=>navigate("/school-admin")}>
+
+Dashboard
+
+</span>
+
+<span className="material-symbols-outlined text-sm">
+
+chevron_right
+
+</span>
+
+<span className="cursor-pointer hover:text-[#0058be]" onClick={goBack}>
+
+Academic Years
+
+</span>
+
+<span className="material-symbols-outlined text-sm">
+
+chevron_right
+
+</span>
+
+<span className="text-[#0058be] font-semibold">
+
+Create Year
+
+</span>
+
+</div>
+
+
+<button
+onClick={goBack}
+className="flex items-center gap-2 px-4 py-2 text-[#0058be] font-semibold hover:bg-[#eff4ff] rounded-md"
+>
+
+<span className="material-symbols-outlined text-sm">
+
+arrow_back
+
+</span>
+
+Go Back
+
+</button>
+
+</div>
+
+
+
+{/* heading */}
+
+<div className="mb-10">
+
+<h1 className="text-4xl font-bold mb-2">
+
+Create Academic Year
+
+</h1>
+
+<p className="text-gray-500">
+
+Define timeline for upcoming academic session.
+
+</p>
+
+</div>
+
+
+
+<div className="grid grid-cols-12 gap-8">
+
+{/* form */}
+
+<div className="col-span-8 bg-white rounded-lg p-8 shadow-sm">
+
+<form onSubmit={handleSubmit} className="space-y-8">
+
+{/* year */}
+
+<div>
+
+<label className="text-sm font-semibold block mb-2">
+
+Year Name
+
+</label>
+
+<input
+placeholder="2024-2025"
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+<p className="text-xs text-gray-500 mt-1">
+
+format YYYY-YYYY
+
+</p>
+
+</div>
+
+
+
+{/* dates */}
+
+<div className="grid grid-cols-2 gap-6">
+
+<div>
+
+<label className="text-sm font-semibold block mb-2">
+
+Start Date
+
+</label>
+
+<input
+type="date"
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+<div>
+
+<label className="text-sm font-semibold block mb-2">
+
+End Date
+
+</label>
+
+<input
+type="date"
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+</div>
+
+
+
+{/* toggle */}
+
+<div className="flex justify-between items-center p-4 bg-[#eff4ff] rounded-md">
+
+<div>
+
+<h4 className="font-semibold">
+
+Year Status
+
+</h4>
+
+<p className="text-xs text-gray-500">
+
+Set active or inactive
+
+</p>
+
+</div>
+
+
+<div className="flex items-center gap-3">
+
+<span className="text-xs font-semibold text-gray-500">
+
+Inactive
+
+</span>
+
+
+<button
+type="button"
+onClick={()=>setActive(!active)}
+className={`w-12 h-6 rounded-full p-1 transition
+${active?"bg-[#0058be]":"bg-gray-300"}
+`}
+>
+
+<div className={`w-4 h-4 bg-white rounded-full transition
+${active?"ml-auto":""}
+`} />
+
+</button>
+
+
+<span className="text-xs font-semibold text-[#0058be]">
+
+Active
+
+</span>
+
+</div>
+
+</div>
+
+
+
+{/* actions */}
+
+<div className="flex justify-end gap-4 pt-6">
+
+<button
+type="button"
+onClick={goBack}
+className="px-6 py-3 text-[#0058be] font-semibold hover:bg-[#eff4ff] rounded-md"
+>
+
+Cancel
+
+</button>
+
+
+<button
+type="submit"
+className="px-8 py-3 text-white font-bold rounded-md bg-gradient-to-r from-[#0058be] to-[#2170e4]"
+>
+
+Save Academic Year
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+
+
+{/* right panel */}
+
+<div className="col-span-4 space-y-6">
+
+<div className="bg-[#eff4ff] p-6 rounded-lg">
+
+<h3 className="font-bold mb-3 flex gap-2">
+
+<span className="material-symbols-outlined text-[#924700]">
+
+lightbulb
+
+</span>
+
+Admin Insights
+
+</h3>
+
+
+<p className="text-sm text-gray-600 mb-4">
+
+Academic year helps track student & teacher records.
+
+</p>
+
+
+<div className="space-y-2 text-xs text-gray-600">
+
+<div className="flex gap-2">
+
+<span className="material-symbols-outlined text-[#0058be] text-sm">
+
+check_circle
+
+</span>
+
+Overlap checking automatic
+
+</div>
+
+
+<div className="flex gap-2">
+
+<span className="material-symbols-outlined text-[#0058be] text-sm">
+
+check_circle
+
+</span>
+
+Report cards linked
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div className="bg-white p-6 rounded-lg shadow-sm">
+
+<h3 className="font-bold mb-2">
+
+Quick Action
+
+</h3>
+
+<p className="text-xs text-gray-500 mb-4">
+
+Import previous configuration
+
+</p>
+
+
+<button className="w-full py-2 border rounded-md text-[#0058be] font-semibold hover:bg-[#eff4ff]">
+
+Review Past Configurations
+
+</button>
+
+</div>
+
+
+
+</div>
+
+</div>
+
+</div>
+
+</SchoolLayout>
+
+);
+}
+
+================================================================================
+FILE: TeacherAssignment.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+
+export default function TeacherAssignment(){
+
+const navigate = useNavigate();
+
+const assignments = [
+{
+name:"Elena Martinez",
+email:"elena.m@school.edu",
+initials:"EM",
+subject:"Advanced Physics",
+class:"Grade 12",
+section:"Section A",
+status:"Assigned",
+color:"bg-[#e9ddff]",
+subjectColor:"bg-[#d8e2ff] text-[#004395]"
+},
+{
+name:"Julian Chen",
+email:"j.chen@school.edu",
+initials:"JC",
+subject:"Mathematics",
+class:"Grade 11",
+section:"Section C",
+status:"Assigned",
+color:"bg-[#d8e2ff]",
+subjectColor:"bg-[#e9ddff] text-[#5516be]"
+},
+{
+name:"Sarah Al-Fayed",
+email:"s.alfayed@school.edu",
+initials:"SA",
+subject:"Literature",
+class:"Grade 10",
+section:"Section B",
+status:"Partial Load",
+color:"bg-[#ffdcc6]",
+subjectColor:"bg-[#d8e2ff] text-[#004395]"
+},
+{
+name:"David Ross",
+email:"d.ross@school.edu",
+initials:"DR",
+subject:"Computer Science",
+class:"Grade 12",
+section:"Lab 02",
+status:"Assigned",
+color:"bg-[#eff4ff]",
+subjectColor:"bg-[#ffdcc6] text-[#924700]"
+}
+];
+
+return(
+
+<SchoolLayout title="Teacher Assignment">
+
+<div className="max-w-6xl mx-auto">
+
+
+{/* heading */}
+
+<div className="flex justify-between items-end mb-8">
+
+<div>
+
+<h1 className="text-3xl font-bold">
+
+Resource Allocation
+
+</h1>
+
+
+<p className="text-[#6b7280] mt-1">
+
+Manage teaching staff roles across departments and grades.
+
+</p>
+
+</div>
+
+
+<button
+onClick={()=>navigate("/school-admin/teacher-assignment/create")}
+className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-semibold rounded-md shadow"
+>
+
+<span className="material-symbols-outlined">
+add
+</span>
+
+Assign Teacher
+
+</button>
+
+</div>
+
+
+
+{/* stats */}
+
+<div className="grid md:grid-cols-4 gap-6 mb-10">
+
+
+<div className="md:col-span-2 bg-white p-6 rounded-lg border-l-4 border-[#0058be] shadow-sm">
+
+<p className="text-xs font-bold text-[#0058be] uppercase tracking-wider">
+
+Capacity Overview
+
+</p>
+
+
+<div className="flex items-end gap-3 mt-3">
+
+<h3 className="text-5xl font-bold">
+
+84%
+
+</h3>
+
+<p className="text-sm text-[#6b7280]">
+
+Teaching Load Filled
+
+</p>
+
+</div>
+
+
+<div className="h-2 bg-[#eff4ff] rounded-full mt-4">
+
+<div className="bg-[#0058be] h-full w-[84%] rounded-full"></div>
+
+</div>
+
+</div>
+
+
+
+<div className="bg-[#eff4ff] p-6 rounded-lg">
+
+<span className="material-symbols-outlined text-[#6b38d4] text-3xl mb-3">
+groups
+</span>
+
+
+<h3 className="text-2xl font-bold">
+
+42
+
+</h3>
+
+
+<p className="text-sm text-[#6b7280]">
+
+Active Teachers
+
+</p>
+
+</div>
+
+
+
+<div className="bg-[#d3e4fe] p-6 rounded-lg">
+
+<span className="material-symbols-outlined text-[#924700] text-3xl mb-3">
+warning
+</span>
+
+
+<h3 className="text-2xl font-bold">
+
+3
+
+</h3>
+
+
+<p className="text-sm text-[#6b7280]">
+
+Pending Classes
+
+</p>
+
+</div>
+
+</div>
+
+
+
+{/* filters */}
+
+<div className="bg-white rounded-lg shadow-sm overflow-hidden">
+
+
+<div className="p-4 flex gap-4 items-center border-b bg-[#f8f9ff]">
+
+
+<div className="relative flex-1">
+
+<span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280]">
+search
+</span>
+
+
+<input
+placeholder="Search teacher or subject..."
+className="w-full pl-10 pr-4 py-2 bg-[#eff4ff] rounded-md outline-none"
+/>
+
+</div>
+
+
+<select className="bg-[#eff4ff] px-4 py-2 rounded-md text-sm">
+
+<option>All Classes</option>
+
+<option>Grade 10</option>
+
+<option>Grade 11</option>
+
+<option>Grade 12</option>
+
+</select>
+
+
+<select className="bg-[#eff4ff] px-4 py-2 rounded-md text-sm">
+
+<option>Status</option>
+
+<option>Full-time</option>
+
+<option>Visiting</option>
+
+</select>
+
+</div>
+
+
+
+{/* table */}
+
+<table className="w-full">
+
+<thead className="bg-[#eff4ff] text-xs uppercase text-[#6b7280]">
+
+<tr>
+
+<th className="px-6 py-4">Teacher Name</th>
+
+<th className="px-6 py-4">Subject</th>
+
+<th className="px-6 py-4">Class</th>
+
+<th className="px-6 py-4">Section</th>
+
+<th className="px-6 py-4">Status</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody className="divide-y">
+
+{assignments.map((t,i)=>(
+
+<tr key={i} className="hover:bg-[#f8f9ff]">
+
+<td className="px-6 py-5">
+
+<div className="flex items-center gap-3">
+
+
+<div className={`w-10 h-10 rounded-md flex items-center justify-center font-bold text-sm ${t.color}`}>
+
+{t.initials}
+
+</div>
+
+
+<div>
+
+<p className="font-semibold">
+
+{t.name}
+
+</p>
+
+<p className="text-xs text-[#6b7280]">
+
+{t.email}
+
+</p>
+
+</div>
+
+
+</div>
+
+</td>
+
+
+
+<td className="px-6 py-5">
+
+<span className={`px-3 py-1 rounded-full text-xs font-semibold ${t.subjectColor}`}>
+
+{t.subject}
+
+</span>
+
+</td>
+
+
+
+<td className="px-6 py-5 font-medium">
+
+{t.class}
+
+</td>
+
+
+
+<td className="px-6 py-5 text-[#6b7280]">
+
+{t.section}
+
+</td>
+
+
+
+<td className="px-6 py-5">
+
+<span className={`text-xs font-semibold flex items-center gap-1 ${
+t.status==="Assigned"
+?"text-green-600"
+:"text-orange-600"
+}`}>
+
+<span className="w-1.5 h-1.5 bg-current rounded-full"></span>
+
+{t.status}
+
+</span>
+
+</td>
+
+
+
+<td className="px-6 py-5 text-right">
+
+
+<button className="p-2 hover:bg-[#eff4ff] rounded">
+
+<span className="material-symbols-outlined text-sm">
+
+edit
+
+</span>
+
+</button>
+
+
+<button className="p-2 hover:bg-[#ffdad6] rounded">
+
+<span className="material-symbols-outlined text-sm text-red-500">
+
+delete
+
+</span>
+
+</button>
+
+
+</td>
+
+</tr>
+
+))}
+
+</tbody>
+
+</table>
+
+
+
+{/* pagination */}
+
+<div className="flex justify-between items-center p-4 border-t bg-[#f8f9ff]">
+
+
+<p className="text-sm text-[#6b7280]">
+
+Showing 4 of 42 assignments
+
+</p>
+
+
+<div className="flex gap-2">
+
+
+<button className="w-10 h-10 flex items-center justify-center border rounded-md">
+
+<span className="material-symbols-outlined">
+chevron_left
+</span>
+
+</button>
+
+
+<span className="w-10 h-10 flex items-center justify-center bg-[#0058be] text-white rounded-md font-bold">
+
+1
+
+</span>
+
+
+<span className="w-10 h-10 flex items-center justify-center border rounded-md">
+
+2
+
+</span>
+
+
+<span className="w-10 h-10 flex items-center justify-center border rounded-md">
+
+3
+
+</span>
+
+
+<button className="w-10 h-10 flex items-center justify-center border rounded-md">
+
+<span className="material-symbols-outlined">
+chevron_right
+</span>
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+{/* insight section */}
+
+<div className="mt-12 grid lg:grid-cols-3 gap-8">
+
+
+{/* intelligent suggestion */}
+
+<div className="lg:col-span-2 relative overflow-hidden rounded-xl p-8 bg-gradient-to-br from-[#f2edff] to-[#f8f9ff]">
+
+{/* label */}
+
+<div className="flex items-center gap-2 text-[#6b38d4] mb-4">
+
+<span className="material-symbols-outlined">
+auto_awesome
+</span>
+
+<span className="text-xs font-bold tracking-widest uppercase">
+Intelligent Suggestions
+</span>
+
+</div>
+
+
+<h3 className="text-2xl font-bold text-[#0b1c30] mb-4">
+
+Optimized Schedule Found
+
+</h3>
+
+
+<p className="text-[#424754] max-w-xl mb-6 leading-relaxed">
+
+Based on past performance and availability, we suggest assigning
+
+<span className="text-[#0058be] font-semibold"> David Ross </span>
+
+to the upcoming Web Development elective. This would resolve the conflict in Grade 11-B.
+
+</p>
+
+
+<div className="flex gap-4">
+
+<button className="px-6 py-2.5 bg-[#6b38d4] text-white rounded-md font-semibold shadow-sm hover:opacity-95">
+
+Review Changes
+
+</button>
+
+
+<button className="px-6 py-2.5 border border-[#6b38d4]/30 text-[#6b38d4] rounded-md font-semibold bg-white">
+
+Dismiss
+
+</button>
+
+</div>
+
+
+{/* decorative bulb */}
+
+<div className="absolute right-10 bottom-6 opacity-10">
+
+<span className="material-symbols-outlined text-[150px] text-[#6b38d4]">
+
+lightbulb
+
+</span>
+
+</div>
+
+</div>
+
+
+
+{/* upcoming gaps */}
+
+<div className="bg-[#eff4ff] p-8 rounded-xl">
+
+<h4 className="font-semibold text-[#0b1c30] mb-6">
+
+Upcoming Gaps
+
+</h4>
+
+
+<div className="space-y-5">
+
+
+<div className="flex gap-3">
+
+<div className="w-1.5 rounded-full bg-red-600"></div>
+
+
+<div>
+
+<p className="font-semibold text-[#0b1c30]">
+
+Biology - Grade 11
+
+</p>
+
+<p className="text-sm text-[#6b7280]">
+
+Vacancy starting next week
+
+</p>
+
+</div>
+
+
+</div>
+
+
+
+<div className="flex gap-3">
+
+<div className="w-1.5 rounded-full bg-[#924700]"></div>
+
+
+<div>
+
+<p className="font-semibold text-[#0b1c30]">
+
+History - Grade 10
+
+</p>
+
+<p className="text-sm text-[#6b7280]">
+
+Teacher on medical leave
+
+</p>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+<button className="mt-8 flex items-center gap-1 text-[#0058be] font-semibold">
+
+View Staffing Report
+
+<span className="material-symbols-outlined text-sm">
+
+arrow_forward
+
+</span>
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: AddTeacher.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+
+export default function AddTeacher(){
+
+const navigate = useNavigate();
+
+const [subjects,setSubjects] = useState(["Mathematics","Advanced Physics"]);
+
+const removeSubject=(s)=>{
+setSubjects(subjects.filter(x=>x!==s));
+};
+
+const handleSave=(e)=>{
+e.preventDefault();
+
+alert("Teacher profile created successfully");
+
+navigate("/school-admin/teachers");
+};
+
+return(
+
+<SchoolLayout title="Teachers">
+
+<div className="max-w-5xl mx-auto">
+
+{/* breadcrumb + go back */}
+
+<div className="flex justify-between items-center mb-8">
+
+<div className="flex items-center gap-2 text-xs text-[#6b7280]">
+
+<span>Dashboard</span>
+
+<span className="material-symbols-outlined text-[12px]">
+chevron_right
+</span>
+
+<span>Users</span>
+
+<span className="material-symbols-outlined text-[12px]">
+chevron_right
+</span>
+
+<span>Teachers</span>
+
+<span className="material-symbols-outlined text-[12px]">
+chevron_right
+</span>
+
+<span className="text-[#0058be] font-semibold">
+Add Teacher
+</span>
+
+</div>
+
+
+<button
+onClick={()=>navigate("/school-admin/teachers")}
+className="flex items-center gap-2 px-4 py-2 text-[#0058be] font-semibold hover:bg-[#eff4ff] rounded-md">
+
+<span className="material-symbols-outlined">
+arrow_back
+</span>
+
+Go Back
+
+</button>
+
+</div>
+
+
+
+{/* heading */}
+
+<div className="mb-10">
+
+<h1 className="text-4xl font-bold mb-2">
+
+Onboard New Faculty
+
+</h1>
+
+<p className="text-[#6b7280]">
+
+Register a new educator into the academic system with departmental privileges.
+
+</p>
+
+</div>
+
+
+
+<form onSubmit={handleSave}>
+
+<div className="grid lg:grid-cols-12 gap-6">
+
+{/* LEFT COLUMN */}
+
+<div className="lg:col-span-4 space-y-6">
+
+
+{/* photo */}
+
+<div className="bg-white p-8 rounded-xl border border-[#e5eeff] text-center">
+
+<div className="relative">
+
+<div className="w-44 h-44 rounded-full mx-auto border-4 border-dashed border-[#c2c6d6] flex items-center justify-center bg-[#eff4ff]">
+
+<span className="material-symbols-outlined text-5xl text-[#727785]">
+add_a_photo
+</span>
+
+</div>
+
+
+<button
+type="button"
+className="absolute bottom-2 right-6 bg-[#0058be] text-white p-3 rounded-full shadow-lg">
+
+<span className="material-symbols-outlined">
+edit
+</span>
+
+</button>
+
+</div>
+
+
+<h3 className="font-semibold mt-4">
+
+Teacher Photo
+
+</h3>
+
+
+<p className="text-xs text-[#6b7280] mt-2">
+
+Upload a high-resolution professional portrait for the faculty portal.
+
+</p>
+
+</div>
+
+
+
+{/* AI card */}
+
+<div className="bg-gradient-to-br from-[#0058be] to-[#2170e4] p-8 rounded-xl text-white relative overflow-hidden">
+
+<span className="material-symbols-outlined text-4xl mb-8">
+auto_awesome
+</span>
+
+
+<h3 className="text-xl font-bold mb-2">
+
+Intelligent Mapping
+
+</h3>
+
+
+<p className="text-sm opacity-90">
+
+Our system automatically suggests class assignments based on teacher qualifications and existing gaps.
+
+</p>
+
+</div>
+
+
+</div>
+
+
+
+{/* RIGHT COLUMN */}
+
+<div className="lg:col-span-8 space-y-6">
+
+
+{/* basic */}
+
+<div className="bg-white p-8 rounded-xl border border-[#e5eeff]">
+
+<div className="flex items-center gap-3 mb-8">
+
+<div className="w-10 h-10 rounded-md bg-[#eff4ff] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#0058be]">
+
+badge
+
+</span>
+
+</div>
+
+
+<h2 className="text-xl font-semibold">
+
+Basic Information
+
+</h2>
+
+</div>
+
+
+
+<div className="grid md:grid-cols-2 gap-6">
+
+<div className="space-y-2">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Full Name
+
+</label>
+
+<input
+placeholder="Dr. Sarah Jenkins"
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+<div className="space-y-2">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Professional Email
+
+</label>
+
+<input
+placeholder="s.jenkins@academy.edu"
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+<div className="space-y-2">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Phone Number
+
+</label>
+
+<input
+placeholder="+1 (555) 000-0000"
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+<div className="space-y-2">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Highest Qualification
+
+</label>
+
+<select className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none">
+
+<option>Select Qualification</option>
+<option>PhD</option>
+<option>Masters</option>
+
+</select>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* department */}
+
+<div className="bg-white p-8 rounded-xl border border-[#e5eeff]">
+
+<div className="flex items-center gap-3 mb-8">
+
+<div className="w-10 h-10 rounded-md bg-[#eff4ff] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#0058be]">
+
+account_tree
+
+</span>
+
+</div>
+
+
+<h2 className="text-xl font-semibold">
+
+Department & Allocation
+
+</h2>
+
+</div>
+
+
+
+{/* subjects */}
+
+<div className="space-y-3 mb-8">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Subject Expertise
+
+</label>
+
+
+<div className="flex flex-wrap gap-2 p-3 bg-[#eff4ff] rounded-md">
+
+{subjects.map(s=>(
+
+<span
+key={s}
+className="flex items-center gap-2 px-3 py-1 bg-white text-[#0058be] text-sm font-semibold rounded-full shadow-sm">
+
+{s}
+
+<button
+type="button"
+onClick={()=>removeSubject(s)}
+>
+
+<span className="material-symbols-outlined text-[16px] text-red-500">
+
+close
+
+</span>
+
+</button>
+
+</span>
+
+))}
+
+
+<button
+type="button"
+className="text-[#2170e4] font-semibold flex items-center gap-1">
+
+<span className="material-symbols-outlined text-sm">
+add
+</span>
+
+Add Subject
+
+</button>
+
+</div>
+
+</div>
+
+
+
+{/* classes */}
+
+<div className="space-y-3">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Assigned Classes
+
+</label>
+
+
+<div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+{["Grade 10A","Grade 11C","Grade 12B","Grade 9D"].map(c=>(
+
+<label
+key={c}
+className="flex items-center gap-3 p-4 bg-[#eff4ff] rounded-md cursor-pointer hover:bg-[#e5eeff]">
+
+<input type="checkbox" defaultChecked={c==="Grade 10A" || c==="Grade 11C"} />
+
+<span className="text-sm font-medium">
+
+{c}
+
+</span>
+
+</label>
+
+))}
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* footer buttons */}
+
+<div className="flex justify-end gap-4 pt-4">
+
+<button
+type="button"
+onClick={()=>navigate("/school-admin/teachers")}
+className="px-8 py-3 font-semibold text-[#6b7280] hover:bg-[#eff4ff] rounded-md">
+
+Cancel
+
+</button>
+
+
+<button
+type="submit"
+className="px-10 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-bold rounded-md shadow-lg shadow-[#0058be]/20">
+
+Save Teacher Profile
+
+</button>
+
+</div>
+
+
+</div>
+
+</div>
+
+</form>
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: AddParent.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+
+export default function AddParent(){
+
+const navigate = useNavigate();
+
+const [form,setForm]=useState({
+name:"",
+relation:"Father",
+email:"",
+phone:"",
+address:""
+});
+
+const handleChange=(e)=>{
+setForm({...form,[e.target.name]:e.target.value});
+};
+
+const handleSave=(e)=>{
+e.preventDefault();
+
+alert("Parent profile created successfully");
+
+navigate("/school-admin/parents");
+};
+
+return(
+
+<SchoolLayout title="Parents">
+
+<div className="max-w-6xl mx-auto space-y-10">
+
+
+{/* breadcrumb */}
+
+<div className="flex justify-between items-center">
+
+<div className="flex items-center gap-3 text-sm text-[#6b7280]">
+
+<span className="cursor-pointer hover:text-[#0058be]">
+Dashboard
+</span>
+
+<span className="material-symbols-outlined text-[16px]">
+chevron_right
+</span>
+
+<span>
+Users
+</span>
+
+<span className="material-symbols-outlined text-[16px]">
+chevron_right
+</span>
+
+<span
+onClick={()=>navigate("/school-admin/parents")}
+className="cursor-pointer hover:text-[#0058be]">
+
+Parents
+
+</span>
+
+<span className="material-symbols-outlined text-[16px]">
+chevron_right
+</span>
+
+<span className="text-[#0058be] font-semibold">
+Add Parent
+</span>
+
+</div>
+
+
+<button
+onClick={()=>navigate("/school-admin/parents")}
+className="flex items-center gap-2 px-4 py-2 text-[#0058be] font-semibold hover:bg-[#eff4ff] rounded-md transition">
+
+<span className="material-symbols-outlined">
+arrow_back
+</span>
+
+Go Back
+
+</button>
+
+</div>
+
+
+
+{/* heading */}
+
+<div>
+
+<h1 className="text-4xl font-bold">
+
+Register New Parent
+
+</h1>
+
+<p className="text-[#6b7280] mt-2 text-lg">
+
+Onboard a new guardian to the institutional ecosystem.
+
+</p>
+
+</div>
+
+
+
+<form onSubmit={handleSave}>
+
+<div className="grid lg:grid-cols-12 gap-8">
+
+
+{/* LEFT COLUMN */}
+
+<div className="lg:col-span-4 space-y-8">
+
+
+{/* photo */}
+
+<div className="bg-white p-8 rounded-xl border border-[#e5eeff] shadow-sm text-center">
+
+<div className="relative group">
+
+<div className="w-48 h-48 rounded-full bg-[#eff4ff] border-4 border-dashed border-[#c2c6d6] flex items-center justify-center mx-auto">
+
+<span className="material-symbols-outlined text-5xl text-[#727785]">
+add_a_photo
+</span>
+
+</div>
+
+
+<button
+type="button"
+className="absolute bottom-3 right-6 w-12 h-12 bg-[#0058be] text-white rounded-full flex items-center justify-center shadow-lg">
+
+<span className="material-symbols-outlined">
+edit
+</span>
+
+</button>
+
+</div>
+
+
+<h3 className="font-semibold mt-4">
+
+Profile Photo
+
+</h3>
+
+<p className="text-sm text-[#6b7280] mt-1">
+
+Upload a high-resolution portrait for identification.
+
+</p>
+
+</div>
+
+
+
+{/* info card */}
+
+<div className="bg-[#d8e2ff]/40 p-6 rounded-xl border border-[#0058be]/10 flex gap-4">
+
+<span className="material-symbols-outlined text-[#0058be]">
+
+info
+
+</span>
+
+<p className="text-sm text-[#0b1c30]">
+
+Adding accurate photo enables automated pickup verification.
+
+</p>
+
+</div>
+
+</div>
+
+
+
+{/* RIGHT COLUMN */}
+
+<div className="lg:col-span-8 space-y-10">
+
+
+<div className="bg-white p-8 rounded-xl border border-[#e5eeff] shadow-sm space-y-10">
+
+
+{/* personal */}
+
+<div className="space-y-6">
+
+<div className="flex items-center gap-3">
+
+<div className="w-8 h-8 bg-[#eff4ff] rounded-md flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#0058be]">
+
+person
+
+</span>
+
+</div>
+
+<h2 className="text-xl font-semibold">
+
+Personal Identification
+
+</h2>
+
+</div>
+
+
+<div className="grid md:grid-cols-2 gap-6">
+
+
+<div className="flex flex-col gap-2">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Parent Full Name
+
+</label>
+
+<input
+name="name"
+onChange={handleChange}
+placeholder="Jonathan Aris"
+className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+<div className="flex flex-col gap-2">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Relationship
+
+</label>
+
+<select
+name="relation"
+onChange={handleChange}
+className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none">
+
+<option>Father</option>
+<option>Mother</option>
+<option>Guardian</option>
+
+</select>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+
+{/* contact */}
+
+<div className="space-y-6">
+
+<div className="flex items-center gap-3">
+
+<div className="w-8 h-8 bg-[#eff4ff] rounded-md flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#0058be]">
+
+contact_mail
+
+</span>
+
+</div>
+
+<h2 className="text-xl font-semibold">
+
+Contact Architecture
+
+</h2>
+
+</div>
+
+
+<div className="grid md:grid-cols-2 gap-6">
+
+
+<div className="flex flex-col gap-2">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Email Address
+
+</label>
+
+
+<div className="relative">
+
+<span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280]">
+
+alternate_email
+
+</span>
+
+<input
+name="email"
+onChange={handleChange}
+placeholder="j.aris@email.com"
+className="w-full bg-[#eff4ff] pl-10 pr-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+</div>
+
+
+<div className="flex flex-col gap-2">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Phone Number
+
+</label>
+
+
+<div className="relative">
+
+<span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280]">
+
+call
+
+</span>
+
+<input
+name="phone"
+onChange={handleChange}
+placeholder="+1 (555) 000-0000"
+className="w-full bg-[#eff4ff] pl-10 pr-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+</div>
+
+
+<div className="md:col-span-2 flex flex-col gap-2">
+
+<label className="text-xs font-semibold uppercase text-[#6b7280]">
+
+Physical Address
+
+</label>
+
+
+<div className="relative">
+
+<span className="material-symbols-outlined absolute left-3 top-3 text-[#6b7280]">
+
+location_on
+
+</span>
+
+<textarea
+name="address"
+onChange={handleChange}
+rows="3"
+placeholder="Street, City, Zip"
+className="w-full bg-[#eff4ff] pl-10 pr-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+
+{/* buttons */}
+
+<div className="flex justify-end gap-4 pt-6 border-t">
+
+<button
+type="button"
+onClick={()=>navigate("/school-admin/parents")}
+className="px-8 py-3 font-semibold text-[#6b7280] hover:bg-[#eff4ff] rounded-md">
+
+Cancel
+
+</button>
+
+
+<button
+type="submit"
+className="px-10 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-bold rounded-md shadow-lg flex items-center gap-2">
+
+<span className="material-symbols-outlined">
+
+save
+
+</span>
+
+Save Parent Profile
+
+</button>
+
+</div>
+
+
+</div>
+
+
+
+{/* bottom cards */}
+
+<div className="grid md:grid-cols-2 gap-6">
+
+
+<div className="bg-[#eff4ff] p-6 rounded-lg border border-[#0058be]/10">
+
+<h4 className="font-semibold text-[#0058be] flex items-center gap-2">
+
+<span className="material-symbols-outlined">
+family_history
+</span>
+
+Linked Students
+
+</h4>
+
+<p className="text-sm text-[#6b7280] mt-2">
+
+After saving, parent can be mapped to students.
+
+</p>
+
+</div>
+
+
+
+<div className="bg-[#eff4ff] p-6 rounded-lg border border-[#0058be]/10">
+
+<h4 className="font-semibold text-[#0058be] flex items-center gap-2">
+
+<span className="material-symbols-outlined">
+notifications_active
+</span>
+
+Communication Preferences
+
+</h4>
+
+<p className="text-sm text-[#6b7280] mt-2">
+
+Email & SMS alerts enabled by default.
+
+</p>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+</div>
+
+</form>
+
+
+
+{/* floating draft indicator */}
+
+<div className="fixed bottom-8 right-8 bg-white px-6 py-4 rounded-full shadow-xl flex items-center gap-3">
+
+<div className="w-2 h-2 bg-[#6b38d4] rounded-full animate-pulse"></div>
+
+<p className="text-sm">
+
+Draft Profile Created:
+<span className="font-semibold text-[#6b38d4] ml-1">
+
+Unsaved
+
+</span>
+
+</p>
+
+</div>
+
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: RolesPermissions.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+
+export default function RolesPermissions(){
+
+const navigate = useNavigate();
+
+return(
+
+<SchoolLayout title="Roles & Permissions">
+
+<div className="pt-6">
+
+{/* summary */}
+
+<div className="grid md:grid-cols-4 gap-6 mb-10">
+
+<div className="bg-white p-6 rounded-lg">
+<p className="text-xs font-semibold text-gray-500 uppercase">
+Total Roles
+</p>
+
+<h3 className="text-3xl font-bold text-[#0058be]">
+12
+</h3>
+</div>
+
+
+<div className="bg-white p-6 rounded-lg border-l-4 border-[#6b38d4]">
+
+<p className="text-xs font-semibold text-gray-500 uppercase">
+Assigned Users
+</p>
+
+<h3 className="text-3xl font-bold">
+1,402
+</h3>
+
+</div>
+
+
+<div className="bg-white p-6 rounded-lg">
+
+<p className="text-xs font-semibold text-gray-500 uppercase">
+Pending Approvals
+</p>
+
+<h3 className="text-3xl font-bold text-[#924700]">
+0
+</h3>
+
+</div>
+
+
+<div className="flex justify-end items-center">
+
+<button
+onClick={()=>navigate("/school-admin/create-role")}
+className="px-6 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white rounded-md font-semibold flex gap-2 items-center shadow-lg"
+>
+
+<span className="material-symbols-outlined">
+add
+</span>
+
+Create Role
+
+</button>
+
+</div>
+
+</div>
+
+
+
+{/* table */}
+
+<div className="bg-white rounded-xl shadow-sm overflow-hidden">
+
+{/* search */}
+
+<div className="p-6 flex justify-between items-center">
+
+<div className="relative w-80">
+
+<span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+
+search
+
+</span>
+
+<input
+placeholder="Search roles..."
+className="w-full bg-[#eff4ff] rounded-md pl-10 pr-4 py-2 outline-none"
+/>
+
+</div>
+
+
+<div className="flex gap-3">
+
+<button className="flex items-center gap-2 px-4 py-2 hover:bg-[#eff4ff] rounded-md">
+
+<span className="material-symbols-outlined text-sm">
+filter_list
+</span>
+
+Filter
+
+</button>
+
+
+<button className="flex items-center gap-2 px-4 py-2 hover:bg-[#eff4ff] rounded-md">
+
+<span className="material-symbols-outlined text-sm">
+download
+</span>
+
+Export
+
+</button>
+
+</div>
+
+</div>
+
+
+
+{/* table */}
+
+<table className="w-full text-left">
+
+<thead className="bg-[#eff4ff] text-xs uppercase text-gray-500">
+
+<tr>
+
+<th className="px-6 py-4">
+Role Name
+</th>
+
+<th className="text-center">
+Users
+</th>
+
+<th>
+Description
+</th>
+
+<th>
+Status
+</th>
+
+<th className="text-right pr-6">
+Action
+</th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody className="divide-y">
+
+
+{/* row */}
+
+{[
+{
+name:"Super Admin",
+icon:"admin_panel_settings",
+users:3,
+desc:"Full system access",
+color:"#0058be"
+},
+
+{
+name:"Teacher",
+icon:"school",
+users:142,
+desc:"Manage classrooms",
+color:"#6b38d4"
+},
+
+{
+name:"Librarian",
+icon:"menu_book",
+users:4,
+desc:"Manage books",
+color:"#924700"
+},
+
+{
+name:"Registrar",
+icon:"how_to_reg",
+users:8,
+desc:"Enrollment records",
+color:"#0058be"
+},
+
+{
+name:"Content Editor",
+icon:"edit_note",
+users:0,
+desc:"Portal content",
+color:"#727785",
+draft:true
+}
+
+].map((r,i)=>(
+
+<tr key={i} className="hover:bg-[#f8f9ff]">
+
+<td className="px-6 py-5">
+
+<div className="flex items-center gap-3">
+
+<div
+className="w-10 h-10 rounded-md flex items-center justify-center"
+style={{background:`${r.color}22`}}
+>
+
+<span
+className="material-symbols-outlined"
+style={{color:r.color}}
+>
+
+{r.icon}
+
+</span>
+
+</div>
+
+
+<span className="font-semibold">
+{r.name}
+</span>
+
+</div>
+
+</td>
+
+
+<td className="text-center">
+
+<span className="px-3 py-1 bg-[#eff4ff] rounded-full text-sm">
+
+{r.users}
+
+</span>
+
+</td>
+
+
+<td className="text-sm text-gray-500">
+{r.desc}
+</td>
+
+
+<td>
+
+<span className={`px-3 py-1 rounded-full text-xs font-semibold
+
+${r.draft
+?"bg-gray-200 text-gray-600"
+:"bg-green-100 text-green-700"}`}>
+
+{r.draft?"Draft":"Active"}
+
+</span>
+
+</td>
+
+
+<td className="text-right pr-6">
+
+<button className="p-2 hover:bg-[#eff4ff] rounded-full">
+
+<span className="material-symbols-outlined">
+more_vert
+</span>
+
+</button>
+
+</td>
+
+</tr>
+
+))}
+
+</tbody>
+
+</table>
+
+
+
+{/* pagination */}
+
+<div className="px-6 py-4 flex justify-between bg-[#f8f9ff]">
+
+<p className="text-sm text-gray-500">
+
+Showing 5 of 12 roles
+
+</p>
+
+
+<div className="flex items-center gap-2">
+
+<button className="p-2 rounded-md hover:bg-white">
+
+<span className="material-symbols-outlined">
+chevron_left
+</span>
+
+</button>
+
+
+<span className="px-4 py-1 bg-[#0058be] text-white rounded-md text-sm">
+
+1
+
+</span>
+
+
+<button className="px-3 py-1 hover:bg-white rounded-md">
+
+2
+
+</button>
+
+
+<button className="p-2 rounded-md hover:bg-white">
+
+<span className="material-symbols-outlined">
+chevron_right
+</span>
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* insights */}
+
+<div className="grid lg:grid-cols-3 gap-8 mt-10">
+
+
+<div className="lg:col-span-2 bg-[#e5eeff] p-8 rounded-xl">
+
+<h3 className="text-xl font-bold mb-4">
+
+Security Insights
+
+</h3>
+
+<p className="text-sm text-gray-600 mb-6">
+
+We detected that Librarian roles currently have access to Student Health Records. It is recommended to restrict this permission to comply with standard privacy policies.
+
+</p>
+
+
+<button className="px-5 py-2 bg-white rounded-md text-[#0058be] font-semibold">
+
+Review Policy
+
+</button>
+
+</div>
+
+
+
+<div className="bg-[#e9ddff] p-8 rounded-xl">
+
+<h3 className="text-xl font-bold mb-4">
+
+Role Audit
+
+</h3>
+
+<p className="text-sm">
+
+Last global permission audit completed on October 24, 2023. Next scheduled audit in 14 days.
+
+</p>
+
+</div>
+
+
+</div>
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: Dashboard.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+export default function Dashboard(){
+const navigate = useNavigate();
+return(
+
+<SchoolLayout>
+
+{/* title */}
+
+<div className="flex justify-between items-end mb-8">
+
+<div>
+
+<h2 className="text-3xl font-bold tracking-tight">
+Academic Overview
+</h2>
+
+<p className="text-[#6b7280] mt-1">
+Welcome back, Administrator. Here's what's happening today.
+</p>
+
+</div>
+
+<button
+onClick={() => navigate("/school-admin/create-class")}
+className="px-5 py-2.5 bg-[#dce9ff] text-[#0058be] font-semibold rounded-md shadow-sm hover:bg-[#cfe0ff] transition"
+>
+
+Create Class
+
+</button>
+
+</div>
+
+
+
+{/* stat cards */}
+
+<div className="grid grid-cols-5 gap-6 mb-10">
+
+{/* students */}
+
+<div className="bg-white p-6 rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.04)] border-l-4 border-[#0058be]">
+
+<div className="flex justify-between mb-4">
+
+<div className="p-2 bg-[#d8e2ff] rounded-md">
+
+<span className="material-symbols-outlined text-[#0058be]">
+school
+</span>
+
+</div>
+
+<span className="text-xs font-semibold bg-[#d8e2ff] px-1 py-1 rounded-semi">
++4%
+</span>
+
+</div>
+
+<p className="text-sm text-[#6b7280]">
+Total Students
+</p>
+
+<h3 className="text-3xl font-bold">
+1,284
+</h3>
+
+</div>
+
+
+
+{/* teachers */}
+
+<div className="bg-white p-6 rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.04)] border-l-4 border-[#6b38d4]">
+
+<div className="flex justify-between mb-4">
+
+<div className="p-2 bg-[#e9ddff] rounded-md">
+
+<span className="material-symbols-outlined text-[#6b38d4]">
+supervisor_account
+</span>
+
+</div>
+
+<span className="text-xs font-semibold bg-[#e9ddff] px-1 py-1 rounded-semi">
+Stable
+</span>
+
+</div>
+
+<p className="text-sm text-[#6b7280]">
+Total Teachers
+</p>
+
+<h3 className="text-3xl font-bold">
+86
+</h3>
+
+</div>
+
+
+
+{/* classes */}
+
+<div className="bg-white p-6 rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.04)] border-l-4 border-[#924700]">
+
+<div className="p-2 bg-[#ffdcc6] rounded-md mb-4 w-fit">
+
+<span className="material-symbols-outlined text-[#924700]">
+meeting_room
+</span>
+
+</div>
+
+<p className="text-sm text-[#6b7280]">
+Total Classes
+</p>
+
+<h3 className="text-3xl font-bold">
+42
+</h3>
+
+</div>
+
+
+
+{/* year */}
+
+<div className="bg-white p-6 rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.04)] border-l-4 border-[#c2c6d6]">
+
+<div className="p-2 bg-[#e5eeff] rounded-md mb-4 w-fit">
+
+<span className="material-symbols-outlined text-[#727785]">
+calendar_today
+</span>
+
+</div>
+
+<p className="text-sm text-[#6b7280]">
+Active Year
+</p>
+
+<h3 className="text-3xl font-bold">
+2024-25
+</h3>
+
+</div>
+
+
+
+{/* attendance */}
+
+<div className="bg-white p-6 rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.04)] border-l-4 border-[#ba1a1a]">
+
+<div className="flex justify-between mb-4">
+
+<div className="p-2 bg-[#ffdad6] rounded-md">
+
+<span className="material-symbols-outlined text-[#ba1a1a]">
+how_to_reg
+</span>
+
+</div>
+
+<span className="text-xs font-semibold bg-[#ffdad6] px-1 py-1 rounded-semi">
+-0.2%
+</span>
+
+</div>
+
+<p className="text-sm text-[#6b7280]">
+Attendance
+</p>
+
+<h3 className="text-3xl font-bold">
+94.8%
+</h3>
+
+</div>
+
+</div>
+
+
+
+{/* charts */}
+
+{/* charts */}
+<div className="grid grid-cols-3 gap-8 mb-10">
+
+{/* enrollment chart */}
+
+<div className="col-span-2 bg-white p-8 rounded-lg shadow-[0_12px_32px_rgba(11,28,48,0.06)]">
+
+<div className="flex justify-between items-center mb-8">
+
+<div>
+
+<h3 className="text-xl font-semibold">
+Enrollment Growth
+</h3>
+
+<p className="text-sm text-[#6b7280]">
+Annual student registration trends
+</p>
+
+</div>
+
+<span className="text-xs font-semibold bg-[#eff4ff] px-3 py-1 rounded-md">
+Last 6 Months
+</span>
+
+</div>
+
+
+<div className="flex items-end gap-6 h-64 px-2">
+
+{[
+{h:"h-28",m:"SEP"},
+{h:"h-40",m:"OCT"},
+{h:"h-64",m:"NOV",active:true},
+{h:"h-36",m:"DEC"},
+{h:"h-48",m:"JAN"},
+{h:"h-52",m:"FEB"}
+].map((b,i)=>(
+
+<div key={i} className="flex flex-col items-center gap-2 w-full">
+
+<div
+className={`${b.active
+?"bg-[#0058be] shadow-lg shadow-[#0058be]/20"
+:"bg-[#d3e4fe] hover:bg-[#0058be]"}
+w-full ${b.h} rounded-t-sm transition`}
+></div>
+
+<span className={`text-[11px] font-semibold
+${b.active?"text-[#0058be]":"text-[#727785]"}`}>
+
+{b.m}
+
+</span>
+
+</div>
+
+))}
+
+</div>
+
+</div>
+
+
+
+{/* attendance */}
+
+<div className="bg-white p-8 rounded-lg shadow-[0_12px_32px_rgba(11,28,48,0.06)]">
+
+<h3 className="text-xl font-semibold mb-1">
+Attendance Trend
+</h3>
+
+<p className="text-sm text-[#6b7280] mb-8">
+Weekly average engagement
+</p>
+
+
+<div className="relative flex items-center justify-center">
+
+<svg className="w-44 h-44 -rotate-90">
+
+<circle
+cx="88"
+cy="88"
+r="70"
+stroke="#e5eeff"
+strokeWidth="12"
+fill="none"
+/>
+
+<circle
+cx="88"
+cy="88"
+r="70"
+stroke="#6b38d4"
+strokeWidth="12"
+fill="none"
+strokeDasharray="440"
+strokeDashoffset="44"
+strokeLinecap="round"
+/>
+
+</svg>
+
+
+<div className="absolute text-center">
+
+<h3 className="text-3xl font-bold">
+94.8%
+</h3>
+
+<p className="text-[11px] tracking-widest text-[#6b38d4] font-semibold">
+EXCELLENT
+</p>
+
+</div>
+
+</div>
+
+
+
+<div className="mt-8 space-y-3 text-sm">
+
+<div className="flex justify-between">
+
+<p className="flex items-center gap-2 text-[#6b7280]">
+
+<span className="w-2 h-2 rounded-full bg-[#6b38d4]"></span>
+
+Present
+
+</p>
+
+<p className="font-semibold">
+1,217
+</p>
+
+</div>
+
+
+<div className="flex justify-between">
+
+<p className="flex items-center gap-2 text-[#6b7280]">
+
+<span className="w-2 h-2 rounded-full bg-[#d3e4fe]"></span>
+
+Absent
+
+</p>
+
+<p className="font-semibold">
+67
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* activity */}
+
+{/* activity */}
+
+<div className="bg-white rounded-lg shadow-[0_12px_32px_rgba(11,28,48,0.06)] overflow-hidden">
+
+<div className="px-8 py-6 flex justify-between items-center bg-[#f1f5ff]">
+
+<h3 className="text-xl font-semibold">
+Recent Activity
+</h3>
+
+<button className="text-[#0058be] font-semibold">
+View All Logs
+</button>
+
+</div>
+
+
+
+<div className="divide-y">
+
+
+{/* item */}
+
+<div className="px-8 py-5 flex justify-between items-center hover:bg-[#f8f9ff]">
+
+<div className="flex gap-4 items-center">
+
+<div className="w-10 h-10 rounded-full bg-[#d8e2ff] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#0058be]">
+
+person_add
+
+</span>
+
+</div>
+
+<div>
+
+<p className="text-sm font-semibold">
+
+<span className="text-[#0058be]">
+Sarah Jenkins
+</span>
+
+was added as a new Student
+
+</p>
+
+<p className="text-xs text-[#6b7280]">
+Class 10-B • 2 hours ago
+</p>
+
+</div>
+
+</div>
+
+<span className="text-xs text-[#727785]">
+ID: #ST-9024
+</span>
+
+</div>
+
+
+
+{/* item */}
+
+<div className="px-8 py-5 flex justify-between items-center hover:bg-[#f8f9ff]">
+
+<div className="flex gap-4 items-center">
+
+<div className="w-10 h-10 rounded-full bg-[#e9ddff] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#6b38d4]">
+
+assignment_ind
+
+</span>
+
+</div>
+
+<div>
+
+<p className="text-sm font-semibold">
+
+<span className="text-[#6b38d4]">
+Dr. Robert Miller
+</span>
+
+was assigned to Physics Dept.
+
+</p>
+
+<p className="text-xs text-[#6b7280]">
+Senior Faculty • 5 hours ago
+</p>
+
+</div>
+
+</div>
+
+<span className="text-xs text-[#727785]">
+ID: #TR-4412
+</span>
+
+</div>
+
+
+
+{/* item */}
+
+<div className="px-8 py-5 flex justify-between items-center hover:bg-[#f8f9ff]">
+
+<div className="flex gap-4 items-center">
+
+<div className="w-10 h-10 rounded-full bg-[#ffdcc6] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#924700]">
+
+description
+
+</span>
+
+</div>
+
+<div>
+
+<p className="text-sm font-semibold">
+
+New Enrollment:
+
+<span className="text-[#924700]">
+International Baccalaureate
+</span>
+
+</p>
+
+<p className="text-xs text-[#6b7280]">
+Curriculum Update • Yesterday
+</p>
+
+</div>
+
+</div>
+
+<span className="text-xs text-[#727785]">
+CONF: #AC-2291
+</span>
+
+</div>
+
+
+
+{/* item */}
+
+<div className="px-8 py-5 flex justify-between items-center hover:bg-[#f8f9ff]">
+
+<div className="flex gap-4 items-center">
+
+<div className="w-10 h-10 rounded-full bg-[#ffdad6] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#ba1a1a]">
+
+warning
+
+</span>
+
+</div>
+
+<div>
+
+<p className="text-sm font-semibold">
+
+Absence Alert:
+
+<span className="text-[#ba1a1a]">
+High Rate in Class 8-A
+</span>
+
+</p>
+
+<p className="text-xs text-[#6b7280]">
+Automated Report • Yesterday
+</p>
+
+</div>
+
+</div>
+
+<span className="text-xs text-[#ba1a1a] font-semibold">
+URGENT
+</span>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+
+{/* floating button */}
+
+<div className="fixed bottom-8 right-8">
+
+<button className="w-14 h-14 rounded-full bg-[#0058be] text-white text-2xl shadow-[0_12px_30px_rgba(0,88,190,0.35)]">
++
+</button>
+
+</div>
+
+
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: CreateClass.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+export default function CreateClass() {
+const navigate = useNavigate();
+
+const handleSave = (e) => {
+
+e.preventDefault();
+
+alert("Class created successfully");
+
+navigate("/school-admin");
+
+};
+
+return (
+
+<SchoolLayout title="Create Class">
+
+<div className="px-8 py-10 max-w-6xl mx-auto">
+
+<div className="flex flex-col lg:flex-row gap-8">
+
+{/* LEFT SIDE FORM */}
+
+<div className="flex-1 space-y-6">
+
+<div className="bg-white rounded-lg p-8 shadow-sm">
+
+{/* heading */}
+
+<div className="mb-8">
+
+<h3 className="text-2xl font-bold">
+
+Class Details
+
+</h3>
+
+<p className="text-[#6b7280] mt-1">
+
+Establish a new academic division for the current term.
+
+</p>
+
+</div>
+
+
+
+<form className="space-y-8">
+
+{/* class name */}
+
+<div className="space-y-2">
+
+<label className="text-sm font-semibold ml-1">
+
+Class Name
+
+</label>
+
+<input
+placeholder="e.g., Grade 10 - Section A"
+className="w-full bg-[#eff4ff] rounded-md px-4 py-3.5 outline-none focus:ring-2 focus:ring-[#0058be]/20"
+/>
+
+</div>
+
+
+
+{/* teacher */}
+
+<div className="space-y-2">
+
+<label className="text-sm font-semibold ml-1">
+
+Class Teacher
+
+</label>
+
+<div className="relative">
+
+<select
+className="w-full bg-[#eff4ff] rounded-md px-4 py-3.5 outline-none appearance-none">
+
+<option>
+
+Select faculty member
+
+</option>
+
+<option>
+
+Dr. Eleanor Shellstrop
+
+</option>
+
+<option>
+
+Prof. Chidi Anagonye
+
+</option>
+
+<option>
+
+Jason Mendoza
+
+</option>
+
+<option>
+
+Tahani Al-Jamil
+
+</option>
+
+</select>
+
+
+<span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+
+expand_more
+
+</span>
+
+</div>
+
+</div>
+
+
+
+{/* description */}
+
+<div className="space-y-2">
+
+<label className="text-sm font-semibold ml-1">
+
+Description
+
+</label>
+
+<textarea
+rows={5}
+placeholder="Provide class details..."
+className="w-full bg-[#eff4ff] rounded-md px-4 py-3.5 outline-none focus:ring-2 focus:ring-[#0058be]/20"
+/>
+
+</div>
+
+
+
+{/* buttons */}
+
+<div className="flex justify-end gap-4 pt-4">
+
+<button
+type="button"
+onClick={()=>navigate("/school-admin")}
+className="px-6 py-3 rounded-md text-gray-600 hover:bg-[#eff4ff]"
+>
+
+Cancel
+
+</button>
+
+
+<button
+type="submit"
+className="px-8 py-3 bg-[#0058be] text-white rounded-md font-semibold"
+>
+
+Save Class
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+
+
+{/* RIGHT SIDE PANEL */}
+
+<div className="w-full lg:w-80 space-y-6">
+
+{/* tips */}
+
+<div className="bg-[#dce9ff] rounded-lg p-6 relative overflow-hidden">
+
+<h4 className="font-bold text-[#0058be] mb-3 flex items-center gap-2">
+
+<span className="material-symbols-outlined">
+
+lightbulb
+
+</span>
+
+Quick Tips
+
+</h4>
+
+
+<ul className="space-y-4 text-xs text-[#374151]">
+
+<li className="flex gap-3">
+
+<span className="w-1.5 h-1.5 bg-[#0058be] rounded-full mt-2"></span>
+
+<p>
+
+Ensure class naming follows school convention.
+
+</p>
+
+</li>
+
+
+<li className="flex gap-3">
+
+<span className="w-1.5 h-1.5 bg-[#0058be] rounded-full mt-2"></span>
+
+<p>
+
+Assigned teachers get access to student records.
+
+</p>
+
+</li>
+
+</ul>
+
+</div>
+
+
+
+{/* insight */}
+
+<div className="bg-white rounded-lg p-6 shadow-sm border">
+
+<div className="flex justify-between mb-6">
+
+<h4 className="font-bold">
+
+Faculty Availability
+
+</h4>
+
+
+<span className="bg-[#924700] text-white text-[10px] px-2 py-1 rounded-full">
+
+AI Insight
+
+</span>
+
+</div>
+
+
+
+<div className="space-y-4">
+
+<div className="flex items-center gap-4">
+
+<div className="w-8 h-8 rounded-full bg-[#e5eeff] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#0058be]">
+
+person
+
+</span>
+
+</div>
+
+
+
+<div className="flex-1">
+
+<div className="h-1.5 bg-[#e5eeff] rounded-full">
+
+<div className="h-full bg-[#0058be] w-3/4"></div>
+
+</div>
+
+
+<p className="text-[11px] mt-1 text-[#6b7280]">
+
+Faculty Utilization 75%
+
+</p>
+
+</div>
+
+</div>
+
+
+
+<p className="text-[11px] italic border-l-2 border-[#924700] pl-3 text-[#6b7280]">
+
+82% teachers already assigned to classes.
+
+</p>
+
+</div>
+
+</div>
+
+
+
+{/* image */}
+
+<div className="rounded-lg overflow-hidden h-48 shadow-lg relative">
+
+<img
+src="https://lh3.googleusercontent.com/aida-public/AB6AXuBs653vpFwa05tDinomSI41zfeilzKYWW_7kH1dw-gCsKsUdImN8Sn8fmMhf9wvUHBXo1Nw0wyLcGycoi4K0LpeLioZ1s8HpJl1yMtNVHqBdfv-MM-A5ChlnwTjLbnLthAuf8NLUxCDzu8DCWTiCcX2NAhe2fPNBE7lavSURe0iMUgMI16Ah9ZkSMxaf6U27OyUUJ7KuKJZ5iVL2eo0r994gkaRzykz1G7BaCF5U9sF70py2SFdFI1Sn9lVFxsbqRZqf7eqQaDK_w"
+/>
+
+
+<div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black/70 text-white text-xs">
+
+Create environments where every student can excel.
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: Teachers.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+
+export default function Teachers(){
+
+const navigate = useNavigate();
+
+const teachers = [
+{
+name:"Dr. Sarah Jenkins",
+email:"sarah.jenkins@architect.edu",
+subject:"Advanced Physics",
+phone:"+1 (555) 012-4492",
+status:"Active",
+img:"https://lh3.googleusercontent.com/aida-public/AB6AXuAaUJ-gpIlmqflxQr2m0H7kwu_TDuAkgothpvOv4uGCbCKkPNHJ9_8msLIqLcmhVXgrjJwOG_t4kFot8btsy-qQTG2r-C_IymF4Jzo66F1HBQ51DRlFTjLp02zf8k0lvCkuRq3KflOMxrFPUceK0cpkSd8Yq-Bjf375m5WlkS4jWxm26LT4IbGgh9wmP9LUCkxCeTBSTe7Jdzs3PaeoR4NYdvKCN8Wg6r9v1fNHUAbcWD8gpqHrnUht8vUEFnhXs-hNN1cgRXLx9A"
+},
+{
+name:"Marcus Thorne",
+email:"m.thorne@architect.edu",
+subject:"Literature & Arts",
+phone:"+1 (555) 012-8831",
+status:"Active",
+img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBTp35KNPsM8WFNyNtaznNkX_s5_Aw8XOyRwuwWuVLl2wytkUXwLxFxSOEDAWoR3K-yx-hSRBd-k1F0_pRGiyMSd5-Qq9Vb79eDWyCVIzqTmkcp5aY55EYCVSAl3BusZSWKsCbQbHwoLElydr16GIXEmp-EjIHIKaIH3chSpiblTtoGt5U7Jw2QZ7kjR505q4SYRrWDgJOeG44tG8ZIBpy0saSWqZaZirlySfQMiA0FoxB4-rWUwqB4HrY7xXD_KPh8ZMX93oXf9A"
+},
+{
+name:"Elena Rodriguez",
+email:"elena.r@architect.edu",
+subject:"Pure Mathematics",
+phone:"+1 (555) 012-7720",
+status:"On Leave",
+img:"https://lh3.googleusercontent.com/aida-public/AB6AXuDmAgaoU60s9q1qeIc5rbj8aACfBVhzOLaMTB1whk7NFZfIN-2wqWxPyasyhk0PcR3t9entDi9MyDA5DSaucgyrfTDkUFtFMA-xZHTpN63lp5C0qdL3oDt4hcyFUpYhON_EulbfmDhuG-XThVQNYKoX5zpFGHpD0zdnHRngLeG1Nsu1HGjDvK_NXeEclEZ3h39UI7xLIpLrTB6e-jHUAmNEhb9XFVH0Y4DsZfOGwOgrD9Uox1kuVlkJIH9Ala9W6v77JPrx9yyuZQ"
+},
+{
+name:"David Wu",
+email:"david.wu@architect.edu",
+subject:"Computer Science",
+phone:"+1 (555) 012-3345",
+status:"Active",
+initials:"DW"
+},
+{
+name:"Julian Vane",
+email:"j.vane@architect.edu",
+subject:"World History",
+phone:"+1 (555) 012-9901",
+status:"Active",
+img:"https://lh3.googleusercontent.com/aida-public/AB6AXuAJATgBsJs5igmbLbph-z2DeGE_4eLJZzMzbszdFGweOimlC1mDgUvJNPLhSrOgtEAL_6ZgiQeDzCG5AWumdT1YswZXirQMh_6vi_HKj-qKj3xUWDszp6G5-5f0WIBPPhEk_qfpywKVsfLHjCosMnG7TlCV0EHTgxgi5b712MuFp-nFLdQAjBrMK1_hdsxM0wWchcj73t3CA2Ek1sQmw6qrmOqMDE8iStKYTbwK4aP8iVJ3LdRnB2n_NG8ukPLezZp4J0iT1LI6xw"
+}
+];
+
+return(
+
+<SchoolLayout title="Teachers">
+
+{/* breadcrumb */}
+
+<div className="mb-8 flex justify-between items-end">
+
+<div>
+
+
+
+
+<h2 className="text-3xl font-bold tracking-tight">
+
+Faculty Directory
+
+</h2>
+
+<p className="text-[#6b7280] mt-1">
+
+Manage and oversee all teaching staff across departments.
+
+</p>
+
+</div>
+
+
+
+<button
+onClick={()=>navigate("/school-admin/teachers/create")}
+className="flex items-center gap-2 px-6 py-3 rounded-md bg-gradient-to-br from-[#0058be] to-[#2170e4] text-white font-semibold shadow-lg shadow-[#0058be]/20 hover:scale-[1.02] transition">
+
+<span className="material-symbols-outlined">add</span>
+
+Add Teacher
+
+</button>
+
+</div>
+
+
+
+{/* table */}
+
+<div className="bg-white rounded-lg overflow-hidden shadow-sm">
+
+<table className="w-full">
+
+<thead className="bg-[#eff4ff] text-left text-sm">
+
+<tr>
+
+<th className="px-8 py-5">Profile</th>
+
+<th className="px-6 py-5">Name</th>
+
+<th className="px-6 py-5">Specialization</th>
+
+<th className="px-6 py-5">Phone Number</th>
+
+<th className="px-6 py-5">Status</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody className="divide-y">
+
+{teachers.map((t,i)=>(
+
+<tr key={i}
+className="hover:bg-[#f8f9ff] cursor-pointer transition"
+onClick={()=>navigate(`/school-admin/teachers/${i}`)}
+>
+
+<td className="px-8 py-6">
+
+{t.img?
+
+<img
+src={t.img}
+className="w-12 h-12 rounded-md object-cover"
+/>
+
+:
+
+<div className="w-12 h-12 rounded-md bg-[#d8e2ff] flex items-center justify-center font-bold text-[#0058be]">
+
+{t.initials}
+
+</div>
+
+}
+
+</td>
+
+
+
+<td className="px-6 py-6">
+
+<div className="font-semibold">
+
+{t.name}
+
+</div>
+
+<div className="text-xs text-[#6b7280]">
+
+{t.email}
+
+</div>
+
+</td>
+
+
+
+<td className="px-6 py-6">
+
+<span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#e9ddff] text-[#6b38d4]">
+
+{t.subject}
+
+</span>
+
+</td>
+
+
+
+<td className="px-6 py-6 text-sm text-[#6b7280]">
+
+{t.phone}
+
+</td>
+
+
+
+<td className="px-6 py-6">
+
+<div className="flex items-center gap-2">
+
+<span className={`w-2 h-2 rounded-full ${
+t.status==="Active"
+?"bg-green-500"
+:"bg-yellow-500"
+}`}></span>
+
+<span className="text-xs font-semibold">
+
+{t.status}
+
+</span>
+
+</div>
+
+</td>
+
+
+
+<td className="px-6">
+
+<span className="material-symbols-outlined text-[#6b7280]">
+
+chevron_right
+
+</span>
+
+</td>
+
+</tr>
+
+))}
+
+</tbody>
+
+</table>
+
+
+
+{/* pagination */}
+
+<div className="flex justify-between items-center px-8 py-4 border-t text-sm">
+
+<p className="text-[#6b7280]">
+
+Showing 5 of 48 Teachers
+
+</p>
+
+
+
+<div className="flex items-center gap-1">
+
+<button className="p-2">
+
+<span className="material-symbols-outlined">
+
+chevron_left
+
+</span>
+
+</button>
+
+
+<button className="w-8 h-8 rounded-md bg-[#0058be] text-white text-xs font-bold">
+
+1
+
+</button>
+
+<button className="w-8 h-8 rounded-md hover:bg-[#eff4ff] text-xs font-bold">
+
+2
+
+</button>
+
+<button className="w-8 h-8 rounded-md hover:bg-[#eff4ff] text-xs font-bold">
+
+3
+
+</button>
+
+
+<button className="p-2">
+
+<span className="material-symbols-outlined">
+
+chevron_right
+
+</span>
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* analytics */}
+
+<div className="mt-12 grid lg:grid-cols-3 gap-6">
+
+<div className="lg:col-span-2 bg-gradient-to-r from-[#0058be] to-[#2170e4] rounded-xl p-8 text-white relative overflow-hidden">
+
+<h3 className="text-2xl font-bold mb-2">
+
+Faculty Performance Analytics
+
+</h3>
+
+<p className="text-blue-100 text-sm mb-6 max-w-md">
+
+Real-time engagement metrics and student feedback averages across all teaching departments.
+
+</p>
+
+
+
+<div className="flex gap-10">
+
+<div>
+
+<p className="text-3xl font-bold">
+
+4.8
+
+</p>
+
+<p className="text-xs uppercase opacity-70">
+
+Avg Rating
+
+</p>
+
+</div>
+
+
+
+<div>
+
+<p className="text-3xl font-bold">
+
+92%
+
+</p>
+
+<p className="text-xs uppercase opacity-70">
+
+Attendance
+
+</p>
+
+</div>
+
+
+
+<div>
+
+<p className="text-3xl font-bold">
+
+12
+
+</p>
+
+<p className="text-xs uppercase opacity-70">
+
+New Courses
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* insight */}
+
+<div className="bg-[#eff4ff] rounded-xl p-6 flex flex-col justify-between">
+
+<div>
+
+<span className="material-symbols-outlined text-[#924700] mb-4">
+
+auto_awesome
+
+</span>
+
+
+<h4 className="font-semibold">
+
+Intelligence Insight
+
+</h4>
+
+
+<p className="text-xs text-[#6b7280] mt-2">
+
+Science department shows 15% higher student engagement after Teacher Jenkins' new curriculum update.
+
+</p>
+
+</div>
+
+
+
+<button className="text-sm font-semibold text-[#924700] mt-4 flex items-center gap-1">
+
+View full report
+
+<span className="material-symbols-outlined text-[16px]">
+
+arrow_forward
+
+</span>
+
+</button>
+
+</div>
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: Students.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+
+export default function Students(){
+
+const navigate = useNavigate();
+
+const students=[
+{
+name:"Julianne Davis",
+email:"julianne.d@school.edu",
+grade:"Grade 11",
+section:"A",
+id:"#STU-2024-001",
+status:"Active",
+img:"https://lh3.googleusercontent.com/aida-public/AB6AXuAbAPnew8xiijDRp1a0JLBdotkUREcEqT004rJd76iu9SqV1B7uO5LlV4KYqGNSe8YCuxJGo1GGRH2qNdGrp6Nvu2q9FsXdyXfpAW_4c09NGXOeVQHRIvY1x09gKI3Z2yCTD_fkF8evFKt8s3qay06WIsMjNY7dnogfMawAHWmWg_mQ83ds15X-VF-Krc-h4celWL0v99T0_YNqGxC_jaPamGz0WJUArkvZetbo0RQJa93zdq5psFVOqLDo2Mt2rnlDuYFzD1O7rw"
+},
+
+{
+name:"Marcus Thompson",
+email:"m.thompson@school.edu",
+grade:"Grade 12",
+section:"C",
+id:"#STU-2024-002",
+status:"Active",
+img:"https://lh3.googleusercontent.com/aida-public/AB6AXuDfYEuerYDNb7XGwNSTM3KfFah5LGKc7I3gwq_oCMafJt5uPtR6WvT3646M0xwHZLbgOEmIO2fZyteS1KR3NtSVW3jb4sldDWaVtz3kMoHovBN7XMz2i9h5DPRVTfuNpNtO8_p_UdD-XiTSf7cZOVO9h5zZMbs8PcU91c-qaMOPp1591ijSTiUiEa-bjgXzAXoXV3rutbKj3GGZF_cgauRa6TUESHfG89q2SAFbpCk0Z5PHgr44Kl2B4Y5DcT-h-ARqwgK7XH186Q"
+},
+
+{
+name:"Sarah Lin",
+email:"s.lin@school.edu",
+grade:"Grade 10",
+section:"B",
+id:"#STU-2024-003",
+status:"Inactive",
+img:"https://lh3.googleusercontent.com/aida-public/AB6AXuAwrh-Sgc0gl3KcybXt9PQJNTtqW4S5XDT-V9eVp9R_XjNGzr5-XOu9bY-NE-L5lgyZcpAD3pFqxqjYJ81f5U5ig3hhnH0vygipVS1j1p_fltV2lZGhK5fhm3yqTXgdccMtdmThO5ziT6T91vN7Y40fiW-O6_slso8g4_nZUP-P_bXL_4zctI08LZxVxxm4xhrD0X2dMYxQWO5IOSPZ41dP5xLM_UrdEqwKHKzliCyEvFjpccF5vdV0CiHa2tdpWMQ0s8dYAmXfFQ"
+},
+
+{
+name:"Aaron Knight",
+email:"aaron.k@school.edu",
+grade:"Grade 11",
+section:"A",
+id:"#STU-2024-004",
+status:"Active",
+img:"https://lh3.googleusercontent.com/aida-public/AB6AXuDKnB1myt61Qy3pe1SlTSYnwMI8Mwd4_-djpWQiMYYw-WhsaiGQlJgT7cljFlU60PbBClAriaqD3LV_gj3gITjZf5dsRI89J-5XvHL0YqGlIeskHAxuxBKTNuZk-NdtcHritt5GQ-fSaANOFt2rVxMHkI4nmpCkoAKBZcoyScqar9kmDQyxoSs1WrSkKT4YAS773mtjYpxKdrUDHprfzjFO8VaPrbNx9V6LiBw7JEVfJJ6gWAutvMuX9gtjJ8r70pw3_fM6_PVoFQ"
+}
+
+];
+
+return(
+
+<SchoolLayout title="Students">
+
+<div className="pt-6">
+
+{/* header */}
+
+<div className="flex justify-between items-end mb-8">
+
+<div>
+
+<h2 className="text-3xl font-bold">
+Student Directory
+</h2>
+
+<p className="text-[#6b7280] mt-1">
+Manage enrollments, track status, and view academic profiles.
+</p>
+
+</div>
+
+
+<button
+onClick={()=>navigate("/school-admin/add-student")}
+className="bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white px-6 py-3 rounded-md font-semibold flex items-center gap-2 shadow-lg"
+>
+
+<span className="material-symbols-outlined">
+person_add
+</span>
+
+Add Student
+
+</button>
+
+</div>
+
+
+
+{/* table */}
+
+<div className="bg-white rounded-lg shadow-sm overflow-hidden">
+
+
+{/* filters */}
+
+<div className="p-6 flex justify-between">
+
+<div className="flex gap-3">
+
+<select className="bg-[#eff4ff] px-4 py-2 rounded-md text-sm">
+
+<option>All Classes</option>
+<option>Grade 10</option>
+<option>Grade 11</option>
+
+</select>
+
+
+<button className="bg-[#eff4ff] px-4 py-2 rounded-md text-sm">
+Recently Added
+</button>
+
+</div>
+
+
+<div className="text-sm text-[#6b7280]">
+Showing 48 Students
+</div>
+
+</div>
+
+
+
+{/* table */}
+
+<table className="w-full">
+
+<thead className="bg-[#f3f6ff] text-xs text-[#727785]">
+
+<tr>
+
+<th className="px-6 py-4 text-left">
+Student
+</th>
+
+<th>
+Class
+</th>
+
+<th>
+Section
+</th>
+
+<th>
+Enrollment ID
+</th>
+
+<th className="text-center">
+Status
+</th>
+
+<th>
+
+</th>
+
+</tr>
+
+</thead>
+
+
+<tbody className="divide-y">
+
+{students.map((s,i)=>(
+
+<tr
+key={i}
+onClick={()=>navigate("/school-admin/student-profile")}
+className="hover:bg-[#f8f9ff] cursor-pointer"
+>
+
+<td className="px-6 py-5">
+
+<div className="flex gap-4 items-center">
+
+<img
+src={s.img}
+className="w-12 h-12 rounded-md object-cover"
+/>
+
+
+<div>
+
+<p className="font-semibold">
+{s.name}
+</p>
+
+<p className="text-xs text-[#6b7280]">
+{s.email}
+</p>
+
+</div>
+
+</div>
+
+</td>
+
+
+<td>
+{s.grade}
+</td>
+
+
+<td>
+{s.section}
+</td>
+
+
+<td className="text-xs text-[#727785]">
+{s.id}
+</td>
+
+
+<td className="text-center">
+
+<span className={`px-3 py-1 text-xs rounded-full font-semibold
+
+${s.status==="Active"
+?"bg-green-100 text-green-700"
+:"bg-gray-200 text-gray-600"}
+
+`}>
+
+{s.status}
+
+</span>
+
+</td>
+
+
+<td className="text-right pr-6">
+
+<button>
+
+<span className="material-symbols-outlined">
+more_vert
+</span>
+
+</button>
+
+</td>
+
+</tr>
+
+))}
+
+</tbody>
+
+</table>
+
+
+
+{/* pagination */}
+
+<div className="p-6 flex justify-between">
+
+<button className="text-[#0058be] flex gap-1 items-center">
+
+<span className="material-symbols-outlined text-sm">
+arrow_back
+</span>
+
+Previous
+
+</button>
+
+
+<div className="flex gap-2">
+
+<button className="w-8 h-8 bg-[#0058be] text-white rounded-full text-xs">
+1
+</button>
+
+<button className="w-8 h-8 bg-[#eff4ff] rounded-full text-xs">
+2
+</button>
+
+<button className="w-8 h-8 bg-[#eff4ff] rounded-full text-xs">
+3
+</button>
+
+</div>
+
+
+<button className="text-[#0058be] flex gap-1 items-center">
+
+Next
+
+<span className="material-symbols-outlined text-sm">
+arrow_forward
+</span>
+
+</button>
+
+</div>
+
+</div>
+
+
+
+{/* analytics cards */}
+
+<div className="grid md:grid-cols-3 gap-6 mt-12">
+
+
+<div className="md:col-span-2 bg-gradient-to-r from-[#6b38d4] to-[#8455ef] text-white p-8 rounded-xl">
+
+<h3 className="text-xl font-bold mb-2">
+Student Analytics Snapshot
+</h3>
+
+<p className="text-sm opacity-80 mb-6">
+Attendance and academic performance trends show a 12% improvement in the Science department this semester.
+</p>
+
+
+<div className="flex gap-10">
+
+<div>
+
+<p className="text-xs opacity-70">
+Avg Grade
+</p>
+
+<p className="text-3xl font-bold">
+A- (3.7)
+</p>
+
+</div>
+
+
+<div>
+
+<p className="text-xs opacity-70">
+Attendance
+</p>
+
+<p className="text-3xl font-bold">
+94.2%
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div className="relative">
+
+{/* card */}
+
+<div className="bg-[#e7c6ad] p-8 rounded-2xl border border-[#d9b39a] max-w-md">
+
+{/* icon */}
+
+<div className="w-14 h-14 rounded-xl bg-[#f2dfd0] flex items-center justify-center mb-2">
+
+<span className="material-symbols-outlined text-[#9a4d00] text-2xl">
+auto_awesome
+</span>
+
+</div>
+
+
+{/* title */}
+
+<h3 className="text-xl font-semibold text-[#3a1f0b] mb-1">
+
+AI Insight
+
+</h3>
+
+
+{/* text */}
+
+<p className="text-[#6b3b13] leading-relaxed mb-1">
+
+Grade 11 Section A has the highest engagement in extracurricular activities this month.
+
+</p>
+
+
+{/* link */}
+
+<button className="text-[#8b4a00] font-semibold flex items-center gap-1 hover:gap-2 transition-all">
+
+View Report
+
+<span className="material-symbols-outlined text-base">
+arrow_forward
+</span>
+
+</button>
+
+</div>
+
+
+
+{/* floating help button */}
+
+<button className="absolute -bottom-3 -right-6 w-16 h-10 bg-[#0b1c30] text-white rounded-full shadow-xl flex items-center justify-center hover:scale-105 transition">
+
+<span className="material-symbols-outlined">
+help
+</span>
+
+</button>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: AcademicYears.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+
+export default function AcademicYears(){
+
+const navigate = useNavigate();
+
+return(
+
+<SchoolLayout title="Academic Years">
+
+<div className="pt-6">
+
+{/* header */}
+
+<div className="flex justify-between items-end mb-10">
+
+<div className="max-w-2xl">
+
+<h1 className="text-4xl font-bold tracking-tight mb-2">
+
+Cycle Management
+
+</h1>
+
+<p className="text-[#6b7280]">
+
+Configure and monitor the lifecycle of your institution's academic periods. Ensure seamless transitions between terms.
+
+</p>
+
+</div>
+
+
+<button
+onClick={()=>navigate("/school-admin/create-academic-year")}
+className="px-6 py-3 rounded-md text-white font-semibold bg-gradient-to-r from-[#0058be] to-[#2170e4] shadow-lg flex gap-2 items-center"
+>
+
+<span className="material-symbols-outlined">
+
+add
+
+</span>
+
+Add Academic Year
+
+</button>
+
+</div>
+
+
+
+{/* stats */}
+
+<div className="grid md:grid-cols-3 gap-6 mb-10">
+
+
+<div className="bg-white p-6 rounded-lg border-l-4 border-[#0058be] shadow-sm">
+
+<p className="text-sm text-gray-500">
+
+Current Active Year
+
+</p>
+
+<h3 className="text-2xl font-bold text-[#0058be]">
+
+2024-2025
+
+</h3>
+
+<p className="text-xs text-green-600 mt-2 flex gap-1">
+
+<span className="material-symbols-outlined text-sm">
+
+check_circle
+
+</span>
+
+Live for all campuses
+
+</p>
+
+</div>
+
+
+
+<div className="bg-white p-6 rounded-lg border-l-4 border-[#924700] shadow-sm">
+
+<p className="text-sm text-gray-500">
+
+Upcoming Cycle
+
+</p>
+
+<h3 className="text-2xl font-bold text-[#924700]">
+
+2025-2026
+
+</h3>
+
+<p className="text-xs text-gray-500 mt-2">
+
+Registration starts in 45 days
+
+</p>
+
+</div>
+
+
+
+<div className="bg-white p-6 rounded-lg border-l-4 border-[#6b38d4] shadow-sm">
+
+<p className="text-sm text-gray-500">
+
+Archived Periods
+
+</p>
+
+<h3 className="text-2xl font-bold text-[#6b38d4]">
+
+12 Years
+
+</h3>
+
+<p className="text-xs text-gray-500 mt-2">
+
+Data retained since 2012
+
+</p>
+
+</div>
+
+</div>
+
+
+
+{/* table */}
+
+<div className="bg-white rounded-xl shadow-sm overflow-hidden">
+
+<div className="px-8 py-6 flex justify-between bg-[#eff4ff]">
+
+<h3 className="font-bold">
+
+Yearly Timeline
+
+</h3>
+
+<div className="flex gap-2">
+
+<button className="p-2 hover:bg-white rounded-md">
+
+<span className="material-symbols-outlined">
+
+filter_list
+
+</span>
+
+</button>
+
+
+<button className="p-2 hover:bg-white rounded-md">
+
+<span className="material-symbols-outlined">
+
+download
+
+</span>
+
+</button>
+
+</div>
+
+</div>
+
+
+
+<table className="w-full text-left">
+
+<thead>
+
+<tr className="text-sm text-gray-500">
+
+<th className="px-8 py-4">
+
+Year
+
+</th>
+
+<th>
+
+Start Date
+
+</th>
+
+<th>
+
+End Date
+
+</th>
+
+<th>
+
+Status
+
+</th>
+
+<th className="text-right pr-8">
+
+Action
+
+</th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody className="divide-y">
+
+<tr className="hover:bg-[#f8f9ff]">
+
+<td className="px-8 py-5 font-semibold">
+
+2024-2025
+
+</td>
+
+<td>
+
+Sep 01 2024
+
+</td>
+
+<td>
+
+Jun 30 2025
+
+</td>
+
+<td>
+
+<span className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+
+Active
+
+</span>
+
+</td>
+
+<td className="text-right pr-8">
+
+<button className="text-[#0058be]">
+
+Edit
+
+</button>
+
+</td>
+
+</tr>
+
+
+
+<tr className="hover:bg-[#f8f9ff]">
+
+<td className="px-8 py-5 font-semibold">
+
+2025-2026
+
+</td>
+
+<td>
+
+Sep 01 2025
+
+</td>
+
+<td>
+
+Jun 30 2026
+
+</td>
+
+<td>
+
+<span className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+
+Inactive
+
+</span>
+
+</td>
+
+<td className="text-right pr-8">
+
+<button className="px-3 py-1 bg-[#d8e2ff] rounded-md text-[#0058be]">
+
+Set Active
+
+</button>
+
+</td>
+
+</tr>
+
+
+
+<tr className="hover:bg-[#f8f9ff] opacity-60">
+
+<td className="px-8 py-5 font-semibold">
+
+2023-2024
+
+</td>
+
+<td>
+
+Sep 01 2023
+
+</td>
+
+<td>
+
+Jun 30 2024
+
+</td>
+
+<td>
+
+<span className="px-3 py-1 text-xs bg-gray-200 rounded-full">
+
+Archived
+
+</span>
+
+</td>
+
+<td className="text-right pr-8">
+
+View
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+
+
+
+
+{/* pagination */}
+
+<div className="px-8 py-5 flex justify-between items-center text-sm bg-[#eff4ff]">
+
+<p className="text-[#6b7280]">
+
+Showing 1 to 3 of 12 years
+
+</p>
+
+
+<div className="flex items-center gap-2">
+
+<button className="w-10 h-10 rounded-md border border-[#c2c6d6] flex items-center justify-center text-[#727785]">
+
+<span className="material-symbols-outlined">
+chevron_left
+</span>
+
+</button>
+
+
+<button className="w-10 h-10 rounded-md bg-[#0058be] text-white font-semibold flex items-center justify-center">
+
+1
+
+</button>
+
+
+<button className="w-10 h-10 rounded-md border border-[#c2c6d6] flex items-center justify-center">
+
+2
+
+</button>
+
+
+<button className="w-10 h-10 rounded-md border border-[#c2c6d6] flex items-center justify-center">
+
+3
+
+</button>
+
+
+<button className="w-10 h-10 rounded-md border border-[#c2c6d6] flex items-center justify-center">
+
+<span className="material-symbols-outlined">
+chevron_right
+</span>
+
+</button>
+
+</div>
+
+</div>
+
+</div> {/* ❗ THIS WAS MISSING - closes table card */}
+
+
+
+{/* insight section */}
+
+<div className="grid lg:grid-cols-2 gap-8 mt-12">
+
+
+<div className="bg-[#0b1c30] text-white rounded-xl p-8">
+
+<h4 className="text-xl font-bold mb-4">
+
+Prepare for 2025-2026 Shift
+
+</h4>
+
+<p className="text-sm text-blue-100">
+
+15% growth expected in student enrollment.
+
+</p>
+
+</div>
+
+
+
+<div className="bg-white rounded-xl p-8 border shadow-sm">
+
+<h4 className="text-xl font-bold mb-2">
+
+Automated Rollover
+
+</h4>
+
+<p className="text-sm text-gray-500 mb-6">
+
+Student data auto transition to next year.
+
+</p>
+
+
+<button className="text-[#6b38d4] font-semibold">
+
+Change Settings
+
+</button>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: Parents.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+
+export default function Parents(){
+
+const navigate = useNavigate();
+
+const parents = [
+{
+name:"Elena Hernandez",
+email:"e.hernandez@example.edu",
+phone:"+1 (555) 012-3456",
+students:"Julian, Mateo",
+count:2,
+status:"Active",
+initials:"EH",
+color:"bg-[#e9ddff]"
+},
+{
+name:"Marcus Richardson",
+email:"m.richardson@domain.com",
+phone:"+1 (555) 098-7654",
+students:"Sophia",
+count:1,
+status:"Active",
+initials:"MR",
+color:"bg-[#d8e2ff]"
+},
+{
+name:"Sarah Chen",
+email:"s.chen@techmail.net",
+phone:"+1 (555) 456-7890",
+students:"Li, Mei, Kevin",
+count:3,
+status:"Pending",
+initials:"SC",
+color:"bg-[#ffdcc6]"
+},
+{
+name:"David Lawson",
+email:"lawson.d@provider.com",
+phone:"+1 (555) 765-4321",
+students:"Emma",
+count:1,
+status:"Active",
+initials:"DL",
+color:"bg-[#eff4ff]"
+},
+{
+name:"Amara Falade",
+email:"amara.f@global.co",
+phone:"+1 (555) 234-5678",
+students:"Kofi, Nia",
+count:2,
+status:"Active",
+initials:"AF",
+color:"bg-[#e9ddff]"
+}
+];
+
+return(
+
+<SchoolLayout title="Parents">
+
+<div className="max-w-6xl mx-auto">
+
+
+{/* top intro */}
+
+<div className="grid lg:grid-cols-12 gap-6 mb-8">
+
+<div className="lg:col-span-8 bg-white border-l-4 border-[#0058be] p-6 rounded-lg shadow-sm flex justify-between items-center">
+
+<div>
+
+<h3 className="text-lg font-bold">
+
+Guardian Directory
+
+</h3>
+
+<p className="text-sm text-[#6b7280]">
+
+Manage emergency contacts and parental access for students.
+
+</p>
+
+</div>
+
+
+<button
+onClick={()=>navigate("/school-admin/parents/create")}
+className="flex items-center gap-2 px-6 py-3 rounded-md bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-semibold shadow">
+
+<span className="material-symbols-outlined">
+add
+</span>
+
+Add Parent
+
+</button>
+
+</div>
+
+
+
+<div className="lg:col-span-4 bg-[#eff4ff] rounded-lg p-6 flex items-center gap-4">
+
+<div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#0058be]">
+
+<span className="material-symbols-outlined">
+
+family_history
+
+</span>
+
+</div>
+
+
+<div>
+
+<p className="text-xs uppercase font-bold text-[#0058be]">
+
+Active Links
+
+</p>
+
+<p className="text-2xl font-bold">
+
+98.2%
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* table */}
+
+<div className="bg-white rounded-lg shadow-sm overflow-hidden">
+
+<div className="p-6 flex justify-between items-center border-b">
+
+<div className="flex gap-2">
+
+<span className="px-3 py-1 text-xs font-bold bg-[#d8e2ff] text-[#0058be] rounded-full">
+
+All (842)
+
+</span>
+
+<span className="px-3 py-1 text-xs text-[#6b7280]">
+
+Active (830)
+
+</span>
+
+<span className="px-3 py-1 text-xs text-[#6b7280]">
+
+Pending (12)
+
+</span>
+
+</div>
+
+
+<div className="flex items-center gap-4 text-xs text-[#6b7280]">
+
+Showing 10 of 842 records
+
+<span className="material-symbols-outlined cursor-pointer">
+
+filter_list
+
+</span>
+
+</div>
+
+</div>
+
+
+
+<table className="w-full text-left">
+
+<thead className="bg-[#eff4ff] text-xs uppercase text-[#6b7280]">
+
+<tr>
+
+<th className="px-6 py-4">Parent Name</th>
+
+<th className="px-6 py-4">Email</th>
+
+<th className="px-6 py-4">Phone</th>
+
+<th className="px-6 py-4">Linked Students</th>
+
+<th className="px-6 py-4">Status</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody className="divide-y">
+
+{parents.map((p,i)=>(
+
+<tr
+key={i}
+className="hover:bg-[#f8f9ff] cursor-pointer"
+onClick={()=>navigate(`/school-admin/parents/${i}`)}
+>
+
+<td className="px-6 py-5">
+
+<div className="flex items-center gap-3">
+
+<div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${p.color}`}>
+
+{p.initials}
+
+</div>
+
+<span className="font-semibold">
+
+{p.name}
+
+</span>
+
+</div>
+
+</td>
+
+
+
+<td className="px-6 py-5 text-sm text-[#6b7280]">
+
+{p.email}
+
+</td>
+
+
+
+<td className="px-6 py-5 text-sm text-[#6b7280]">
+
+{p.phone}
+
+</td>
+
+
+
+<td className="px-6 py-5">
+
+<div className="flex items-center gap-2">
+
+<div className="w-7 h-7 rounded-full bg-[#d8e2ff] text-xs flex items-center justify-center font-bold">
+
+{p.count}
+
+</div>
+
+<span className="text-xs text-[#6b7280]">
+
+{p.students}
+
+</span>
+
+</div>
+
+</td>
+
+
+
+<td className="px-6 py-5">
+
+<span className={`px-2 py-1 text-[11px] font-bold rounded-full flex items-center gap-1 w-fit ${
+p.status==="Active"
+?"bg-green-50 text-green-700"
+:"bg-yellow-50 text-yellow-700"
+}`}>
+
+<span className={`w-1.5 h-1.5 rounded-full ${
+p.status==="Active"
+?"bg-green-500"
+:"bg-yellow-500"
+}`}></span>
+
+{p.status}
+
+</span>
+
+</td>
+
+
+
+<td className="px-6 py-5 text-right">
+
+<span className="material-symbols-outlined text-[#c2c6d6]">
+
+chevron_right
+
+</span>
+
+</td>
+
+</tr>
+
+))}
+
+</tbody>
+
+</table>
+
+
+
+{/* pagination */}
+
+<div className="flex justify-between items-center px-6 py-4 border-t">
+
+<button className="flex items-center gap-1 text-sm text-[#6b7280]">
+
+<span className="material-symbols-outlined text-sm">
+
+arrow_back
+
+</span>
+
+Previous
+
+</button>
+
+
+<div className="flex gap-1">
+
+<span className="w-8 h-8 flex items-center justify-center rounded bg-[#0058be] text-white text-xs font-bold">
+
+1
+
+</span>
+
+<span className="w-8 h-8 flex items-center justify-center text-xs">
+
+2
+
+</span>
+
+<span className="w-8 h-8 flex items-center justify-center text-xs">
+
+3
+
+</span>
+
+<span className="w-8 h-8 flex items-center justify-center text-xs">
+
+...
+
+</span>
+
+<span className="w-8 h-8 flex items-center justify-center text-xs">
+
+85
+
+</span>
+
+</div>
+
+
+<button className="flex items-center gap-1 text-sm text-[#0058be]">
+
+Next
+
+<span className="material-symbols-outlined text-sm">
+
+arrow_forward
+
+</span>
+
+</button>
+
+</div>
+
+</div>
+
+
+
+{/* insight */}
+
+<div className="grid lg:grid-cols-12 gap-8 mt-12">
+
+
+<div className="lg:col-span-5 bg-[#ffdcc6]/40 rounded-lg p-8 relative overflow-hidden">
+
+<span className="material-symbols-outlined text-[#924700] text-3xl mb-4">
+
+lightbulb
+
+</span>
+
+
+<h4 className="font-bold mb-2">
+
+Smart Mapping Tip
+
+</h4>
+
+
+<p className="text-sm text-[#924700] mb-6">
+
+Linking multiple students to a single guardian reduces duplicate data.
+
+</p>
+
+
+<button className="flex items-center gap-1 text-[#924700] font-semibold">
+
+Review mappings
+
+<span className="material-symbols-outlined text-sm">
+
+east
+
+</span>
+
+</button>
+
+</div>
+
+
+
+<div className="lg:col-span-7 bg-white rounded-lg p-8 shadow-sm">
+
+<div className="flex justify-between mb-8">
+
+<div>
+
+<h4 className="font-bold">
+
+Verification Status
+
+</h4>
+
+<p className="text-xs text-[#6b7280]">
+
+Quarterly audit of contact details
+
+</p>
+
+</div>
+
+
+<div className="text-right">
+
+<p className="text-3xl font-bold text-[#0058be]">
+
+94%
+
+</p>
+
+<p className="text-xs text-[#6b7280]">
+
+Verified
+
+</p>
+
+</div>
+
+</div>
+
+
+<div className="w-full bg-[#eff4ff] h-2 rounded-full mb-4">
+
+<div className="bg-[#0058be] h-full w-[94%] rounded-full"></div>
+
+</div>
+
+
+<div className="flex justify-between text-xs text-[#6b7280]">
+
+<span>Phone Verified: 88%</span>
+
+<span>Email Bounced: 2%</span>
+
+<span>Awaiting Update: 6%</span>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* floating button */}
+
+<div className="fixed bottom-8 right-8">
+
+<button className="w-14 h-14 rounded-full bg-[#0b1c30] text-white shadow-xl flex items-center justify-center">
+
+<span className="material-symbols-outlined">
+
+bolt
+
+</span>
+
+</button>
+
+</div>
+
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: Settings.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useState } from "react";
+
+export default function Settings(){
+
+const [form,setForm]=useState({
+schoolName:"St. Augustine International Academy",
+email:"admin@staugustine.edu",
+phone:"+1 (555) 0123-4567",
+country:"United States",
+address:"742 Evergreen Terrace, Springfield",
+language:"English",
+timezone:"GMT-05",
+grading:"4.0 GPA",
+attendance:true,
+academicYear:"2023-2024"
+});
+
+const change=(e)=>{
+setForm({...form,[e.target.name]:e.target.value});
+};
+
+const toggleAttendance=()=>{
+setForm({...form,attendance:!form.attendance});
+};
+
+const save=(e)=>{
+e.preventDefault();
+
+alert("Settings saved successfully");
+};
+
+const resetForm=()=>{
+window.location.reload();
+};
+
+return(
+
+<SchoolLayout title="Settings">
+
+<div className="max-w-6xl mx-auto">
+
+{/* heading */}
+
+<div className="mb-10">
+
+<h1 className="text-3xl font-bold mb-2">
+
+School Configuration
+
+</h1>
+
+<p className="text-[#6b7280]">
+
+Manage your institution's identity and academic parameters.
+
+</p>
+
+</div>
+
+
+
+
+
+<form onSubmit={save} className="space-y-14">
+
+
+{/* SCHOOL PROFILE */}
+
+<div className="grid lg:grid-cols-3 gap-10">
+
+
+{/* LEFT TEXT */}
+
+<div>
+
+<h3 className="text-xl font-semibold text-[#0b1c30] mb-2">
+School Profile
+</h3>
+
+<p className="text-[#6b7280] text-sm leading-relaxed">
+Public identity details for your institution. These appear on reports and communication.
+</p>
+
+</div>
+
+
+
+{/* RIGHT CARD */}
+
+<div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm">
+
+
+{/* logo */}
+
+<div className="flex gap-8 items-start mb-10">
+
+
+<div className="relative">
+
+<div className="w-32 h-32 rounded-xl overflow-hidden bg-[#e5eeff] flex items-center justify-center">
+
+<img
+src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0PxJ_8SB7PeuHJ6jEs7-sIwRwTikSfENbH1FouMWRNesI1WjU1QhW18afOaKuUkTgzx7xYH-vVcaIRiNE8eNHAuALHoeL_FcyjHHlxYrSLsHIni34it7gZu4Ye4xXRTDGVivmbLWPf6oKR2vyHwQag5cnmHisA22-LERoPtMFtuXddOD2LmYnFZtoNgZ5TfGJ_go7yarLqr4L7lAO_tb-BU5R1HAbQHNbUL-Y95JynVeOYanWM4IzC2dCBlHejLnYTk0geV04Ow"
+/>
+
+</div>
+
+
+<button
+type="button"
+className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg bg-[#0058be] text-white flex items-center justify-center shadow">
+
+<span className="material-symbols-outlined text-sm">
+edit
+</span>
+
+</button>
+
+
+</div>
+
+
+
+<div>
+
+<p className="font-semibold text-[#0b1c30]">
+Institution Logo
+</p>
+
+<p className="text-sm text-[#6b7280] mb-4">
+Recommended size: 400x400px. PNG or SVG preferred.
+</p>
+
+
+<button
+type="button"
+className="px-5 py-2 bg-[#e5eeff] text-[#0058be] font-semibold rounded-md">
+
+Upload New Logo
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+
+{/* fields */}
+
+<div className="grid md:grid-cols-2 gap-6">
+
+
+{/* school name */}
+
+<div>
+
+<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
+
+School Name
+
+</label>
+
+<input
+name="schoolName"
+value={form.schoolName}
+onChange={change}
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+
+{/* email */}
+
+<div>
+
+<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
+
+Official Email
+
+</label>
+
+<input
+name="email"
+value={form.email}
+onChange={change}
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+
+{/* phone */}
+
+<div>
+
+<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
+
+Phone Number
+
+</label>
+
+<input
+name="phone"
+value={form.phone}
+onChange={change}
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+
+{/* country */}
+
+<div>
+
+<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
+
+Country
+
+</label>
+
+<select
+name="country"
+value={form.country}
+onChange={change}
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none">
+
+<option>
+United States
+</option>
+
+<option>
+India
+</option>
+
+</select>
+
+</div>
+
+
+
+{/* address */}
+
+<div className="md:col-span-2">
+
+<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
+
+Street Address
+
+</label>
+
+<input
+name="address"
+value={form.address}
+onChange={change}
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+
+{/* language */}
+
+<div>
+
+<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
+
+Preferred Language
+
+</label>
+
+<select
+name="language"
+value={form.language}
+onChange={change}
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none">
+
+<option>
+English (US)
+</option>
+
+<option>
+Hindi
+</option>
+
+</select>
+
+</div>
+
+
+
+{/* timezone */}
+
+<div>
+
+<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
+
+Timezone
+
+</label>
+
+<select
+name="timezone"
+value={form.timezone}
+onChange={change}
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none">
+
+<option>
+(GMT-05:00) Eastern Time
+</option>
+
+<option>
+(GMT+05:30) IST
+</option>
+
+</select>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+{/* ACADEMIC PREFERENCES */}
+
+<div className="grid lg:grid-cols-3 gap-10">
+
+
+<div>
+
+<h3 className="text-xl font-semibold text-[#0b1c30] mb-2">
+Academic Preferences
+</h3>
+
+<p className="text-sm text-[#6b7280]">
+Define the operational logic for grading, attendance, and reporting cycles.
+</p>
+
+</div>
+
+
+
+<div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm space-y-10">
+
+
+{/* grading */}
+
+<div className="flex justify-between items-start border-b pb-6">
+
+<div>
+
+<p className="font-semibold text-[#0b1c30]">
+Grading Scale System
+</p>
+
+<p className="text-sm text-[#6b7280]">
+Choose how student performance is evaluated across the platform.
+</p>
+
+</div>
+
+
+<select
+name="grading"
+value={form.grading}
+onChange={change}
+className="bg-[#eff4ff] px-5 py-3 rounded-md">
+
+<option>
+4.0 GPA Scale
+</option>
+
+<option>
+Percentage (0-100)
+</option>
+
+</select>
+
+
+</div>
+
+
+
+{/* attendance */}
+
+<div className="flex justify-between items-center border-b pb-6">
+
+
+<div>
+
+<p className="font-semibold text-[#0b1c30]">
+Attendance Tracking
+</p>
+
+<p className="text-sm text-[#6b7280]">
+Enable automated alerts for parents when a student is absent.
+</p>
+
+</div>
+
+
+<button
+type="button"
+onClick={toggleAttendance}
+className={`w-12 h-6 rounded-full transition ${
+form.attendance
+?"bg-[#0058be]"
+:"bg-gray-300"
+}`}>
+
+<div
+className={`w-5 h-5 bg-white rounded-full transform transition ${
+form.attendance
+?"translate-x-6"
+:"translate-x-1"
+}`}
+/>
+
+</button>
+
+
+</div>
+
+
+
+{/* academic year */}
+
+<div className="flex justify-between items-start">
+
+
+<div>
+
+<p className="font-semibold text-[#0b1c30]">
+Default Academic Year
+</p>
+
+<p className="text-sm text-[#6b7280]">
+The active period for current course registrations and schedules.
+</p>
+
+</div>
+
+
+<select
+name="academicYear"
+value={form.academicYear}
+onChange={change}
+className="bg-[#eff4ff] px-5 py-3 rounded-md">
+
+<option>
+2023-2024 (Current)
+</option>
+
+<option>
+2024-2025
+</option>
+
+</select>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+{/* AI recommendation */}
+
+<div className="bg-[#ffdcc6] p-6 rounded-xl flex gap-4">
+
+
+<span className="material-symbols-outlined text-[#924700]">
+auto_awesome
+</span>
+
+
+<div>
+
+<p className="font-semibold text-[#924700]">
+Intelligent Recommendation
+</p>
+
+<p className="text-sm text-[#924700]">
+Based on your region's common standards, switching to a 4.0 GPA scale with weighted honors may improve report card clarity for higher education transfers.
+</p>
+
+</div>
+
+
+</div>
+
+
+
+{/* buttons */}
+
+<div className="flex justify-end gap-4 pt-6 border-t">
+
+
+<button
+type="button"
+onClick={resetForm}
+className="px-6 py-2.5 bg-[#e5eeff] text-[#0b1c30] font-semibold rounded-md">
+
+Discard Changes
+
+</button>
+
+
+<button
+type="submit"
+className="px-8 py-2.5 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-semibold rounded-md shadow">
+
+Save Changes
+
+</button>
+
+
+</div>
+
+
+</form>
+
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: AddStudent.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+
+export default function AddStudent(){
+
+const navigate = useNavigate();
+
+const [form,setForm]=useState({
+name:"",
+gender:"",
+dob:"",
+blood:"",
+phone:"",
+email:"",
+address:"",
+grade:"Class 10",
+section:"Section A",
+roll:""
+});
+
+const handleChange=(e)=>{
+setForm({...form,[e.target.name]:e.target.value});
+};
+
+const handleSave=(e)=>{
+e.preventDefault();
+alert("Student record saved successfully");
+navigate("/school-admin/students");
+};
+
+return(
+
+<SchoolLayout title="Students">
+
+<div className="max-w-6xl mx-auto space-y-8">
+
+
+{/* breadcrumb */}
+
+<div className="flex justify-between items-center">
+
+
+
+
+
+
+
+{/* heading */}
+
+<div>
+
+<h1 className="text-3xl font-semibold">
+Add New Student
+</h1>
+
+<p className="text-[#6b7280] mt-1 max-w-2xl">
+Register a new student to the academic system. Ensure all mandatory information is accurate for seamless records management.
+</p>
+
+</div>
+
+<button
+onClick={()=>navigate("/school-admin/students")}
+className="flex items-center gap-2 px-4 py-2 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0058be] font-semibold rounded-md transition">
+
+<span className="material-symbols-outlined text-[18px]">
+arrow_back
+</span>
+
+Go Back
+
+</button>
+
+</div>
+
+<form onSubmit={handleSave}>
+
+<div className="grid lg:grid-cols-3 gap-8">
+
+
+{/* LEFT COLUMN */}
+
+<div className="lg:col-span-2 space-y-8">
+
+
+{/* Basic Info */}
+
+<div className="grid md:grid-cols-2 gap-6">
+
+<div className="flex flex-col gap-2">
+
+<label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+Full Name
+</label>
+
+<input
+name="name"
+placeholder="e.g. Julian Alexander"
+onChange={handleChange}
+className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 transition"
+/>
+
+</div>
+
+
+<div className="flex flex-col gap-2">
+
+<label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+Gender
+</label>
+
+<select
+name="gender"
+onChange={handleChange}
+className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none">
+
+<option>Select Gender</option>
+<option>Male</option>
+<option>Female</option>
+
+</select>
+
+</div>
+
+
+<div className="flex flex-col gap-2">
+
+<label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+Date of Birth
+</label>
+
+<input
+type="date"
+name="dob"
+onChange={handleChange}
+className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+<div className="flex flex-col gap-2">
+
+<label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+Blood Group
+</label>
+
+<select
+name="blood"
+onChange={handleChange}
+className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none">
+
+<option>Select Blood Group</option>
+<option>A+</option>
+<option>B+</option>
+<option>O+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+
+{/* Contact */}
+
+<div className="grid md:grid-cols-2 gap-6">
+
+<div className="flex flex-col gap-2">
+
+<label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+Mobile Number
+</label>
+
+<input
+name="phone"
+placeholder="+1 (555) 000-0000"
+onChange={handleChange}
+className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+<div className="flex flex-col gap-2">
+
+<label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+Email Address
+</label>
+
+<input
+name="email"
+placeholder="student@academy.edu"
+onChange={handleChange}
+className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+
+<div className="md:col-span-2 flex flex-col gap-2">
+
+<label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+Residential Address
+</label>
+
+<textarea
+name="address"
+placeholder="Street, City, Zip Code"
+rows="3"
+onChange={handleChange}
+className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
+/>
+
+</div>
+
+</div>
+
+
+
+{/* FOOTER aligned with left */}
+
+<div className="flex justify-end gap-4 pt-16">
+
+<button
+type="button"
+onClick={()=>navigate("/school-admin/students")}
+className="px-8 py-3 text-[#6b7280] font-semibold hover:bg-[#eff4ff] rounded-md transition">
+
+Cancel & Discard
+
+</button>
+
+
+<button
+type="submit"
+className="px-10 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-bold rounded-md shadow-lg shadow-[#0058be]/20 hover:scale-[1.02] active:scale-95 transition flex items-center gap-2">
+
+<span className="material-symbols-outlined">
+save
+</span>
+
+Save Student Record
+
+</button>
+
+</div>
+
+
+</div>
+
+
+
+{/* RIGHT COLUMN */}
+
+<div className="space-y-8">
+
+
+{/* Photo */}
+
+<div className="bg-white p-8 rounded-xl border border-[#e5eeff] shadow-[0_6px_20px_rgba(0,0,0,0.04)] text-center">
+
+<div className="w-32 h-32 mx-auto rounded-full bg-[#e5eeff] flex items-center justify-center overflow-hidden border-4 border-white shadow-lg">
+
+<img
+src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYL2GdSdXkQF_QboAdnw1o3X0V4wiJr8LixmKIflH_kYptP3tutulTJLYiURi0vZw0lILetHS7GSH2aJiccAMub8Fxp8mPVnOZRc6Qdyum6vjihDfbb0IPPiLmnUJJCvlGRi6lWCTsHqANZh04Fc3KUvBRKkBb2tMljnL4a97MV8A5kzWvHcUn-mf-ZAj-TsmRqKKjQXk_QS2Q446UB5y8CnwB3BUwOMUbVJV7ZpsF7XenF_tYywih-ByZVbGArIlenpdiCMEwaw"
+className="w-full h-full object-cover"
+/>
+
+</div>
+
+<h4 className="mt-4 font-semibold">
+Student Photograph
+</h4>
+
+<p className="text-xs text-[#6b7280]">
+PNG, JPG up to 5MB
+</p>
+
+</div>
+
+
+
+{/* Academic */}
+
+<div className="bg-white p-6 rounded-xl border border-[#e5eeff] shadow-[0_6px_20px_rgba(0,0,0,0.04)]">
+
+<h3 className="font-semibold mb-4">
+Academic Record
+</h3>
+
+
+<div className="space-y-4">
+
+<input
+value="ADM-2024-0812"
+disabled
+className="bg-[#eff4ff] px-3 py-2 rounded-md text-sm"
+/>
+
+
+<div className="grid grid-cols-2 gap-3">
+
+<select
+name="grade"
+onChange={handleChange}
+className="bg-[#eff4ff] px-3 py-2 rounded-md text-sm">
+
+<option>Class 10</option>
+<option>Class 11</option>
+
+</select>
+
+
+<select
+name="section"
+onChange={handleChange}
+className="bg-[#eff4ff] px-3 py-2 rounded-md text-sm">
+
+<option>Section A</option>
+<option>Section B</option>
+
+</select>
+
+</div>
+
+
+<input
+name="roll"
+placeholder="e.g. 42"
+onChange={handleChange}
+className="bg-[#eff4ff] px-3 py-2 rounded-md text-sm"
+/>
+
+</div>
+
+</div>
+
+
+
+{/* Parent */}
+
+<div className="bg-white p-6 rounded-xl border border-[#e5eeff] shadow-[0_6px_20px_rgba(0,0,0,0.04)]">
+
+<h3 className="font-semibold mb-4">
+Parental Connection
+</h3>
+
+
+<div className="relative mb-4">
+
+<span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280] text-sm">
+search
+</span>
+
+<input
+placeholder="Search by name or ID..."
+className="w-full bg-[#eff4ff] pl-10 pr-4 py-2 rounded-md outline-none"
+/>
+
+</div>
+
+
+<div className="bg-[#eff4ff] p-3 rounded-lg flex justify-between items-center">
+
+<div className="flex gap-3 items-center">
+
+<div className="w-10 h-10 rounded bg-white flex items-center justify-center font-semibold text-[#6b38d4]">
+
+RM
+
+</div>
+
+<div>
+
+<p className="text-sm font-semibold">
+Robert Miller
+</p>
+
+<p className="text-xs text-[#6b7280]">
+Guardian ID: G-9021
+</p>
+
+</div>
+
+</div>
+
+
+<button>
+
+<span className="material-symbols-outlined text-red-500">
+close
+</span>
+
+</button>
+
+</div>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+</form>
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: ParentStudentMapping.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useState } from "react";
+
+export default function ParentStudentMapping(){
+
+const [showModal,setShowModal]=useState(false);
+
+const mappings=[
+{
+parent:"Julianne Smith",
+email:"julianne@email.com",
+student:"Leo Smith",
+relation:"Mother",
+status:"Verified",
+initials:"JS",
+color:"bg-[#d8e2ff]"
+},
+{
+parent:"Marcus Aurelius",
+email:"m.aurelius@hist.edu",
+student:"Commodus Aurelius",
+relation:"Father",
+status:"Verified",
+initials:"MA",
+color:"bg-[#ffdcc6]"
+},
+{
+parent:"Elena Thorne",
+email:"elena@provider.net",
+student:"Sophie Thorne",
+relation:"Guardian",
+status:"Pending",
+initials:"ET",
+color:"bg-[#e9ddff]"
+},
+{
+parent:"Robert Baratheon",
+email:"r.b@kingsway.edu",
+student:"Gendry Waters",
+relation:"Father",
+status:"Verified",
+initials:"RB",
+color:"bg-[#d8e2ff]"
+}
+];
+
+const createMapping=(e)=>{
+e.preventDefault();
+alert("Mapping created successfully");
+setShowModal(false);
+};
+
+return(
+
+<SchoolLayout title="Parent-Student Mapping">
+
+<div className="max-w-6xl mx-auto">
+
+{/* header */}
+
+<div className="flex justify-between items-end mb-10">
+
+<div>
+
+<h2 className="text-3xl font-bold">
+
+Relationship Management
+
+</h2>
+
+<p className="text-[#6b7280] mt-2 max-w-2xl">
+
+Configure and manage the legal and academic connections between students and their guardians. Ensure accurate data flow for emergency contacts and academic reporting.
+
+</p>
+
+</div>
+
+
+
+<button
+onClick={()=>setShowModal(true)}
+className="px-6 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white rounded-md font-semibold flex items-center gap-2 shadow">
+
+<span className="material-symbols-outlined">
+add
+</span>
+
+Add Mapping
+
+</button>
+
+</div>
+
+
+
+{/* stats */}
+
+<div className="grid md:grid-cols-4 gap-6 mb-10">
+
+
+<div className="md:col-span-2 bg-white p-6 rounded-lg flex justify-between">
+
+<div>
+
+<p className="text-sm text-[#6b7280]">
+
+Total Mappings
+
+</p>
+
+<h3 className="text-4xl font-bold text-[#0058be]">
+
+1,284
+
+</h3>
+
+<p className="text-xs text-[#924700] mt-2">
+
++12 new this week
+
+</p>
+
+</div>
+
+
+<div className="w-24 h-24 rounded-full bg-[#d8e2ff] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#0058be] text-4xl">
+
+hub
+
+</span>
+
+</div>
+
+</div>
+
+
+
+<div className="bg-[#eff4ff] p-6 rounded-lg">
+
+<p className="text-sm text-[#6b7280]">
+
+Verification Rate
+
+</p>
+
+<h3 className="text-2xl font-bold">
+
+98.2%
+
+</h3>
+
+<div className="h-1.5 bg-[#d8e2ff] rounded-full mt-4">
+
+<div className="bg-[#6b38d4] w-[98%] h-full rounded-full"></div>
+
+</div>
+
+</div>
+
+
+
+<div className="bg-[#eff4ff] p-6 rounded-lg">
+
+<p className="text-sm text-[#6b7280]">
+
+Pending Syncs
+
+</p>
+
+<h3 className="text-2xl font-bold text-red-600">
+
+03
+
+</h3>
+
+<p className="text-xs mt-2">
+
+Requiring review
+
+</p>
+
+</div>
+
+</div>
+
+
+
+{/* table */}
+
+<div className="bg-white rounded-lg shadow-sm overflow-hidden">
+
+
+<div className="p-6 flex justify-between items-center">
+
+
+<div className="relative w-80">
+
+<span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280]">
+
+search
+
+</span>
+
+<input
+placeholder="Search parent or student..."
+className="w-full bg-[#eff4ff] pl-10 pr-4 py-2 rounded-md outline-none"
+/>
+
+</div>
+
+
+<button className="flex items-center gap-2 px-4 py-2 bg-[#eff4ff] rounded-md">
+
+<span className="material-symbols-outlined">
+filter_list
+</span>
+
+Filter
+
+</button>
+
+</div>
+
+
+
+<table className="w-full">
+
+<thead className="bg-[#eff4ff] text-xs text-[#6b7280] uppercase">
+
+<tr>
+
+<th className="px-6 py-4">Parent</th>
+
+<th className="px-6 py-4">Student</th>
+
+<th className="px-6 py-4">Relationship</th>
+
+<th className="px-6 py-4">Status</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody className="divide-y">
+
+{mappings.map((m,i)=>(
+
+<tr key={i} className="hover:bg-[#f8f9ff] group">
+
+<td className="px-6 py-5">
+
+<div className="flex items-center gap-3">
+
+<div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold ${m.color}`}>
+
+{m.initials}
+
+</div>
+
+
+<div>
+
+<p className="font-semibold">
+
+{m.parent}
+
+</p>
+
+<p className="text-xs text-[#6b7280]">
+
+{m.email}
+
+</p>
+
+</div>
+
+</div>
+
+</td>
+
+
+
+<td className="px-6 py-5 flex items-center gap-2">
+
+<span className="material-symbols-outlined text-[#6b7280]">
+
+school
+
+</span>
+
+{m.student}
+
+</td>
+
+
+
+<td className="px-6 py-5">
+
+<span className="px-3 py-1 text-xs font-semibold rounded-full bg-[#e9ddff] text-[#6b38d4]">
+
+{m.relation}
+
+</span>
+
+</td>
+
+
+
+<td className="px-6 py-5">
+
+<span className={`text-xs font-semibold flex items-center gap-1 ${
+m.status==="Verified"
+?"text-green-600"
+:"text-[#924700]"
+}`}>
+
+<span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+
+{m.status}
+
+</span>
+
+</td>
+
+
+
+<td className="px-6 py-5 text-right opacity-0 group-hover:opacity-100 transition">
+
+<div className="flex justify-end gap-2">
+
+<button className="p-2 hover:bg-[#eff4ff] rounded">
+
+<span className="material-symbols-outlined text-sm">
+
+edit
+
+</span>
+
+</button>
+
+
+<button className="p-2 hover:bg-[#ffdad6] rounded">
+
+<span className="material-symbols-outlined text-sm text-red-500">
+
+delete
+
+</span>
+
+</button>
+
+</div>
+
+</td>
+
+</tr>
+
+))}
+
+</tbody>
+
+</table>
+
+</div>
+
+
+
+{/* insight */}
+
+<div className="mt-8 bg-[#ffdcc6]/40 p-6 rounded-lg flex gap-4">
+
+<span className="material-symbols-outlined text-[#924700]">
+
+lightbulb
+
+</span>
+
+
+<div>
+
+<h4 className="font-semibold">
+
+Mapping Intelligence
+
+</h4>
+
+<p className="text-sm text-[#924700]">
+
+System detects duplicate guardians automatically.
+
+</p>
+
+</div>
+
+</div>
+
+
+
+{/* modal */}
+
+{showModal &&(
+
+<div className="fixed inset-0 bg-black/30 flex items-center justify-center">
+
+<div className="bg-white w-[420px] rounded-xl shadow-xl">
+
+
+<div className="p-6 border-b flex justify-between">
+
+<h3 className="font-semibold">
+
+Create Relationship
+
+</h3>
+
+
+<button onClick={()=>setShowModal(false)}>
+
+<span className="material-symbols-outlined">
+
+close
+
+</span>
+
+</button>
+
+</div>
+
+
+
+<form onSubmit={createMapping} className="p-6 space-y-4">
+
+<input
+placeholder="Search Parent"
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md"
+/>
+
+
+<input
+placeholder="Search Student"
+className="w-full bg-[#eff4ff] px-4 py-3 rounded-md"
+/>
+
+
+<select className="w-full bg-[#eff4ff] px-4 py-3 rounded-md">
+
+<option>Mother</option>
+<option>Father</option>
+<option>Guardian</option>
+
+</select>
+
+
+<div className="flex justify-end gap-3 pt-4">
+
+<button
+type="button"
+onClick={()=>setShowModal(false)}
+className="px-6 py-2 text-[#6b7280]">
+
+Cancel
+
+</button>
+
+
+<button
+type="submit"
+className="px-6 py-2 bg-[#0058be] text-white rounded-md">
+
+Create Mapping
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+)}
+
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
+
+================================================================================
+FILE: AddMapping.jsx
+================================================================================
+
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+
+export default function AddMapping(){
+
+const navigate = useNavigate();
+
+const [relation,setRelation]=useState("father");
+
+const save=(e)=>{
+e.preventDefault();
+
+alert("Mapping saved successfully");
+
+navigate("/school-admin/mapping");
+};
+
+return(
+
+<SchoolLayout title="Parent-Student Mapping">
+
+<div className="max-w-6xl mx-auto">
+
+
+{/* breadcrumb */}
+
+<div className="flex justify-between items-start mb-10">
+
+
+<div>
+
+<div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#8b93a7] mb-3">
+
+Dashboard
+
+<span className="material-symbols-outlined text-[14px]">
+chevron_right
+</span>
+
+Parent-Student Mapping
+
+<span className="material-symbols-outlined text-[14px]">
+chevron_right
+</span>
+
+<span className="text-[#0b1c30]">
+Add Mapping
+</span>
+
+</div>
+
+
+<h1 className="text-3xl font-bold text-[#0b1c30]">
+
+Add Mapping
+
+</h1>
+
+
+<p className="text-[#6b7280] mt-1">
+
+Establish a new relationship link between a legal guardian and a student.
+
+</p>
+
+
+</div>
+
+
+
+<button
+onClick={()=>navigate("/school-admin/mapping")}
+className="flex items-center gap-2 px-4 py-2 bg-[#e5eeff] text-[#0058be] font-semibold rounded-md hover:bg-[#dce9ff] transition">
+
+<span className="material-symbols-outlined text-[18px]">
+arrow_back
+</span>
+
+Go Back
+
+</button>
+
+
+</div>
+
+
+
+{/* main grid */}
+
+<div className="grid lg:grid-cols-12 gap-8">
+
+
+{/* LEFT FORM */}
+
+<div className="lg:col-span-8 bg-white p-8 rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+
+
+<form onSubmit={save} className="space-y-8">
+
+
+{/* selects */}
+
+<div className="grid md:grid-cols-2 gap-6">
+
+
+<div>
+
+<label className="text-sm font-semibold text-[#0b1c30]">
+
+Select Parent
+
+</label>
+
+
+<div className="relative mt-2">
+
+<span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8b93a7]">
+person_search
+</span>
+
+
+<select className="w-full pl-10 pr-4 py-3 bg-[#eff4ff] rounded-md text-sm outline-none">
+
+<option>Search by name or email...</option>
+
+<option>Robert Harrison</option>
+
+<option>Sarah Jenkins</option>
+
+<option>Michael Chen</option>
+
+</select>
+
+
+<span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#8b93a7]">
+expand_more
+</span>
+
+
+</div>
+
+</div>
+
+
+
+<div>
+
+<label className="text-sm font-semibold text-[#0b1c30]">
+
+Select Student
+
+</label>
+
+
+<div className="relative mt-2">
+
+<span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8b93a7]">
+school
+</span>
+
+
+<select className="w-full pl-10 pr-4 py-3 bg-[#eff4ff] rounded-md text-sm outline-none">
+
+<option>Search by student ID or name...</option>
+
+<option>Leo Harrison</option>
+
+<option>Emily Jenkins</option>
+
+<option>Chloe Chen</option>
+
+</select>
+
+
+<span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#8b93a7]">
+expand_more
+</span>
+
+</div>
+
+</div>
+
+
+</div>
+
+
+
+{/* relationship */}
+
+<div>
+
+<label className="text-sm font-semibold text-[#0b1c30]">
+
+Relationship Type
+
+</label>
+
+
+<div className="grid grid-cols-3 gap-4 mt-3">
+
+
+{[
+{key:"father",icon:"man"},
+{key:"mother",icon:"woman"},
+{key:"guardian",icon:"shield"}
+].map(item=>(
+
+<div
+key={item.key}
+onClick={()=>setRelation(item.key)}
+className={`p-5 rounded-md cursor-pointer flex flex-col items-center gap-2 bg-[#eff4ff] border transition ${
+relation===item.key
+?"border-[#0058be] bg-[#e5eeff]"
+:"border-transparent"
+}`}>
+
+<span className="material-symbols-outlined text-[#424754]">
+{item.icon}
+</span>
+
+
+<span className="text-xs font-semibold tracking-wider text-[#424754] uppercase">
+{item.key}
+</span>
+
+
+</div>
+
+))}
+
+
+</div>
+
+</div>
+
+
+
+{/* buttons */}
+
+<div className="flex justify-end gap-6 pt-6 border-t border-[#e5eeff]">
+
+
+<button
+type="button"
+onClick={()=>navigate("/school-admin/mapping")}
+className="text-[#6b7280] font-semibold">
+
+Cancel
+
+</button>
+
+
+<button
+type="submit"
+className="px-8 py-2.5 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-semibold rounded-md shadow">
+
+Save Mapping
+
+</button>
+
+
+</div>
+
+
+</form>
+
+
+</div>
+
+
+
+{/* RIGHT PANEL */}
+
+<div className="lg:col-span-4 space-y-6">
+
+
+{/* insight */}
+
+<div className="bg-[#dce9ff] p-6 rounded-lg relative">
+
+
+<span className="absolute top-4 right-4 text-[10px] font-bold tracking-widest px-2 py-1 bg-white/70 text-[#0058be] rounded-full">
+
+INSIGHT
+
+</span>
+
+
+<h3 className="text-lg font-bold text-[#0b1c30] mb-2">
+
+Mapping Intelligence
+
+</h3>
+
+
+<p className="text-sm text-[#424754] mb-6">
+
+Adding a parent-student mapping enables synchronized communication, grade reporting, and emergency contact workflows.
+
+</p>
+
+
+
+<div className="space-y-4 text-sm">
+
+
+<div className="flex gap-3">
+
+<div className="w-8 h-8 bg-[#e5eeff] rounded-full flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#0058be] text-sm">
+verified
+</span>
+
+</div>
+
+System verifies that the parent is already registered in Users module.
+
+</div>
+
+
+
+<div className="flex gap-3">
+
+<div className="w-8 h-8 bg-[#e9ddff] rounded-full flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#6b38d4] text-sm">
+auto_awesome
+</span>
+
+</div>
+
+Notification will be sent once mapping confirmed.
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+{/* preview */}
+
+<div className="bg-white border border-[#e5eeff] p-6 rounded-lg">
+
+
+<p className="text-xs font-bold text-[#8b93a7] tracking-widest mb-5">
+
+PREVIEW CONNECTION
+
+</p>
+
+
+<div className="flex items-center justify-center gap-4">
+
+
+<div className="flex flex-col items-center gap-2">
+
+<div className="w-12 h-12 rounded-full bg-[#eff4ff] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#8b93a7]">
+person
+</span>
+
+</div>
+
+<span className="text-[11px] text-[#8b93a7]">
+Parent
+</span>
+
+</div>
+
+
+
+<div className="flex-1 border-t border-dashed border-[#d1d7e5]"></div>
+
+
+<div className="w-8 h-8 rounded-full bg-[#e5eeff] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#0058be] text-sm">
+link
+</span>
+
+</div>
+
+
+<div className="flex-1 border-t border-dashed border-[#d1d7e5]"></div>
+
+
+
+<div className="flex flex-col items-center gap-2">
+
+<div className="w-12 h-12 rounded-full bg-[#eff4ff] flex items-center justify-center">
+
+<span className="material-symbols-outlined text-[#8b93a7]">
+school
+</span>
+
+</div>
+
+<span className="text-[11px] text-[#8b93a7]">
+Student
+</span>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+</SchoolLayout>
+
+);
+
+}
