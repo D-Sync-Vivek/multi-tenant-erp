@@ -1,69 +1,186 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
-import Button from "../../components/erp/teacher/Button";
 import Card from "../../components/erp/teacher/Card";
-
+import { getMyProfile, getTeacherClasses, getAttendanceRecords } from "../../services/api";
+import { useStaleData } from "../../hooks/useStaleData";
 
 const AttendanceOverview = () => {
   const navigate = useNavigate();
+
+  const { data: profileData } = useStaleData("profile:me", getMyProfile);
+  const teacherId = profileData?.profiles?.teacher?.id || profileData?.identity?.id;
+
+  const { data: assignmentsData, loading: classesLoading } = useStaleData(
+    `teacher:classes:${teacherId}`,
+    () => getTeacherClasses(teacherId),
+    { skip: !teacherId }
+  );
+
+  const classes = assignmentsData?.results || [];
+
+  const { data: attendancePayload, loading: attendanceLoading } = useStaleData(
+    `teacher:attendance-records:${teacherId}`,
+    async () => {
+      if (!teacherId || classes.length === 0) return [];
+      
+      const sectionIds = [...new Set(classes.map(a => a.section || a.section_id))].filter(Boolean);
+      const sectionPromises = sectionIds.map(sectionId => getAttendanceRecords(sectionId));
+      const responses = await Promise.all(sectionPromises);
+      
+      let allAttendance = [];
+      responses.forEach(data => {
+        const records = Array.isArray(data) ? data : data.results || [];
+        allAttendance = [...allAttendance, ...records];
+      });
+      return allAttendance;
+    },
+    { skip: !teacherId || classesLoading || classes.length === 0, deps: classes }
+  );
+
+  const attendanceRecords = attendancePayload || [];
+
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric'
+  });
+  const academicYearName = classes[0]?.academic_year_name || "Current Session";
+
+  // Calculations
+  const totalAttendanceRecords = attendanceRecords.length;
+  const totalPresent = attendanceRecords.filter(r => r.status === 'Present' || r.status === 'Late').length;
+  const avgAttendance = totalAttendanceRecords > 0
+    ? ((totalPresent / totalAttendanceRecords) * 100).toFixed(1)
+    : 0;
+
+  // Weekly average calculation (last 7 days)
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const weeklyRecords = attendanceRecords.filter(r => new Date(r.date) >= oneWeekAgo);
+  const totalWeekly = weeklyRecords.length;
+  const presentWeekly = weeklyRecords.filter(r => r.status === 'Present' || r.status === 'Late').length;
+  const weeklyAvg = totalWeekly > 0 
+    ? ((presentWeekly / totalWeekly) * 100).toFixed(1) 
+    : avgAttendance; // Fallback to overall average if no records in last 7 days
+
+  // Absent students count on the most recent attendance run
+  const dates = attendanceRecords.map(r => r.date).filter(Boolean);
+  const latestDate = dates.length > 0 ? dates.sort().reverse()[0] : null;
+  const latestRecords = latestDate ? attendanceRecords.filter(r => r.date === latestDate) : [];
+  const absentLatest = latestRecords.filter(r => r.status === 'Absent').length;
+
+  // Distribution calculations
+  const presentCount = attendanceRecords.filter(r => r.status === 'Present').length;
+  const lateCount = attendanceRecords.filter(r => r.status === 'Late').length;
+  const leaveCount = attendanceRecords.filter(r => r.status === 'Excused' || r.status === 'Leave').length;
+
+  const presentPct = totalAttendanceRecords > 0 ? Math.round((presentCount / totalAttendanceRecords) * 100) : 0;
+  const latePct = totalAttendanceRecords > 0 ? Math.round((lateCount / totalAttendanceRecords) * 100) : 0;
+  const leavePct = totalAttendanceRecords > 0 ? Math.round((leaveCount / totalAttendanceRecords) * 100) : 0;
+
+  // Group attendance records by date and calculate percentage for each date for trend
+  const recordsByDate = {};
+  attendanceRecords.forEach(r => {
+    if (!r.date) return;
+    if (!recordsByDate[r.date]) {
+      recordsByDate[r.date] = { present: 0, total: 0 };
+    }
+    recordsByDate[r.date].total += 1;
+    if (r.status === 'Present' || r.status === 'Late') {
+      recordsByDate[r.date].present += 1;
+    }
+  });
+
+  const sortedDates = Object.keys(recordsByDate).sort();
+  const trendDates = sortedDates.slice(-5);
+  const trendData = trendDates.map(date => {
+    const { present, total } = recordsByDate[date];
+    return {
+      date,
+      pct: total > 0 ? Math.round((present / total) * 100) : 0
+    };
+  });
+
+  const svgHeight = 40;
+  const svgWidth = 100;
+  let pathD = "";
+  if (trendData.length > 0) {
+    const points = trendData.map((d, index) => {
+      const x = (index / (trendData.length - 1)) * svgWidth;
+      const y = svgHeight - 5 - (d.pct / 100) * (svgHeight - 10);
+      return `${x},${y}`;
+    });
+    pathD = `M ${points.join(' L ')}`;
+  }
+
   return (
-    
     <MainLayout title="The Academic Architect">
       {/* Header Section */}
-      
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
         <div>
           <h2 className="text-3xl font-extrabold text-on-surface font-display tracking-tight">Attendance Overview</h2>
-          <p className="text-on-surface-variant font-medium mt-1">Academic Session: 2023-24 • Monday, Oct 23</p>
+          <p className="text-on-surface-variant font-medium mt-1">Academic Session: {academicYearName} • {formattedDate}</p>
         </div>
+        {/* Commented out bulk marking and export report
         <div className="flex space-x-3">
-          <button className="flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-primary font-semibold bg-surface-container-high hover:bg-surface-container-highest transition-colors text-sm">
+          <button className="flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-[#0058be] font-semibold bg-[#eff4ff] hover:bg-[#d8e2ff] transition-colors text-sm">
             <span className="material-symbols-outlined text-[20px]">file_download</span>
             <span>Export Report</span>
           </button>
-          <button className="flex items-center justify-center space-x-2 px-6 py-2.5 rounded-xl text-white font-semibold bg-gradient-to-br from-primary to-primary-container shadow-md active:scale-95 duration-150 transition-all text-sm">
-            <span className="material-symbols-outlined text-[20px]">add</span>
-            <span>Bulk Marking</span>
+          <button 
+            onClick={() => navigate("/teacher/attendance/mark")}
+            className="flex items-center justify-center space-x-2 px-6 py-2.5 rounded-xl text-white font-semibold bg-gradient-to-r from-[#0058be] to-[#2170e4] shadow-md active:scale-95 duration-150 transition-all text-sm"
+          >
+            <span className="material-symbols-outlined text-[20px]">fact_check</span>
+            <span>Mark Attendance</span>
           </button>
         </div>
+        */}
       </div>
 
       {/* Bento Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <Card className="flex flex-col justify-between relative overflow-hidden group shadow-ambient" style={{boxShadow: '0px 12px 32px rgba(11,28,48,0.04)'}}>
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+        <Card className="flex flex-col justify-between relative overflow-hidden group shadow-sm border border-gray-100">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#0058be]/5 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
           <div className="relative z-10">
-            <p className="text-sm font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Today's Presence</p>
-            <h3 className="text-4xl font-extrabold text-primary">94.2%</h3>
+            <p className="text-sm font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Average Attendance</p>
+            <h3 className="text-4xl font-extrabold text-primary">
+              {attendanceLoading ? '—' : `${avgAttendance}%`}
+            </h3>
           </div>
           <div className="mt-4 flex items-center text-xs font-bold text-green-600 relative z-10">
             <span className="material-symbols-outlined text-[16px] mr-1">trending_up</span>
-            <span>2.1% from yesterday</span>
+            <span>{attendanceLoading ? '—' : `${totalAttendanceRecords} total records`}</span>
           </div>
         </Card>
 
-        <Card className="flex flex-col justify-between relative overflow-hidden group shadow-ambient" style={{boxShadow: '0px 12px 32px rgba(11,28,48,0.04)'}}>
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/5 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+        <Card className="flex flex-col justify-between relative overflow-hidden group shadow-sm border border-gray-100">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#6b38d4]/5 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
           <div className="relative z-10">
             <p className="text-sm font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Weekly Avg</p>
-            <h3 className="text-4xl font-extrabold text-[#6b38d4]">88.5%</h3>
+            <h3 className="text-4xl font-extrabold text-[#6b38d4]">
+              {attendanceLoading ? '—' : `${weeklyAvg}%`}
+            </h3>
           </div>
           <div className="mt-4 flex items-center text-xs font-bold text-slate-500 relative z-10">
             <span className="material-symbols-outlined text-[16px] mr-1">history</span>
-            <span>Steady state maintain</span>
+            <span>{attendanceLoading ? '—' : `${weeklyRecords.length} records in last 7 days`}</span>
           </div>
         </Card>
 
-        <Card className="flex flex-col justify-between relative overflow-hidden group shadow-ambient" style={{boxShadow: '0px 12px 32px rgba(11,28,48,0.04)'}}>
+        <Card className="flex flex-col justify-between relative overflow-hidden group shadow-sm border border-gray-100">
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/5 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
           <div className="relative z-10">
             <p className="text-sm font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Absent Students</p>
-            <h3 className="text-4xl font-extrabold text-red-600">12</h3>
+            <h3 className="text-4xl font-extrabold text-red-600">
+              {attendanceLoading ? '—' : absentLatest}
+            </h3>
           </div>
           <div className="mt-4 flex items-center text-xs font-bold text-red-600 relative z-10">
             <span className="material-symbols-outlined text-[16px] mr-1">warning</span>
-            <span>3 students flagged for low attendance</span>
+            <span>{attendanceLoading ? '—' : latestDate ? `On latest run (${latestDate})` : 'No records yet'}</span>
           </div>
         </Card>
       </div>
@@ -75,78 +192,53 @@ const AttendanceOverview = () => {
         <div className="lg:col-span-8">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-on-surface">Scheduled Classes Today</h3>
-            <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">5 Classes Total</span>
+            <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">{classes.length} Classes Total</span>
           </div>
           <div className="space-y-4">
             
-            {/* Class Row 1 */}
-            <div className="bg-surface-container-lowest rounded-xl p-5 flex flex-col sm:flex-row sm:items-center shadow-sm hover:shadow-md transition-shadow group gap-4">
-              <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                <span className="material-symbols-outlined text-3xl">calculate</span>
-              </div>
-              <div className="flex-grow">
-                <h4 className="font-bold text-on-surface text-lg">Advanced Mathematics</h4>
-                <p className="text-sm text-on-surface-variant">Grade 11-A • 09:00 AM - 10:30 AM</p>
-              </div>
-              <div className="hidden md:flex items-center space-x-8">
-                <div className="text-center">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Present</p>
-                  <p className="text-lg font-bold text-green-600">32/34</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Status</p>
-                  <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">Completed</span>
-                </div>
-              </div>
-              <button className="sm:ml-6 px-5 py-2 rounded-xl bg-surface-container-high text-primary font-bold text-sm hover:bg-primary hover:text-white transition-all whitespace-nowrap">
-                View Details
-              </button>
-            </div>
+            {classesLoading ? (
+              <div className="p-5 text-center text-slate-500 font-semibold bg-surface-container-lowest rounded-xl shadow-sm">Loading classes...</div>
+            ) : classes.length === 0 ? (
+              <div className="p-5 text-center text-slate-500 font-semibold bg-surface-container-lowest rounded-xl shadow-sm">No classes scheduled for today.</div>
+            ) : (
+              classes.map((cls, idx) => {
+                const colors = ['blue', 'purple', 'orange', 'green', 'rose'];
+                const icons = ['calculate', 'science', 'menu_book', 'computer', 'history_edu'];
+                const color = colors[idx % colors.length];
+                const icon = icons[idx % icons.length];
 
-            {/* Class Row 2 */}
-            <div className="bg-surface-container-lowest rounded-xl p-5 flex flex-col sm:flex-row sm:items-center shadow-sm hover:shadow-md transition-shadow gap-4">
-              <div className="w-14 h-14 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
-                <span className="material-symbols-outlined text-3xl">science</span>
-              </div>
-              <div className="flex-grow">
-                <h4 className="font-bold text-on-surface text-lg">Quantum Physics Lab</h4>
-                <p className="text-sm text-on-surface-variant">Grade 12-C • 11:00 AM - 12:30 PM</p>
-              </div>
-              <div className="hidden md:flex items-center justify-center px-4">
-                <span className="text-xs font-bold text-amber-600 bg-amber-100 px-3 py-1 rounded-full whitespace-nowrap">In Progress</span>
-              </div>
-              <button
-onClick={() => navigate("/teacher/attendance/mark")}
-className="px-5 py-2 bg-primary text-white rounded-md font-semibold text-sm hover:opacity-90 transition"
->
+                return (
+                  <div key={cls.id} className="bg-surface-container-lowest rounded-xl p-5 flex flex-col sm:flex-row sm:items-center shadow-sm hover:shadow-md transition-shadow group gap-4">
+                    <div className={`w-14 h-14 rounded-xl bg-${color}-50 flex items-center justify-center text-${color}-600 shrink-0`}>
+                      <span className="material-symbols-outlined text-3xl">{icon}</span>
+                    </div>
+                    <div className="flex-grow">
+                      <h4 className="font-bold text-on-surface text-lg">{cls.subject_name}</h4>
+                      <p className="text-sm text-on-surface-variant">{cls.class_level_name} - {cls.section_name}</p>
+                    </div>
+                    <button
+                      onClick={() => navigate(`/teacher/attendance/mark/${cls.id}`)}
+                      className="px-5 py-2 bg-primary text-white rounded-md font-semibold text-sm hover:opacity-90 transition whitespace-nowrap sm:ml-6"
+                    >
+                      Mark Attendance
+                    </button>
+                    <button
+                      onClick={() => navigate(`/teacher/classes/${cls.id}/performance`)}
+                      className="sm:ml-2 px-5 py-2 rounded-xl bg-surface-container-high text-primary font-bold text-sm hover:bg-primary hover:text-white transition-all whitespace-nowrap"
+                    >
+                      View Details
+                    </button>
+                  </div>
+                );
+              })
+            )}
 
-Mark Attendance
-
-</button>
-            </div>
-
-            {/* Class Row 3 */}
-            <div className="bg-surface-container-lowest rounded-xl p-5 flex flex-col sm:flex-row sm:items-center shadow-sm hover:shadow-md transition-shadow gap-4">
-              <div className="w-14 h-14 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
-                <span className="material-symbols-outlined text-3xl">menu_book</span>
-              </div>
-              <div className="flex-grow">
-                <h4 className="font-bold text-on-surface text-lg">Classical Literature</h4>
-                <p className="text-sm text-on-surface-variant">Grade 10-B • 02:00 PM - 03:30 PM</p>
-              </div>
-              <div className="hidden md:flex items-center justify-center px-4">
-                <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full italic whitespace-nowrap">Upcoming</span>
-              </div>
-              <button className="sm:ml-6 px-5 py-2 rounded-xl bg-slate-100 text-slate-400 font-bold text-sm cursor-not-allowed whitespace-nowrap">
-                Mark Soon
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Side Insight Section (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
-          {/* AI Intelligence Insight */}
+          {/* AI Intelligence Insight - Commented out
           <div className="bg-orange-50 p-6 rounded-xl relative overflow-hidden border border-amber-900/10">
             <div className="absolute top-0 right-0 p-4">
               <span className="material-symbols-outlined text-amber-900/20 text-4xl">psychology</span>
@@ -162,45 +254,82 @@ Mark Attendance
               Review Intervention Plan
             </button>
           </div>
+          */}
 
           {/* Attendance Distribution */}
-          <Card className="shadow-sm">
-            <h4 className="font-bold text-on-surface mb-6">Presence Distribution</h4>
+          <Card className="shadow-sm border border-gray-100">
+            <h4 className="font-bold text-slate-800 mb-6">Presence Distribution</h4>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1">
                   <span className="text-on-surface-variant">Physical Presence</span>
-                  <span className="text-primary">88%</span>
+                  <span className="text-primary">{presentPct}%</span>
                 </div>
                 <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
-                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: '88%' }}></div>
+                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${presentPct}%` }}></div>
                 </div>
               </div>
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1">
                   <span className="text-on-surface-variant">Late Arrivals</span>
-                  <span className="text-amber-600">6%</span>
+                  <span className="text-amber-600">{latePct}%</span>
                 </div>
                 <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 rounded-full transition-all" style={{ width: '6%' }}></div>
+                  <div className="h-full bg-amber-500 rounded-full transition-all" style={{ width: `${latePct}%` }}></div>
                 </div>
               </div>
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1">
                   <span className="text-on-surface-variant">Authorized Leaves</span>
-                  <span className="text-[#6b38d4]">4%</span>
+                  <span className="text-[#6b38d4]">{leavePct}%</span>
                 </div>
                 <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
-                  <div className="h-full bg-[#6b38d4] rounded-full transition-all" style={{ width: '4%' }}></div>
+                  <div className="h-full bg-[#6b38d4] rounded-full transition-all" style={{ width: `${leavePct}%` }}></div>
                 </div>
               </div>
             </div>
+
+            {/* Attendance Trends Line Chart */}
+            {trendData.length > 0 && (
+              <div className="mt-8 pt-6 border-t border-outline-variant/10">
+                <h5 className="text-xs font-bold text-on-surface-variant mb-4 uppercase tracking-wider">Attendance Trends</h5>
+                <div className="w-full h-[80px] relative">
+                  <svg viewBox="0 0 100 40" className="w-full h-full" preserveAspectRatio="none">
+                    <path
+                      d={pathD}
+                      fill="none"
+                      stroke="url(#trendGradient)"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    />
+                    <defs>
+                      <linearGradient id="trendGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+                        <stop offset="0%" stopColor="#2563eb" />
+                        <stop offset="100%" stopColor="#7c3aed" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+                <div className="flex justify-between text-[9px] font-bold text-slate-400 mt-2 px-1">
+                  {trendData.map((d, idx) => {
+                    const dateObj = new Date(d.date);
+                    const label = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    return (
+                      <div key={idx} className="text-center">
+                        <div>{label}</div>
+                        <div className="text-primary font-black mt-0.5">{d.pct}%</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </Card>
 
           {/* Quick Contact */}
           <div className="bg-primary/5 p-6 rounded-xl border border-primary/10">
             <h4 className="font-bold text-on-surface text-sm mb-3">Notify Guardians</h4>
-            <p className="text-xs text-on-surface-variant mb-4">Send automatic alerts for the 12 absent students today.</p>
+            <p className="text-xs text-on-surface-variant mb-4">Send automatic alerts for the absent students today.</p>
             <button className="w-full py-2.5 bg-white text-primary border border-primary rounded-xl font-bold text-xs hover:bg-primary hover:text-white transition-all">
               Send Notifications
             </button>

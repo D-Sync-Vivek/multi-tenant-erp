@@ -2,17 +2,147 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 import Card from "../../components/erp/teacher/Card";
-
+import { useStaleData } from "../../hooks/useStaleData";
+import { getMyProfile, getTeacherClasses, getSectionEnrollments, getAttendanceRecords, getGrades } from "../../services/api";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+
+  const { data: profile } = useStaleData("profile:me", getMyProfile);
+  const teacherId = profile?.profiles?.teacher?.id || profile?.identity?.id;
+
+  const teacherName = profile?.profiles?.teacher?.full_name
+    || profile?.profiles?.teacher?.name
+    || [profile?.profiles?.teacher?.first_name, profile?.profiles?.teacher?.last_name].filter(Boolean).join(' ')
+    || profile?.identity?.name
+    || [profile?.identity?.first_name, profile?.identity?.last_name].filter(Boolean).join(' ')
+    || 'Teacher';
+
+  const { data: assignmentsData, loading, revalidating } = useStaleData(
+    `teacher:classes:${teacherId}`,
+    () => getTeacherClasses(teacherId),
+    { skip: !teacherId }
+  );
+
+  const classes = assignmentsData?.results || [];
+
+  const { data: stats, loading: statsLoading } = useStaleData(
+    `teacher:stats:${teacherId}`,
+    async () => {
+      const assignments = await getTeacherClasses(teacherId);
+      const classesList = assignments?.results || [];
+
+      if (classesList.length === 0) {
+        return { avgAttendance: 0, avgPerformancePercentage: 0 };
+      }
+
+      // Fetch all section enrollments, attendance, and grades for all classes in parallel
+      const promises = classesList.map(async (cls) => {
+        const sectionId = typeof cls.section === 'object'
+          ? cls.section?.id
+          : cls.section || cls.section_id;
+        const academicYearId = typeof cls.academic_year === 'object'
+          ? cls.academic_year?.id
+          : cls.academic_year || cls.academic_year_id;
+        const subjectId = typeof cls.subject === 'object'
+          ? cls.subject?.id
+          : cls.subject || cls.subject_id;
+
+        if (!sectionId) return { students: [], attendanceMap: {}, gradesMap: {} };
+
+        try {
+          const [enrollmentsData, attendanceData, gradesData] = await Promise.all([
+            getSectionEnrollments(sectionId, academicYearId),
+            getAttendanceRecords(sectionId, academicYearId),
+            subjectId ? getGrades(subjectId) : Promise.resolve({ results: [] })
+          ]);
+
+          const students = Array.isArray(enrollmentsData)
+            ? enrollmentsData
+            : enrollmentsData.results || [];
+
+          const records = Array.isArray(attendanceData)
+            ? attendanceData
+            : attendanceData.results || [];
+
+          const attendanceMap = {};
+          records.forEach(record => {
+            const sId = record.student_id || record.student;
+            if (!attendanceMap[sId]) attendanceMap[sId] = { present: 0, total: 0 };
+            attendanceMap[sId].total += 1;
+            if (record.status === 'Present' || record.status === 'Late') {
+              attendanceMap[sId].present += 1;
+            }
+          });
+
+          const grades = Array.isArray(gradesData)
+            ? gradesData
+            : gradesData.results || [];
+            
+          const gradesMap = {};
+          grades.forEach(grade => {
+            const sId = grade.student_id || grade.student;
+            if (!gradesMap[sId] || parseFloat(grade.marks_obtained) > parseFloat(gradesMap[sId].marks_obtained)) {
+              gradesMap[sId] = grade;
+            }
+          });
+
+          return { students, attendanceMap, gradesMap };
+        } catch (err) {
+          console.error("Error loading class data for stats:", err);
+          return { students: [], attendanceMap: {}, gradesMap: {} };
+        }
+      });
+
+      const results = await Promise.all(promises);
+
+      let overallTotalAttendanceRecords = 0;
+      let overallTotalPresent = 0;
+      let overallTotalObtainedMarks = 0;
+      let overallTotalMaxMarks = 0;
+
+      results.forEach(({ students, attendanceMap, gradesMap }) => {
+        students.forEach(student => {
+          const sId = student.student?.id || student.student || student.student_id;
+          
+          // Attendance
+          const att = attendanceMap[sId];
+          if (att) {
+            overallTotalAttendanceRecords += att.total;
+            overallTotalPresent += att.present;
+          }
+
+          // Grades
+          const grade = gradesMap[sId];
+          if (grade) {
+            overallTotalObtainedMarks += parseFloat(grade.marks_obtained || 0);
+            overallTotalMaxMarks += parseFloat(grade.max_marks || 0);
+          }
+        });
+      });
+
+      const avgAttendance = overallTotalAttendanceRecords > 0
+        ? ((overallTotalPresent / overallTotalAttendanceRecords) * 100).toFixed(1)
+        : 0;
+
+      const avgPerformancePercentage = overallTotalMaxMarks > 0
+        ? ((overallTotalObtainedMarks / overallTotalMaxMarks) * 100).toFixed(1)
+        : 0;
+
+      return { avgAttendance, avgPerformancePercentage };
+    },
+    { skip: !teacherId }
+  );
+
+
+
+
   return (
     <MainLayout title="The Academic Architect">
       {/* TopAppBar Context */}
       <div className="flex flex-col md:flex-row md:items-center justify-between w-full mb-10 gap-4">
         <div>
-          <h2 className="font-display text-3xl font-extrabold text-on-surface tracking-tight">Good morning, Dr. Elena Vance</h2>
-          <p className="text-on-surface-variant font-medium mt-1">Department of Theoretical Physics & Mathematics</p>
+          <h2 className="font-display text-3xl font-extrabold text-on-surface tracking-tight">{`Good morning, ${teacherName}`}</h2>
         </div>
       </div>
 
@@ -26,8 +156,9 @@ const Dashboard = () => {
             <span className="text-[10px] font-black uppercase tracking-widest text-primary px-2 py-1 bg-primary/5 rounded-lg">Today</span>
           </div>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Total Classes</p>
-          <h3 className="font-display text-4xl font-black mt-1 text-slate-800">5</h3>
+          <h3 className="font-display text-4xl font-black mt-1 text-slate-800">{loading ? '-' : classes.length}</h3>
         </Card>
+        {/*
         <Card hoverable className="group">
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 bg-purple-50 rounded-xl text-purple-600 transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-110">
@@ -37,6 +168,7 @@ const Dashboard = () => {
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Pending Assignments</p>
           <h3 className="font-display text-4xl font-black mt-1 text-slate-800">12</h3>
         </Card>
+        */}
         <Card hoverable className="group">
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 bg-amber-50 rounded-xl text-amber-600 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
@@ -46,8 +178,10 @@ const Dashboard = () => {
               <span className="material-symbols-outlined text-sm">trending_up</span> 2.1%
             </span>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Avg Attendance</p>
-          <h3 className="font-display text-4xl font-black mt-1 text-slate-800">94.2%</h3>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Avg Attendance</p>
+          <h3 className="font-display text-4xl font-black mt-1 text-slate-800">
+            {statsLoading ? '—' : `${stats?.avgAttendance ?? 0}%`}
+          </h3>
         </Card>
         <Card hoverable className="group">
           <div className="flex justify-between items-start mb-4">
@@ -56,7 +190,9 @@ const Dashboard = () => {
             </div>
           </div>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Avg Performance</p>
-          <h3 className="font-display text-4xl font-black mt-1 text-slate-800">B+</h3>
+          <h3 className="font-display text-4xl font-black mt-1 text-slate-800">
+            {statsLoading ? '—' : `${stats?.avgPerformancePercentage ?? 0}%`}
+          </h3>
         </Card>
       </section>
 
@@ -74,65 +210,39 @@ const Dashboard = () => {
               <button className="text-sm font-bold text-primary hover:underline">Full Calendar</button>
             </div>
             <div className="space-y-4">
-              <Card className="p-5 flex flex-col sm:flex-row sm:items-center gap-6 group hover:bg-surface-container-low transition-colors duration-300">
-                <div className="w-16 h-16 rounded-xl bg-surface-container-high flex flex-col items-center justify-center text-on-surface-variant shrink-0">
-                  <span className="text-xs font-bold">09:00</span>
-                  <div className="w-8 h-[2px] bg-outline-variant my-1"></div>
-                  <span className="text-xs font-bold">10:00</span>
-                </div>
-                <div className="flex-1">
-                  <h5 className="font-bold text-lg">Grade 10-A Mathematics</h5>
-                  <p className="text-sm text-on-surface-variant">Room 302 • Calculus Foundations</p>
-                </div>
-                <div className="flex gap-3">
-                  <button
-onClick={() => navigate("/teacher/classes/1/performance")}
-className="px-4 py-2 bg-blue-100 text-blue-700 rounded-md font-semibold"
->
-
-View Class
-
-</button>
-                  <button
-onClick={() => navigate("/teacher/attendance/mark")}
-className="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold"
->
-
-Mark Attendance
-
-</button>
-                </div>
-              </Card>
-
-              <Card className="p-5 flex flex-col sm:flex-row sm:items-center gap-6 group hover:bg-surface-container-low transition-colors duration-300">
-                <div className="w-16 h-16 rounded-xl bg-surface-container-high flex flex-col items-center justify-center text-on-surface-variant shrink-0">
-                  <span className="text-xs font-bold">11:30</span>
-                  <div className="w-8 h-[2px] bg-outline-variant my-1"></div>
-                  <span className="text-xs font-bold">12:30</span>
-                </div>
-                <div className="flex-1">
-                  <h5 className="font-bold text-lg">Grade 11-B Physics</h5>
-                  <p className="text-sm text-on-surface-variant">Lab 04 • Quantum Mechanics Intro</p>
-                </div>
-                <div className="flex gap-3">
-                  <button
-onClick={() => navigate("/teacher/classes/1/performance")}
-className="px-4 py-2 bg-blue-100 text-blue-700 rounded-md font-semibold"
->
-
-View Class
-
-</button>
-                   <button
-onClick={() => navigate("/teacher/attendance/mark")}
-className="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold"
->
-
-Mark Attendance
-
-</button>
-                </div>
-              </Card>
+              {loading && classes.length === 0 ? (
+                <div className="p-5 text-center text-slate-500">Loading classes...</div>
+              ) : classes.length === 0 ? (
+                <div className="p-5 text-center text-slate-500 bg-surface-container-lowest rounded-xl">No classes assigned for you today.</div>
+              ) : (
+                classes.map((cls, index) => (
+                  <Card key={cls.id} className="p-5 flex flex-col sm:flex-row sm:items-center gap-6 group hover:bg-surface-container-low transition-colors duration-300">
+                    <div className="w-16 h-16 rounded-xl bg-surface-container-high flex flex-col items-center justify-center text-on-surface-variant shrink-0">
+                      <span className="text-xs font-bold text-primary">Class</span>
+                      <div className="w-8 h-[2px] bg-primary/20 my-1"></div>
+                      <span className="text-xl font-black text-primary">{index + 1}</span>
+                    </div>
+                    <div className="flex-1">
+                      <h5 className="font-bold text-lg">{cls.subject_name} ({cls.class_level_name} - {cls.section_name})</h5>
+                      <p className="text-sm text-on-surface-variant">Academic Year: {cls.academic_year_name}</p>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => navigate(`/teacher/classes/${cls.id}/performance`)}
+                        className="px-4 py-2 bg-blue-100 text-blue-700 rounded-md font-semibold hover:bg-blue-200 transition-colors"
+                      >
+                        View Class
+                      </button>
+                      <button
+                        onClick={() => navigate(`/teacher/attendance/mark/${cls.id}`)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition-colors"
+                      >
+                        Mark Attendance
+                      </button>
+                    </div>
+                  </Card>
+                ))
+              )}
             </div>
           </section>
 
@@ -144,9 +254,10 @@ Mark Attendance
     Quick Actions
   </h4>
 
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
 
     {/* Create Assignment */}
+    {/*
     <Card
       hoverable
       className="cursor-pointer flex flex-col items-center justify-center text-center gap-3 py-8 group"
@@ -162,6 +273,7 @@ Mark Attendance
         CREATE ASSIGNMENT
       </p>
     </Card>
+    */}
 
 
     {/* Mark Attendance */}
@@ -224,7 +336,8 @@ Mark Attendance
         {/* Side Sidebar */}
         <div className="col-span-12 lg:col-span-4 space-y-8">
           
-          {/* AI Alert Panel */}
+          {/*
+          AI Alert Panel (commented out)
           <div className="bg-gradient-to-br from-primary to-primary-container p-1 rounded-lg shadow-xl overflow-hidden">
             <div className="bg-white/95 backdrop-blur-md p-6 rounded-[calc(0.5rem-4px)]">
               <div className="flex items-center gap-3 mb-4">
@@ -243,9 +356,11 @@ className="w-full bg-blue-100 text-blue-700 py-2 rounded-md font-semibold"
 
 View Students
 
+
 </button>
             </div>
           </div>
+          */}
 
           {/* Recent Activity Feed */}
           <section className="bg-surface-container-low rounded-lg p-6">

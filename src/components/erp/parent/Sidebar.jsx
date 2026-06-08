@@ -1,7 +1,9 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 export default function Sidebar() {
+
+  const navigate = useNavigate();
 
   const navClass = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-3 font-semibold rounded-xl transition-all
@@ -10,6 +12,13 @@ export default function Sidebar() {
         ? "bg-white text-blue-700 shadow-sm"
         : "text-slate-600 hover:bg-slate-200/50 hover:text-blue-600"
     }`;
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user_data');
+    navigate('/');
+  };
 
   return (
 
@@ -123,9 +132,9 @@ export default function Sidebar() {
       </nav>
 
 
-      {/* SETTINGS */}
+      {/* SETTINGS + LOGOUT */}
 
-      <div className="mt-auto">
+      <div className="mt-auto flex flex-col gap-1">
 
         <NavLink to="/parent/settings" className={navClass}>
 
@@ -137,10 +146,18 @@ export default function Sidebar() {
 
         </NavLink>
 
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 font-semibold rounded-xl transition-all text-red-500 hover:bg-red-50 hover:text-red-600 w-full text-left"
+        >
+          <span className="material-symbols-outlined">logout</span>
+          Log Out
+        </button>
+
       </div>
 
     </aside>
 
   );
 
-}
+}

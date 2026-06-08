@@ -3,11 +3,57 @@
 import Layout from "../../components/erp/global/Layout";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { generateLessonPlan } from "../../services/api";
 
 export default function AIConfiguration() {
 
 const navigate = useNavigate();
 const [temperature,setTemperature] = useState(0.7);
+
+// Lesson plan form state
+const [className, setClassName] = useState("");
+const [subject, setSubject] = useState("");
+const [chapterName, setChapterName] = useState("");
+const [numMCQs, setNumMCQs] = useState(5);
+const [numShortAnswers, setNumShortAnswers] = useState(3);
+const [numCaseBased, setNumCaseBased] = useState(2);
+
+const [loading, setLoading] = useState(false);
+const [result, setResult] = useState(null);
+const [error, setError] = useState(null);
+
+const clearForm = () => {
+	setClassName("");
+	setSubject("");
+	setChapterName("");
+	setNumMCQs(5);
+	setNumShortAnswers(3);
+	setNumCaseBased(2);
+	setResult(null);
+	setError(null);
+};
+
+const handleGenerate = async () => {
+	setError(null);
+	setLoading(true);
+	try {
+		const payload = {
+			class_name: className,
+			subject: subject,
+			chapter_name: chapterName,
+			num_mcqs: Number(numMCQs),
+			num_short_answers: Number(numShortAnswers),
+			num_case_based: Number(numCaseBased),
+		};
+
+		const data = await generateLessonPlan(payload);
+		setResult(data);
+	} catch (err) {
+		setError(err.message || "Failed to generate lesson plan");
+	} finally {
+		setLoading(false);
+	}
+};
 
 return(
 
@@ -56,6 +102,140 @@ Go Back
 {/* LEFT */}
 
 <div className="lg:col-span-8 space-y-8">
+
+{/* Lesson Plan Generator */}
+<div className="bg-white rounded-xl p-8 shadow-sm">
+
+	<div className="flex items-center gap-3 mb-6">
+
+		<span className="material-symbols-outlined text-[#6b38d4]">auto_awesome</span>
+
+		<h3 className="text-xl font-bold">Lesson Plan Generator</h3>
+
+	</div>
+
+	<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
+		<input
+			placeholder="Class name (e.g. 10)"
+			value={className}
+			onChange={(e)=>setClassName(e.target.value)}
+			className="w-full bg-[#eff4ff] rounded-md px-4 py-3 outline-none"
+		/>
+
+		<input
+			placeholder="Subject (e.g. Mathematics)"
+			value={subject}
+			onChange={(e)=>setSubject(e.target.value)}
+			className="w-full bg-[#eff4ff] rounded-md px-4 py-3 outline-none"
+		/>
+
+		<input
+			placeholder="Chapter name"
+			value={chapterName}
+			onChange={(e)=>setChapterName(e.target.value)}
+			className="w-full bg-[#eff4ff] rounded-md px-4 py-3 outline-none col-span-2"
+		/>
+
+		<input
+			type="number"
+			placeholder="# MCQs"
+			value={numMCQs}
+			onChange={(e)=>setNumMCQs(Number(e.target.value))}
+			className="w-full bg-[#eff4ff] rounded-md px-4 py-3 outline-none"
+		/>
+
+		<input
+			type="number"
+			placeholder="# Short answers"
+			value={numShortAnswers}
+			onChange={(e)=>setNumShortAnswers(Number(e.target.value))}
+			className="w-full bg-[#eff4ff] rounded-md px-4 py-3 outline-none"
+		/>
+
+		<input
+			type="number"
+			placeholder="# Case based"
+			value={numCaseBased}
+			onChange={(e)=>setNumCaseBased(Number(e.target.value))}
+			className="w-full bg-[#eff4ff] rounded-md px-4 py-3 outline-none"
+		/>
+
+	</div>
+
+	<div className="flex gap-3">
+		<button
+			onClick={handleGenerate}
+			disabled={loading}
+			className="px-4 py-2 bg-[#6b38d4] text-white rounded-md font-bold"
+		>
+			{loading ? "Generating..." : "Generate Lesson Plan"}
+		</button>
+
+		<button
+			onClick={clearForm}
+			className="px-4 py-2 bg-[#dce9ff] text-gray-700 rounded-md font-bold"
+		>
+			Clear
+		</button>
+	</div>
+
+	{error && (
+		<p className="text-sm text-red-600 mt-4">{error}</p>
+	)}
+
+	{result && (
+		<div className="mt-6 space-y-4">
+			<div>
+				<h4 className="font-bold">Chapter Summary</h4>
+				<p className="text-sm text-gray-700 mt-2">{result.chapter_summary}</p>
+			</div>
+
+			<div>
+				<h4 className="font-bold">MCQs</h4>
+				<div className="space-y-3 mt-2">
+					{result.mcqs?.map((m, idx) => (
+						<div key={idx} className="p-3 bg-[#f8fafc] rounded-md">
+							<p className="font-semibold">{idx+1}. {m.question}</p>
+							<ul className="mt-2 list-disc ml-5 text-sm">
+								{m.options?.map((opt, oidx) => (
+									<li key={oidx} className={opt===m.correct_answer?"font-bold text-green-700":""}>{opt}</li>
+								))}
+							</ul>
+						</div>
+					))}
+				</div>
+			</div>
+
+			<div>
+				<h4 className="font-bold">Short Answers</h4>
+				<div className="space-y-3 mt-2">
+					{result.short_answers?.map((s, idx) => (
+						<div key={idx} className="p-3 bg-[#f8fafc] rounded-md">
+							<p className="font-semibold">{idx+1}. {s.question}</p>
+							<p className="text-sm text-gray-700 mt-1">{s.answer_key}</p>
+						</div>
+					))}
+				</div>
+			</div>
+
+			<div>
+				<h4 className="font-bold">Case Based Questions</h4>
+				<div className="space-y-3 mt-2">
+					{result.case_based_questions?.map((c, idx) => (
+						<div key={idx} className="p-3 bg-[#f8fafc] rounded-md">
+							<p className="font-semibold">Scenario: {c.scenario}</p>
+							<p className="mt-2">{c.question}</p>
+							<p className="text-sm text-gray-700 mt-1">{c.answer_key}</p>
+						</div>
+					))}
+				</div>
+			</div>
+
+		</div>
+	)}
+
+</div>
 
 {/* model selection */}
 

@@ -76,6 +76,13 @@ path:"/school-admin/settings"
 
 ];
 
+const handleLogout = () => {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user_data');
+  navigate('/');
+};
+
 
 return(
 
@@ -97,7 +104,7 @@ Academic Architect
 
 {/* navigation */}
 
-<nav className="space-y-1">
+<nav className="space-y-1 flex-1">
 
 {menu.map((item) => (
 
@@ -125,10 +132,19 @@ className={getClass(item.path)}
 
 </nav>
 
-
+{/* Logout */}
+<div className="px-2 pb-2">
+  <button
+    onClick={handleLogout}
+    className="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg cursor-pointer transition-all duration-200 text-red-500 hover:text-red-600 hover:bg-red-50 w-full text-left font-semibold text-sm"
+  >
+    <span className="material-symbols-outlined">logout</span>
+    Log Out
+  </button>
+</div>
 
 </aside>
 
 );
 
-}
+}

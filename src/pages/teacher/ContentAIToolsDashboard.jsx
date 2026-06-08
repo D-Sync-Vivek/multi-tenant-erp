@@ -21,7 +21,7 @@ title: 'Worksheet Generator',
 desc: 'Generate topic-specific practice sheets with varying difficulty levels.',
 icon: 'description',
 
-link: '#'
+link: '/teacher/ai-tools/worksheet'
 },
 
 {
@@ -30,7 +30,7 @@ title: 'Quiz Generator',
 desc: 'Instant MCQs and short answers based on your uploaded reading material.',
 icon: 'quiz',
 
-link: '#'
+link: '/teacher/ai-tools/quiz'
 },
 
 {
@@ -39,7 +39,7 @@ title: 'Question Paper Generator',
 desc: 'Design formal term exams with automated marks allocation and keys.',
 icon: 'history_edu',
 
-link: '#'
+link: '/teacher/ai-tools/question-paper'
 },
 
 {
@@ -48,7 +48,7 @@ title: 'Study Notes Generator',
 desc: 'Synthesize complex lectures into bulleted summaries.',
 icon: 'menu_book',
 
-link: '#'
+link: '/teacher/ai-tools/study-notes'
 },
 
 {
@@ -57,7 +57,7 @@ title: 'Presentation Outline',
 desc: 'Develop slide-by-slide narrative arcs.',
 icon: 'speaker_notes',
 
-link: '#'
+link: '/teacher/ai-tools/presentation-outline'
 },
 
 {
@@ -66,7 +66,7 @@ title: 'Rubric Generator',
 desc: 'Create objective grading criteria.',
 icon: 'rule',
 
-link: '#'
+link: '/teacher/ai-tools/rubric'
 }
 
 ];

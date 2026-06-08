@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function TopNavbar({ title }) {
   return (
-    <header className="sticky top-0 z-40 bg-surface-container-low/90 backdrop-blur-md dark:bg-slate-900 border-b border-surface-container/50">
+    <header className="sticky top-0 z-40 bg-surface-container-low/90 backdrop-blur-md dark:bg-white border-b border-surface-container/50">
       <div className="flex justify-between items-center px-8 py-4">
         <div className="flex items-center gap-4">
           <button className="md:hidden p-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">

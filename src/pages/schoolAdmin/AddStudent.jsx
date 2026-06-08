@@ -1,108 +1,166 @@
-import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
 
 export default function AddStudent() {
   const navigate = useNavigate();
 
-  // State mapped to backend payload requirements + UI extras
-  const [form, setForm] = useState({
-    first_name: "",
-    last_name: "",
-    gender: "",
-    dob: "",
-    blood: "",
-    phone: "",
-    email: "",
-    address: "",
-    class_room_id: "",
-    roll_number: "",
-  });
+  // STEP 1: Core User Model Fields
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  
+  // STEP 2: Student Profile Fields
+  const [enrollmentNumber, setEnrollmentNumber] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [bloodGroup, setBloodGroup] = useState("");
+  const [address, setAddress] = useState("");
 
-  const [classes, setClasses] = useState([]);
+  // UI State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Fetch actual Class Rooms to populate the dropdown
-  useEffect(() => {
-    const fetchClasses = async () => {
-      try {
-        const token = localStorage.getItem("access_token") || localStorage.getItem("token");
-        const response = await axios.get("http://127.0.0.1:8000/api/v1/school-admin/classes/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setClasses(response.data.results || response.data);
-      } catch (err) {
-        console.error("Failed to fetch classes", err);
-      }
-    };
-    fetchClasses();
-  }, []);
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const [successMsg, setSuccessMsg] = useState(null);
 
   const handleSave = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
 
     try {
-      const token = localStorage.getItem("access_token") || localStorage.getItem("token");
-      await axios.post(
-        "http://127.0.0.1:8000/api/v1/school-admin/students/register/",
-        form,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
+      const token = localStorage.getItem("accessToken");
 
-      alert("Student record saved successfully!");
-      navigate("/school-admin/students");
+      // ==========================================
+      // STEP 1: CREATE THE CORE IDENTITY (User)
+      // ==========================================
+      const userPayload = {
+        email: email,
+        password: password,
+        first_name: firstName,
+        last_name: lastName
+      };
+
+      const userResponse = await fetch(`${baseUrl}v1/users/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(userPayload)
+      });
+
+      const userData = await userResponse.json();
+
+      if (!userResponse.ok) {
+        let errorMsg = "Failed to create core user identity.";
+        if (typeof userData === "object") {
+          errorMsg = Object.entries(userData)
+            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
+            .join(" | ");
+        }
+        throw new Error(errorMsg);
+      }
+
+      // ==========================================
+      // STEP 2: CREATE THE STUDENT PROFILE
+      // ==========================================
+      if (userData.id) {
+        const profilePayload = {
+          user: userData.id, // Linking the OneToOneField
+          enrollment_number: enrollmentNumber,
+          date_of_birth: dateOfBirth || null, // Handle empty dates safely for Django DateField
+          phone_number: phoneNumber,
+          blood_group: bloodGroup,
+          address: address,
+          is_archived: false
+        };
+
+        const profileResponse = await fetch(`${baseUrl}v1/profiles/students/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(profilePayload)
+        });
+
+        const profileData = await profileResponse.json();
+
+        if (!profileResponse.ok) {
+          console.error("Profile Creation Error:", profileData);
+          
+          let profileErrorMsg = "Core user was created, but failed to link the Student Profile.";
+          if (typeof profileData === "object") {
+             profileErrorMsg += " " + Object.entries(profileData)
+              .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
+              .join(" | ");
+          }
+          throw new Error(profileErrorMsg);
+        }
+      }
+
+      setSuccessMsg("Student registration complete! Identity and profile linked successfully.");
+      
+      // Delay navigation so they can see the success message
+      setTimeout(() => {
+        navigate("/school-admin/students");
+      }, 1500);
+
     } catch (err) {
-      setError(
-        err.response?.data?.detail ||
-        "Failed to register student. Please verify all required fields."
-      );
+      console.error(err);
+      setError(err.message);
+      window.scrollTo(0, 0);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SchoolLayout title="Students">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <SchoolLayout title="Student Registration">
+      <div className="max-w-6xl mx-auto space-y-8 px-8 py-10">
         
-        {/* breadcrumb & header */}
-        <div className="flex justify-between items-center">
+        {/* breadcrumb */}
+        <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-semibold">Add New Student</h1>
-            <p className="text-[#6b7280] mt-1 max-w-2xl">
-              Register a new student to the academic system. Ensure all mandatory
-              information is accurate for seamless records management.
+            <h1 className="text-3xl font-semibold text-slate-800">
+              Register New Student
+            </h1>
+            <p className="text-[#6b7280] mt-1 max-w-2xl text-sm">
+              This two-step process automatically creates the authentication identity and links the extended student profile in your database.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={() => navigate("/school-admin/students")}
-            className="flex items-center gap-2 px-4 py-2 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0058be] font-semibold rounded-md transition"
+            className="flex items-center gap-2 px-4 py-2 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0058be] font-semibold rounded-md transition border border-blue-100"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              arrow_back
-            </span>
-            Go Back
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            Directory
           </button>
         </div>
 
-        {/* Error Banner */}
         {error && (
-          <div className="p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
-            {error}
+          <div className="p-4 bg-red-50 text-red-700 rounded-md border border-red-200 flex gap-3 shadow-sm">
+             <span className="material-symbols-outlined">error</span>
+             <div>
+               <p className="font-bold text-sm">API Error Occurred</p>
+               <p className="text-sm mt-1">{error}</p>
+             </div>
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="p-4 bg-green-50 text-green-800 rounded-md border border-green-200 flex gap-3 shadow-sm">
+             <span className="material-symbols-outlined">check_circle</span>
+             <div>
+               <p className="font-bold text-sm">Success!</p>
+               <p className="text-sm mt-1">{successMsg}</p>
+             </div>
           </div>
         )}
 
@@ -111,239 +169,227 @@ export default function AddStudent() {
             
             {/* LEFT COLUMN */}
             <div className="lg:col-span-2 space-y-8">
-              
-              {/* Basic Info */}
-              <div className="grid md:grid-cols-2 gap-6">
+
+              {/* CORE IDENTITY (User Model) */}
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                     <span className="material-symbols-outlined text-[#0058be]">badge</span>
+                     Step 1: Core Identity
+                  </h3>
+                  <span className="text-xs font-mono bg-blue-50 text-[#0058be] px-2 py-1 rounded border border-blue-100">User Model</span>
+                </div>
                 
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                    First Name
-                  </label>
-                  <input
-                    name="first_name"
-                    value={form.first_name}
-                    onChange={handleChange}
-                    required
-                    placeholder="e.g. Julian"
-                    className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 transition"
-                  />
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+                      First Name
+                    </label>
+                    <input
+                      required
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="e.g. Julian"
+                      className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:border-[#0058be]/40 focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+                      Last Name (Optional)
+                    </label>
+                    <input
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="e.g. Alexander"
+                      className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:border-[#0058be]/40 focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all"
+                    />
+                  </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                    Last Name
-                  </label>
-                  <input
-                    name="last_name"
-                    value={form.last_name}
-                    onChange={handleChange}
-                    required
-                    placeholder="e.g. Alexander"
-                    className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 transition"
-                  />
-                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+                      Email Address (Login ID)
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="student@academy.edu"
+                      className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:border-[#0058be]/40 focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all"
+                    />
+                  </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                    Gender
-                  </label>
-                  <select
-                    name="gender"
-                    value={form.gender}
-                    onChange={handleChange}
-                    className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                    Date of Birth
-                  </label>
-                  <input
-                    type="date"
-                    name="dob"
-                    value={form.dob}
-                    onChange={handleChange}
-                    className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
-                  />
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+                      Temporary Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Minimum 8 characters"
+                      className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:border-[#0058be]/40 focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Contact */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                    Email Address
-                  </label>
-                  <input
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="student@academy.edu"
-                    className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 transition"
-                  />
+              {/* STUDENT PROFILE (StudentProfile Model) */}
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                     <span className="material-symbols-outlined text-[#6b38d4]">assignment_ind</span>
+                     Step 2: Academic Profile
+                  </h3>
+                  <span className="text-xs font-mono bg-purple-50 text-[#6b38d4] px-2 py-1 rounded border border-purple-100">StudentProfile Model</span>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+                      Enrollment Number
+                    </label>
+                    <input
+                      required
+                      value={enrollmentNumber}
+                      onChange={(e) => setEnrollmentNumber(e.target.value)}
+                      placeholder="e.g. STU-2024-001"
+                      className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:border-[#0058be]/40 focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={dateOfBirth}
+                      onChange={(e) => setDateOfBirth(e.target.value)}
+                      className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:border-[#0058be]/40 focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all text-slate-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+                      Phone Number
+                    </label>
+                    <input
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="+1 (555) 000-0000"
+                      className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:border-[#0058be]/40 focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
+                      Blood Group
+                    </label>
+                    <select
+                      value={bloodGroup}
+                      onChange={(e) => setBloodGroup(e.target.value)}
+                      className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:border-[#0058be]/40 focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all"
+                    >
+                      <option value="">Select Group</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                    Mobile Number
-                  </label>
-                  <input
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="+1 (555) 000-0000"
-                    className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
-                  />
-                </div>
-
-                <div className="md:col-span-2 flex flex-col gap-2">
                   <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
                     Residential Address
                   </label>
                   <textarea
-                    name="address"
-                    value={form.address}
-                    onChange={handleChange}
-                    placeholder="Street, City, Zip Code"
-                    rows="3"
-                    className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 transition"
+                    rows="2"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Enter full address..."
+                    className="bg-[#eff4ff] px-4 py-3 rounded-md outline-none focus:bg-white focus:border-[#0058be]/40 focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all resize-none"
                   />
                 </div>
               </div>
 
-              {/* FOOTER aligned with left */}
-              <div className="flex justify-end gap-4 pt-16">
+              {/* FOOTER */}
+              <div className="flex justify-end gap-4 pt-4">
                 <button
                   type="button"
-                  onClick={() => navigate("/school-admin/students")}
                   disabled={loading}
-                  className="px-8 py-3 text-[#6b7280] font-semibold hover:bg-[#eff4ff] rounded-md transition disabled:opacity-50"
+                  onClick={() => navigate("/school-admin/students")}
+                  className="px-8 py-3 text-[#6b7280] font-semibold hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
                 >
-                  Cancel & Discard
+                  Cancel
                 </button>
-
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-10 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-bold rounded-md shadow-lg shadow-[#0058be]/20 hover:scale-[1.02] active:scale-95 transition flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="px-10 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-bold rounded-md shadow-lg shadow-[#0058be]/20 hover:scale-[1.02] active:scale-95 transition flex items-center justify-center gap-2 min-w-[200px] disabled:opacity-70 disabled:scale-100"
                 >
                   {loading ? (
                     <>
-                      <span className="material-symbols-outlined animate-spin text-sm">
-                        progress_activity
-                      </span>
-                      Saving...
+                      <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+                      Syncing Database...
                     </>
                   ) : (
                     <>
-                      <span className="material-symbols-outlined">save</span>
-                      Save Student Record
+                      <span className="material-symbols-outlined text-sm">save</span>
+                      Complete Registration
                     </>
                   )}
                 </button>
               </div>
+
             </div>
 
             {/* RIGHT COLUMN */}
-            <div className="space-y-8">
+            <div className="space-y-6">
               
-              {/* Photo */}
-              <div className="bg-white p-8 rounded-xl border border-[#e5eeff] shadow-[0_6px_20px_rgba(0,0,0,0.04)] text-center">
-                <div className="w-32 h-32 mx-auto rounded-full bg-[#e5eeff] flex items-center justify-center overflow-hidden border-4 border-white shadow-lg">
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYL2GdSdXkQF_QboAdnw1o3X0V4wiJr8LixmKIflH_kYptP3tutulTJLYiURi0vZw0lILetHS7GSH2aJiccAMub8Fxp8mPVnOZRc6Qdyum6vjihDfbb0IPPiLmnUJJCvlGRi6lWCTsHqANZh04Fc3KUvBRKkBb2tMljnL4a97MV8A5kzWvHcUn-mf-ZAj-TsmRqKKjQXk_QS2Q446UB5y8CnwB3BUwOMUbVJV7ZpsF7XenF_tYywih-ByZVbGArIlenpdiCMEwaw"
-                    alt="Student placeholder"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h4 className="mt-4 font-semibold">Student Photograph</h4>
-                <p className="text-xs text-[#6b7280]">PNG, JPG up to 5MB</p>
+              <div className="bg-[#0b1c30] text-white p-6 rounded-xl shadow-lg relative overflow-hidden">
+                 <div className="absolute top-0 right-0 p-4 opacity-10">
+                   <span className="material-symbols-outlined text-8xl">data_object</span>
+                 </div>
+                 <h3 className="text-lg font-bold mb-3 relative z-10 text-blue-200">Relational Architecture</h3>
+                 <p className="text-sm text-slate-300 relative z-10 leading-relaxed mb-4">
+                   Your Django backend is executing two sequential REST transactions here. It creates the authentication model, then attaches the extended domain attributes via the OneToOne mapping.
+                 </p>
+                 <div className="bg-[#1e3450] p-3 rounded-md border border-[#2b4b72] relative z-10 space-y-1">
+                    <p className="text-xs font-mono text-green-300">
+                       1. POST /api/v1/users/
+                    </p>
+                    <p className="text-xs font-mono text-purple-300">
+                       2. POST /api/v1/profiles/students/
+                    </p>
+                 </div>
               </div>
 
-              {/* Academic */}
-              <div className="bg-white p-6 rounded-xl border border-[#e5eeff] shadow-[0_6px_20px_rgba(0,0,0,0.04)]">
-                <h3 className="font-semibold mb-4">Academic Record</h3>
-
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-1">
-                     <label className="text-[10px] font-semibold text-[#6b7280] uppercase">Admission No. (Auto)</label>
-                     <input
-                      value="ADM-2024-0812"
-                      disabled
-                      className="bg-[#eff4ff] px-3 py-2 rounded-md text-sm text-gray-500 cursor-not-allowed"
-                     />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                     <label className="text-[10px] font-semibold text-[#6b7280] uppercase">Class Assignment</label>
-                     <select
-                      name="class_room_id"
-                      value={form.class_room_id}
-                      onChange={handleChange}
-                      required
-                      className="bg-[#eff4ff] px-3 py-2 rounded-md text-sm outline-none"
-                     >
-                      <option value="" disabled>Select Class</option>
-                      {classes.map((cls) => (
-                        <option key={cls.id} value={cls.id}>
-                          {cls.name} {cls.section ? `(${cls.section})` : ""}
-                        </option>
-                      ))}
-                     </select>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                     <label className="text-[10px] font-semibold text-[#6b7280] uppercase">Roll Number</label>
-                     <input
-                      name="roll_number"
-                      value={form.roll_number}
-                      onChange={handleChange}
-                      required
-                      placeholder="e.g. GS-0324003"
-                      className="bg-[#eff4ff] px-3 py-2 rounded-md text-sm outline-none"
-                     />
-                  </div>
+              {/* Photo Placeholder */}
+              <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm text-center">
+                <div className="w-32 h-32 mx-auto rounded-full bg-[#f8f9ff] flex items-center justify-center overflow-hidden border-4 border-white shadow-md">
+                  <span className="material-symbols-outlined text-6xl text-gray-300">face</span>
                 </div>
+                <h4 className="mt-4 font-semibold text-slate-800">
+                  Profile Asset
+                </h4>
+                <p className="text-xs text-[#6b7280]">
+                  You can upload a custom profile picture later from the student's detail view.
+                </p>
               </div>
 
-              {/* Parent Connection (UI Placeholder) */}
-              <div className="bg-white p-6 rounded-xl border border-[#e5eeff] shadow-[0_6px_20px_rgba(0,0,0,0.04)]">
-                <h3 className="font-semibold mb-4">Parental Connection</h3>
-
-                <div className="relative mb-4">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280] text-sm">
-                    search
-                  </span>
-                  <input
-                    placeholder="Search by name or ID..."
-                    className="w-full bg-[#eff4ff] pl-10 pr-4 py-2 rounded-md outline-none text-sm"
-                  />
-                </div>
-
-                <div className="bg-[#eff4ff] p-3 rounded-lg flex justify-between items-center">
-                  <div className="flex gap-3 items-center">
-                    <div className="w-10 h-10 rounded bg-white flex items-center justify-center font-semibold text-[#6b38d4]">
-                      RM
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">Robert Miller</p>
-                      <p className="text-[10px] text-[#6b7280]">Guardian ID: G-9021</p>
-                    </div>
-                  </div>
-                  <button type="button">
-                    <span className="material-symbols-outlined text-red-500 hover:text-red-700 transition">
-                      close
-                    </span>
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </form>

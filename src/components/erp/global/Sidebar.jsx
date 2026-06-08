@@ -49,11 +49,17 @@ ${active
 : "text-gray-600 hover:bg-blue-100/50"}
 `;
 
+const handleLogout = () => {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user_data');
+  navigate('/');
+};
 
 
 return(
 
-<nav className="fixed left-0 top-0 h-screen w-64 p-4 bg-[#f3f6ff] border-r">
+<nav className="fixed left-0 top-0 h-screen w-64 p-4 bg-[#f3f6ff] border-r flex flex-col">
 
 {/* logo */}
 
@@ -69,7 +75,7 @@ Academic Architect
 
 {/* menu */}
 
-<div className="flex flex-col gap-2">
+<div className="flex flex-col gap-2 flex-1">
 
 {/* Dashboard */}
 
@@ -159,30 +165,40 @@ Settings
 
 
 
-{/* user profile */}
+{/* user profile + logout */}
 
-<div className="absolute bottom-6 left-4 right-4 bg-white p-3 rounded-lg shadow-sm flex items-center gap-3">
+<div className="bg-white p-3 rounded-lg shadow-sm">
+  <div className="flex items-center gap-3 mb-3">
 
-<div className="w-10 h-10 rounded-full bg-[#dce9ff] flex items-center justify-center">
+    <div className="w-10 h-10 rounded-full bg-[#dce9ff] flex items-center justify-center">
 
-<span className="material-symbols-outlined text-[#0058be]">
-person
-</span>
+      <span className="material-symbols-outlined text-[#0058be]">
+      person
+      </span>
 
-</div>
+    </div>
 
-<div>
+    <div>
 
-<p className="text-sm font-semibold">
-Dr. Julian Vance
-</p>
+      <p className="text-sm font-semibold">
+      Global Admin
+      </p>
 
-<p className="text-xs text-gray-500">
-System Admin
-</p>
+      <p className="text-xs text-gray-500">
+      System Admin
+      </p>
 
-</div>
+    </div>
 
+  </div>
+
+  <button
+    onClick={handleLogout}
+    className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 transition-all text-sm font-semibold"
+  >
+    <span className="material-symbols-outlined text-[18px]">logout</span>
+    Log Out
+  </button>
 </div>
 
 
@@ -191,4 +207,4 @@ System Admin
 
 );
 
-}
+}

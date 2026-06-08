@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route , Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 /* COMMON */
 import Landing from "../pages/Landing";
@@ -23,6 +23,7 @@ import GlobalSettings from "../pages/globalAdmin/Settings";
 /* SCHOOL ADMIN */
 import SchoolDashboard from "../pages/schoolAdmin/Dashboard";
 import CreateClass from "../pages/schoolAdmin/CreateClass";
+import CreateSection from '../pages/schoolAdmin/CreateSection';
 import AcademicYears from "../pages/schoolAdmin/AcademicYears";
 import CreateAcademicYear from "../pages/schoolAdmin/CreateAcademicYear";
 import RolesPermissions from "../pages/schoolAdmin/RolesPermissions";
@@ -43,62 +44,51 @@ import SchoolNotifications from "../pages/schoolAdmin/Notifications";
 /* ================= STUDENT ================= */
 import StudentDashboard from "../pages/student/Dashboard";
 import Notifications from "../pages/student/Notifications";
-
 import Assignments from "../pages/student/Assignments";
 import Attendance from "../pages/student/Attendance";
 import FeesPayments from "../pages/student/FeesPayments";
 import HelpDesk from "../pages/student/HelpDesk";
-
 import LearningMaterialsHub from "../pages/student/LearningMaterialsHub";
 import LearningMaterialDetailView from "../pages/student/LearningMaterialDetailView";
-
 import PracticeQuizHub from "../pages/student/PracticeQuizHub";
 import ActiveQuiz from "../pages/student/ActiveQuiz";
 import QuizResult from "../pages/student/QuizResult";
-
 import Profile from "../pages/student/Profile";
 import Subjects from "../pages/student/Subjects";
 import Settings from "../pages/student/Settings";
 import Recommendations from "../pages/student/Recommendations";
-
 import AiTutor from "../pages/student/AiTutor";
 import GradesCard from "../pages/student/GradesCard";
+import { StudentProvider } from '../context/StudentProvider';
 
-
-//Teacher
-// TEACHER PAGES
+/* TEACHER PAGES */
 import MyClassesHub from "../pages/teacher/MyClassesHub";
 import AssignmentListPage from "../pages/teacher/AssignmentListPage";
 import AssignmentDetailPage from "../pages/teacher/AssignmentDetailPage";
 import CreateAssignmentPage from "../pages/teacher/CreateAssignmentPage";
-
 import AttendanceOverview from "../pages/teacher/AttendanceOverview";
 import MarkAttendance from "../pages/teacher/MarkAttendance";
-
 import ClassPerformanceManagement from "../pages/teacher/ClassPerformanceManagement";
-
 import Dashboard from "../pages/teacher/Dashboard";
-
 import CreateExamPage from "../pages/teacher/CreateExamPage";
 import ExamsListPage from "../pages/teacher/ExamsListPage";
-
 import TeacherNotificationsHub from "../pages/teacher/TeacherNotificationsHub";
-
 import EnterStudentGrades from "../pages/teacher/EnterStudentGrades";
 import GradesAssessmentOverview from "../pages/teacher/GradesAssessmentOverview";
-
 import ContentAIToolsDashboard from "../pages/teacher/ContentAIToolsDashboard";
 import AIToolWorkspaceLessonPlan from "../pages/teacher/AIToolWorkspaceLessonPlan";
-
+import AIToolWorkspaceWorksheet from "../pages/teacher/AIToolWorkspaceWorksheet";
+import AIToolWorkspaceQuiz from "../pages/teacher/AIToolWorkspaceQuiz";
+import AIToolWorkspaceQuestionPaper from "../pages/teacher/AIToolWorkspaceQuestionPaper";
+import AIToolWorkspaceStudyNotes from "../pages/teacher/AIToolWorkspaceStudyNotes";
+import AIToolWorkspacePresentationOutline from "../pages/teacher/AIToolWorkspacePresentationOutline";
+import AIToolWorkspaceRubric from "../pages/teacher/AIToolWorkspaceRubric";
 import StudentAnalyticsOverview from "../pages/teacher/StudentAnalyticsOverview";
 import DetailedStudentAnalytics from "../pages/teacher/DetailedStudentAnalytics";
-
 import TeacherProfileManagement from "../pages/teacher/TeacherProfileManagement";
 import TeacherSystemSettings from "../pages/teacher/TeacherSystemSettings";
 
-
-
-//PARENT
+/* PARENT PAGES */
 import ParentDashboard from "../pages/parent/ParentDashboard";
 import ChildOverview from "../pages/parent/ChildOverview";
 import AttendanceTracker from "../pages/parent/AttendanceTracker";
@@ -107,6 +97,7 @@ import GradesAssessmentHub from "../pages/parent/GradesAssessmentHub";
 import NotificationsHub from "../pages/parent/NotificationsHub";
 import AllInsightsRecommendations from "../pages/parent/AllInsightsRecommendations";
 import ParentPortalSettings from "../pages/parent/ParentPortalSettings";
+
 
 function AppRoutes(){
 
@@ -241,9 +232,6 @@ element={<DetailedStudentAnalytics />}
 />
         
 
-     
->>>>>>> Stashed changes
-
 
 
 {/* ================= PARENT ================= */}
@@ -270,7 +258,212 @@ element={<DetailedStudentAnalytics />}
 </BrowserRouter>
 
 );
+=======
+/* Redirect logged-in users to their dashboard when visiting "/" */
+function RootRedirect() {
+  const token = localStorage.getItem('access_token');
+  if (!token) return <Landing />;
 
+  try {
+    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+    let mainRole = '';
+    if (userData.roles && userData.roles.length > 0) {
+      mainRole = userData.roles[0];
+    } else if (userData.profiles?.teacher?.exists) {
+      mainRole = 'Teacher';
+    } else if (userData.profiles?.student?.exists) {
+      mainRole = 'Student';
+    } else if (userData.profiles?.parent?.exists) {
+      mainRole = 'Parent';
+    } else if (userData.is_superuser) {
+      mainRole = 'Global Admin';
+    }
+    const lowerRole = mainRole.toLowerCase();
+    if (lowerRole.includes('global')) return <Navigate to="/global-admin" replace />;
+    if (lowerRole.includes('school')) return <Navigate to="/school-admin" replace />;
+    if (lowerRole.includes('teacher')) return <Navigate to="/teacher/dashboard" replace />;
+    if (lowerRole.includes('student')) return <Navigate to="/student" replace />;
+    if (lowerRole.includes('parent')) return <Navigate to="/parent" replace />;
+    // Fallback — something is in localStorage but role is unknown
+    return <Navigate to="/student" replace />;
+  } catch {
+    return <Landing />;
+  }
+}
+
+function AppRoutes() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* COMMON */}
+        <Route path="/" element={<RootRedirect />} />
+        <Route path="/login" element={<Login />} />
+
+        {/* ================= GLOBAL ADMIN ================= */}
+        <Route path="/global-admin" element={<GlobalDashboard />} />
+        <Route path="/global-admin/notifications" element={<GlobalNotifications />} />
+        <Route path="/global-admin/settings" element={<GlobalSettings />} />
+        <Route path="/global-admin/schools" element={<Schools />} />
+        <Route path="/global-admin/add-school" element={<AddSchool />} />
+        <Route path="/global-admin/domains" element={<Domains />} />
+        <Route path="/global-admin/add-domain" element={<AddDomain />} />
+        <Route path="/global-admin/subscriptions" element={<Subscriptions />} />
+        <Route path="/global-admin/create-plan" element={<CreatePlan />} />
+        <Route path="/global-admin/ai-config" element={<AIConfiguration />} />
+        <Route path="/global-admin/payment" element={<PaymentInfrastructure />} />
+        <Route path="/global-admin/email" element={<EmailConfiguration />} />
+        <Route path="/global-admin/security" element={<SecurityAccess />} />
+
+        {/* ================= SCHOOL ADMIN ================= */}
+        <Route path="/school-admin" element={<SchoolDashboard />} />
+        <Route path="/school-admin/notifications" element={<SchoolNotifications />} />
+        <Route path="/school-admin/settings" element={<SchoolSettings />} />
+        <Route path="/school-admin/create-class" element={<CreateClass />} />
+        <Route path="/school-admin/create-section" element={<CreateSection />} />
+        <Route path="/school-admin/academic-years" element={<AcademicYears />} />
+        <Route path="/school-admin/academic-years/create" element={<CreateAcademicYear />} />
+        <Route path="/school-admin/academic-years/edit/:id" element={<CreateAcademicYear />} />
+        <Route path="/school-admin/roles" element={<RolesPermissions />} />
+        <Route path="/school-admin/roles/create" element={<CreateRole />} />
+        <Route path="/school-admin/students" element={<Students />} />
+        <Route path="/school-admin/students/add" element={<AddStudent />} />
+        <Route path="/school-admin/teachers" element={<Teachers />} />
+        <Route path="/school-admin/teachers/create" element={<AddTeacher />} />
+        <Route path="/school-admin/parents" element={<Parents />} />
+        <Route path="/school-admin/parents/create" element={<AddParent />} />
+        <Route path="/school-admin/mapping" element={<ParentStudentMapping />} />
+        <Route path="/school-admin/mapping/create" element={<AddMapping />} />
+        <Route path="/school-admin/teacher-assignment" element={<TeacherAssignment />} />
+        <Route path="/school-admin/teacher-assignment/create" element={<AssignTeacher />} />
+
+        {/* ================= STUDENT ================= */}
+        <Route path="/students" element={<Navigate to="/student" replace />} />
+        <Route path="/student" element={
+          <StudentProvider>
+            <StudentDashboard />
+          </StudentProvider>
+        } />
+        <Route path="/student/notifications" element={
+          <StudentProvider>
+            <Notifications />
+          </StudentProvider>
+        } />
+        <Route path="/student/assignments" element={
+          <StudentProvider>
+            <Assignments />
+          </StudentProvider>
+        } />
+        <Route path="/student/attendance" element={
+          <StudentProvider>
+            <Attendance />
+          </StudentProvider>
+        } />
+        <Route path="/student/fees" element={
+          <StudentProvider>
+            <FeesPayments />
+          </StudentProvider>
+        } />
+        <Route path="/student/help" element={
+          <StudentProvider>
+            <HelpDesk />
+          </StudentProvider>
+        } />
+        <Route path="/student/materials" element={
+          <StudentProvider>
+            <LearningMaterialsHub />
+          </StudentProvider>
+        } />
+        <Route path="/student/materials/view" element={
+          <StudentProvider>
+            <LearningMaterialDetailView />
+          </StudentProvider>
+        } />
+        <Route path="/student/quiz" element={
+          <StudentProvider>
+            <PracticeQuizHub />
+          </StudentProvider>
+        } />
+        <Route path="/student/quiz/active" element={
+          <StudentProvider>
+            <ActiveQuiz />
+          </StudentProvider>
+        } />
+        <Route path="/student/quiz/result" element={
+          <StudentProvider>
+            <QuizResult />
+          </StudentProvider>
+        } />
+        <Route path="/student/profile" element={
+          <StudentProvider>
+            <Profile />
+          </StudentProvider>
+        } />
+        <Route path="/student/subjects" element={
+          <StudentProvider>
+            <Subjects />
+          </StudentProvider>
+        } />
+        <Route path="/student/settings" element={
+          <StudentProvider>
+            <Settings />
+          </StudentProvider>
+        } />
+        <Route path="/student/recommendations" element={
+          <StudentProvider>
+            <Recommendations />
+          </StudentProvider>
+        } />
+        <Route path="/student/ai-tutor" element={
+          <StudentProvider>
+            <AiTutor />
+          </StudentProvider>
+        } />
+        <Route path="/student/grades" element={
+          <StudentProvider>
+            <GradesCard />
+          </StudentProvider>
+        } />
+
+        {/* ================= TEACHER ================= */}
+        <Route path="/teacher" element={<Navigate to="/teacher/dashboard" />} />
+        <Route path="/teacher/dashboard" element={<Dashboard />} />
+        <Route path="/teacher/classes" element={<MyClassesHub />} />
+        <Route path="/teacher/classes/:id/performance" element={<ClassPerformanceManagement />} />
+        <Route path="/teacher/assignments" element={<AssignmentListPage />} />
+        <Route path="/teacher/assignments/create" element={<CreateAssignmentPage />} />
+        <Route path="/teacher/assignments/:id" element={<AssignmentDetailPage />} />
+        <Route path="/teacher/attendance" element={<AttendanceOverview />} />
+        <Route path="/teacher/attendance/mark/:id?" element={<MarkAttendance />} />
+        <Route path="/teacher/exams" element={<ExamsListPage />} />
+        <Route path="/teacher/exams/create" element={<CreateExamPage />} />
+        <Route path="/teacher/grades" element={<GradesAssessmentOverview />} />
+        <Route path="/teacher/grades/enter" element={<EnterStudentGrades />} />
+        <Route path="/teacher/ai-tools" element={<ContentAIToolsDashboard />} />
+        <Route path="/teacher/ai-tools/lesson-plan" element={<AIToolWorkspaceLessonPlan />} />
+        <Route path="/teacher/ai-tools/worksheet" element={<AIToolWorkspaceWorksheet />} />
+        <Route path="/teacher/ai-tools/quiz" element={<AIToolWorkspaceQuiz />} />
+        <Route path="/teacher/ai-tools/question-paper" element={<AIToolWorkspaceQuestionPaper />} />
+        <Route path="/teacher/ai-tools/study-notes" element={<AIToolWorkspaceStudyNotes />} />
+        <Route path="/teacher/ai-tools/presentation-outline" element={<AIToolWorkspacePresentationOutline />} />
+        <Route path="/teacher/ai-tools/rubric" element={<AIToolWorkspaceRubric />} />
+        <Route path="/teacher/analytics" element={<StudentAnalyticsOverview />} />
+        <Route path="/teacher/analytics/student/:id" element={<DetailedStudentAnalytics />} />
+        <Route path="/teacher/profile" element={<TeacherProfileManagement />} />
+        <Route path="/teacher/settings" element={<TeacherSystemSettings />} />
+        <Route path="/teacher/notifications" element={<TeacherNotificationsHub />} />
+
+        {/* ================= PARENT ================= */}
+        <Route path="/parent" element={<ParentDashboard />} />
+        <Route path="/parent/child-overview" element={<ChildOverview />} />
+        <Route path="/parent/attendance" element={<AttendanceTracker />} />
+        <Route path="/parent/assignments" element={<AssignmentsOverview />} />
+        <Route path="/parent/grades" element={<GradesAssessmentHub />} />
+        <Route path="/parent/ai-insights" element={<AllInsightsRecommendations />} />
+        <Route path="/parent/notifications" element={<NotificationsHub />} />
+        <Route path="/parent/settings" element={<ParentPortalSettings />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default AppRoutes;
