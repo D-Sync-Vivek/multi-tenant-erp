@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { schoolAdminApi } from '../../services/schoolAdminApi';
 
 export default function Teachers() {
   const navigate = useNavigate();
@@ -19,23 +20,8 @@ export default function Teachers() {
     setError(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
-      // DRF ViewSets use GET to list records
-      const response = await fetch(`${baseUrl}v1/profiles/teachers/`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json"
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch teacher directory.");
-      }
-
-      const data = await response.json();
+      // Production-level call: No manual URL building
+      const data = await schoolAdminApi.getTeachers();
       
       // Handle DRF pagination structure
       if (data.results) {
@@ -47,7 +33,7 @@ export default function Teachers() {
       }
     } catch (err) {
       console.error("Fetch Teachers Error:", err);
-      setError(err.message);
+      setError(err.response?.data?.detail || "Failed to fetch teacher directory.");
     } finally {
       setLoading(false);
     }
@@ -236,7 +222,6 @@ export default function Teachers() {
                 <p className="text-3xl font-bold">{totalCount}</p>
                 <p className="text-xs uppercase opacity-70 mt-1">Total Faculty</p>
               </div>
-
               <div>
                 <p className="text-3xl font-bold">100%</p>
                 <p className="text-xs uppercase opacity-70 mt-1">Profile Sync</p>
@@ -244,7 +229,6 @@ export default function Teachers() {
             </div>
           </div>
 
-          {/* insight */}
           <div className="bg-white border border-[#d9b39a] rounded-xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#f2dfd0] rounded-full opacity-50"></div>
             <div className="relative z-10">
@@ -260,7 +244,6 @@ export default function Teachers() {
             </div>
           </div>
         </div>
-
       </div>
     </SchoolLayout>
   );

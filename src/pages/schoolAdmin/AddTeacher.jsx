@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { schoolAdminApi } from '../../services/schoolAdminApi';
 
 export default function AddTeacher() {
   const navigate = useNavigate();
@@ -31,9 +32,6 @@ export default function AddTeacher() {
     setSuccessMsg(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
       // ==========================================
       // STEP 1: CREATE THE CORE IDENTITY (User)
       // ==========================================
@@ -44,27 +42,7 @@ export default function AddTeacher() {
         last_name: lastName
       };
 
-      const userResponse = await fetch(`${baseUrl}v1/users/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(userPayload)
-      });
-
-      const userData = await userResponse.json();
-
-      if (!userResponse.ok) {
-        let errorMsg = "Failed to create core user identity.";
-        if (typeof userData === "object") {
-          errorMsg = Object.entries(userData)
-            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
-            .join(" | ");
-        }
-        throw new Error(errorMsg);
-      }
+      const userData = await schoolAdminApi.createUser(userPayload);
 
       // ==========================================
       // STEP 2: CREATE THE TEACHER PROFILE
@@ -80,27 +58,7 @@ export default function AddTeacher() {
           address: address
         };
 
-        const profileResponse = await fetch(`${baseUrl}v1/profiles/teachers/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify(profilePayload)
-        });
-
-        const profileData = await profileResponse.json();
-
-        if (!profileResponse.ok) {
-          console.error("Profile Creation Error:", profileData);
-          let profileErrorMsg = "User was created, but linking the Teacher Profile failed.";
-          if (typeof profileData === "object") {
-             profileErrorMsg += " " + Object.entries(profileData)
-              .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
-              .join(" | ");
-          }
-          throw new Error(profileErrorMsg);
-        }
+        await schoolAdminApi.createTeacherProfile(profilePayload);
       }
 
       setSuccessMsg("Teacher registration complete! Profile successfully established.");
@@ -110,8 +68,15 @@ export default function AddTeacher() {
       }, 1500);
 
     } catch (err) {
-      console.error(err);
-      setError(err.message);
+      console.error("Onboarding Error:", err);
+      // The apiClient will pass back the response data if a 400 error occurs
+      const errorMsg = err.response?.data 
+        ? Object.entries(err.response.data)
+            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
+            .join(" | ")
+        : (err.message || "Failed to onboard teacher.");
+      
+      setError(errorMsg);
       window.scrollTo(0, 0);
     } finally {
       setLoading(false);
@@ -203,7 +168,7 @@ export default function AddTeacher() {
                   database
                 </span>
                 <h3 className="text-xl font-bold mb-2 relative z-10">Data Integrity</h3>
-                <p className="text-sm text-purple-100 relative z-10 leading-relaxed">
+                <p className="text-sm text-purple-100 relative z-10 leading-relaxed mb-4">
                   Your backend structure cleanly separates authentication credentials from HR data (like Employee ID), ensuring secure, isolated query performance.
                 </p>
               </div>
@@ -352,7 +317,6 @@ export default function AddTeacher() {
                     className="w-full bg-[#f8f9ff] px-4 py-3 rounded-md outline-none focus:border-[#0058be]/40 border border-transparent focus:bg-white transition-all resize-none"
                   />
                 </div>
-
               </div>
 
               {/* FOOTER BUTTONS */}
@@ -368,7 +332,7 @@ export default function AddTeacher() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-10 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-bold rounded-md shadow-lg shadow-[#0058be]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-70 disabled:scale-100"
+                  className="px-10 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-bold rounded-md shadow-lg shadow-[#0058be]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 min-w-[200px] disabled:opacity-70 disabled:scale-100"
                 >
                   {loading ? (
                     <>

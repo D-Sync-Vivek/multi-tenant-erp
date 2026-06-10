@@ -80,3 +80,10 @@ export const getStudentParents = async () => {
   const response = await api.get(`/profiles/parent-student-mappings/`);
   return response.data.results;
 };
+
+export const getSectionById = async (sectionId) => {
+  const response = await api.get(
+    `/academics/sections/${sectionId}/`
+  );
+  return response.data;
+};

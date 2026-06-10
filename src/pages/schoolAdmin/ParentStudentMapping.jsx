@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { schoolAdminApi } from '../../services/schoolAdminApi';
 
 export default function ParentStudentMapping() {
   const navigate = useNavigate();
@@ -19,23 +20,10 @@ export default function ParentStudentMapping() {
     setError(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
-      const response = await fetch(`${baseUrl}v1/profiles/parent-student-mappings/`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json"
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch relationship mappings.");
-      }
-
-      const data = await response.json();
+      // Production-level call: No manual URLs or tokens needed here
+      const data = await schoolAdminApi.getParentStudentMappings();
       
+      // Handle DRF pagination structure
       if (data.results) {
         setMappings(data.results);
         setTotalCount(data.count);
@@ -45,7 +33,7 @@ export default function ParentStudentMapping() {
       }
     } catch (err) {
       console.error("Fetch Mappings Error:", err);
-      setError(err.message);
+      setError(err.response?.data?.detail || "Failed to fetch relationship mappings.");
     } finally {
       setLoading(false);
     }
@@ -141,11 +129,11 @@ export default function ParentStudentMapping() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-white text-xs text-[#6b7280] uppercase tracking-wider border-b border-gray-100">
+              <thead className="bg-white text-xs uppercase text-[#6b7280] border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">Guardian Info</th>
-                  <th className="px-6 py-4 font-semibold">Student Info</th>
-                  <th className="px-6 py-4 font-semibold">Relationship</th>
+                  <th className="px-6 py-4 font-semibold tracking-wider">Parent Details</th>
+                  <th className="px-6 py-4 font-semibold tracking-wider">Student Info</th>
+                  <th className="px-6 py-4 font-semibold tracking-wider">Relationship</th>
                   <th className="px-6 py-4 font-semibold text-center">Permissions</th>
                   <th className="px-6 py-4 font-semibold">Status</th>
                 </tr>
@@ -169,7 +157,7 @@ export default function ParentStudentMapping() {
                   </tr>
                 ) : (
                   mappings.map((m, i) => (
-                    <tr key={m.id} className="hover:bg-[#fcfdff] transition-colors group">
+                    <tr key={m.id} className="hover:bg-[#fcfdff] transition-colors cursor-pointer group" onClick={() => navigate(`/school-admin/mapping/${m.id}`)}>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold ${getColorClass(i)}`}>
@@ -223,6 +211,7 @@ export default function ParentStudentMapping() {
             </table>
           </div>
 
+          {/* pagination */}
           <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50">
             <button className="flex items-center gap-1 text-sm font-semibold text-[#0058be] hover:bg-blue-50 px-3 py-1.5 rounded-md transition-colors">
               <span className="material-symbols-outlined text-sm">arrow_back</span>
@@ -237,18 +226,6 @@ export default function ParentStudentMapping() {
             </button>
           </div>
         </div>
-
-        {/* insight */}
-        <div className="mt-10 bg-gradient-to-r from-[#ffdcc6]/60 to-[#ffc9aa]/40 p-6 rounded-xl flex gap-4 border border-[#ffc9aa] shadow-sm">
-          <span className="material-symbols-outlined text-[#924700] text-3xl">lightbulb</span>
-          <div>
-            <h4 className="font-bold text-[#924700]">Data Architecture Insight</h4>
-            <p className="text-sm text-[#924700]/90 mt-1 leading-relaxed">
-              These mappings power Django's reverse relation queries. When a parent logs in, the backend filters the `StudentProfile` ViewSet specifically to these mapped IDs, ensuring zero data leakage.
-            </p>
-          </div>
-        </div>
-
       </div>
     </SchoolLayout>
   );

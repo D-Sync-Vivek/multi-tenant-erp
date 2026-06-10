@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { schoolAdminApi } from '../../services/schoolAdminApi';
 
 export default function CreateSection() {
   const navigate = useNavigate();
@@ -19,20 +20,9 @@ export default function CreateSection() {
   useEffect(() => {
     const fetchClassLevels = async () => {
       try {
-        const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-        const token = localStorage.getItem("accessToken");
-
-        const response = await fetch(`${baseUrl}v1/academics/class-levels/`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/json"
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setClassLevels(data.results || data);
-        }
+        // USING THE API SERVICE
+        const data = await schoolAdminApi.getClassLevels();
+        setClassLevels(data.results || data);
       } catch (err) {
         console.error("Failed to fetch class levels:", err);
       } finally {
@@ -54,41 +44,28 @@ export default function CreateSection() {
     setError(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
       const payload = {
         name: name,
         class_level: selectedClassLevel
       };
 
-      const response = await fetch(`${baseUrl}v1/academics/sections/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        let errorMsg = "Failed to create Section.";
-        if (typeof data === "object") {
-          errorMsg = Object.entries(data)
-            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
-            .join(" | ");
-        }
-        throw new Error(errorMsg);
-      }
+      // USING THE API SERVICE
+      await schoolAdminApi.createSection(payload);
 
       alert("Section created successfully!");
       navigate("/school-admin");
 
     } catch (err) {
       console.error(err);
-      setError(err.message);
+      // Robust error handling to catch DRF validation messages
+      const errorData = err.response?.data;
+      let errorMsg = "Failed to create Section.";
+      if (errorData && typeof errorData === "object") {
+        errorMsg = Object.entries(errorData)
+          .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
+          .join(" | ");
+      }
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -136,7 +113,7 @@ export default function CreateSection() {
                       ) : (
                         classLevels.map((lvl) => (
                           <option key={lvl.id} value={lvl.id}>
-                            {lvl.name} (Numeric Sort: {lvl.numeric_order})
+                            {lvl.name}
                           </option>
                         ))
                       )}

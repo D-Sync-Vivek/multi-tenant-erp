@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
+import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { schoolAdminApi } from '../../services/schoolAdminApi';
 
 export default function TeacherAssignment() {
   const navigate = useNavigate();
@@ -9,6 +10,9 @@ export default function TeacherAssignment() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
+
+  // ADDED: State for Search Functionality
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchAssignments();
@@ -19,23 +23,10 @@ export default function TeacherAssignment() {
     setError(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
-      const response = await fetch(`${baseUrl}v1/academics/teacher-assignments/`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json"
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch teacher assignments.");
-      }
-
-      const data = await response.json();
+      // Production-level call: No hardcoded URLs or tokens here
+      const data = await schoolAdminApi.getTeacherAssignments();
       
+      // Handle DRF pagination structure
       if (data.results) {
         setAssignments(data.results);
         setTotalCount(data.count);
@@ -45,9 +36,25 @@ export default function TeacherAssignment() {
       }
     } catch (err) {
       console.error("Fetch Assignments Error:", err);
-      setError(err.message);
+      setError(err.response?.data?.detail || "Failed to fetch teacher assignments.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ADDED: Delete Functionality
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to remove this assignment?")) {
+      try {
+        await schoolAdminApi.deleteTeacherAssignment(id);
+        // Remove it from the screen without reloading the page
+        setAssignments(assignments.filter((item) => item.id !== id));
+        setTotalCount(prevCount => prevCount - 1);
+        alert("Assignment deleted successfully.");
+      } catch (err) {
+        console.error("Failed to delete", err);
+        alert("Failed to delete assignment.");
+      }
     }
   };
 
@@ -62,6 +69,17 @@ export default function TeacherAssignment() {
     const colors = ["bg-[#e9ddff] text-[#6b38d4]", "bg-[#d8e2ff] text-[#0058be]", "bg-[#ffdcc6] text-[#924700]", "bg-[#eff4ff] text-[#2170e4]"];
     return colors[index % colors.length];
   };
+
+  // ADDED: Filter logic to apply the search term
+  const filteredAssignments = assignments.filter((item) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      (item.teacher_name && item.teacher_name.toLowerCase().includes(searchLower)) ||
+      (item.subject_name && item.subject_name.toLowerCase().includes(searchLower)) ||
+      (item.class_level_name && item.class_level_name.toLowerCase().includes(searchLower)) ||
+      (item.teacher_employee_id && item.teacher_employee_id.toLowerCase().includes(searchLower))
+    );
+  });
 
   return (
     <SchoolLayout title="Teacher Assignment">
@@ -78,7 +96,7 @@ export default function TeacherAssignment() {
 
           <button
             onClick={() => navigate("/school-admin/teacher-assignment/create")}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-semibold rounded-md shadow-lg hover:shadow-xl transition-all"
+            className="flex items-center gap-2 px-6 py-3 rounded-md bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-semibold shadow-lg hover:shadow-xl transition-all"
           >
             <span className="material-symbols-outlined">add</span>
             Assign Teacher
@@ -130,6 +148,8 @@ export default function TeacherAssignment() {
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280] text-sm">search</span>
               <input
                 placeholder="Search assignment records..."
+                value={searchTerm} // ADDED: Value binding
+                onChange={(e) => setSearchTerm(e.target.value)} // ADDED: onChange handler
                 className="w-full pl-10 pr-4 py-2.5 bg-white rounded-md outline-none border border-gray-200 focus:border-[#0058be]/30 shadow-sm transition-all text-sm"
               />
             </div>
@@ -162,14 +182,14 @@ export default function TeacherAssignment() {
                       </div>
                     </td>
                   </tr>
-                ) : assignments.length === 0 ? (
+                ) : filteredAssignments.length === 0 ? ( // CHANGED: Now mapping over filteredAssignments
                   <tr>
                     <td colSpan="6" className="text-center py-12 text-gray-500">
                       No teachers assigned to classes yet.
                     </td>
                   </tr>
                 ) : (
-                  assignments.map((a, i) => (
+                  filteredAssignments.map((a, i) => ( // CHANGED: Now mapping over filteredAssignments
                     <tr key={a.id} className="hover:bg-[#fcfdff] transition-colors group">
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
@@ -214,10 +234,16 @@ export default function TeacherAssignment() {
 
                       <td className="px-6 py-5 text-right opacity-0 group-hover:opacity-100 transition-opacity">
                         <div className="flex justify-end gap-2">
-                          <button className="p-2 hover:bg-blue-50 text-[#0058be] rounded-md transition-colors">
+                          <button 
+                            onClick={() => navigate(`/school-admin/teacher-assignment/edit/${a.id}`)} // ADDED: Navigate to Edit Page
+                            className="p-2 hover:bg-blue-50 text-[#0058be] rounded-md transition-colors"
+                          >
                             <span className="material-symbols-outlined text-[18px]">edit</span>
                           </button>
-                          <button className="p-2 hover:bg-red-50 text-red-500 rounded-md transition-colors">
+                          <button 
+                            onClick={() => handleDelete(a.id)} // ADDED: Handle Delete API call
+                            className="p-2 hover:bg-red-50 text-red-500 rounded-md transition-colors"
+                          >
                             <span className="material-symbols-outlined text-[18px]">delete</span>
                           </button>
                         </div>
@@ -232,7 +258,7 @@ export default function TeacherAssignment() {
           {/* pagination */}
           <div className="flex justify-between items-center p-4 border-t border-gray-100 bg-gray-50">
             <p className="text-sm text-[#6b7280] font-medium">
-              Showing {assignments.length} of {totalCount} assignments
+              Showing {filteredAssignments.length} of {totalCount} assignments
             </p>
             <div className="flex gap-2">
               <button className="w-10 h-10 flex items-center justify-center border border-gray-200 bg-white hover:bg-gray-50 rounded-md text-gray-500 transition-colors">
@@ -264,7 +290,7 @@ export default function TeacherAssignment() {
             </div>
           </div>
 
-          <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
             <h4 className="font-bold text-[#0b1c30] mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-orange-500">warning</span>
               Upcoming Gaps

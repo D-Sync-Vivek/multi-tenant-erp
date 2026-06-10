@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
+import { schoolAdminApi } from '../../services/schoolAdminApi';
 
 export default function CreateClass() {
   const navigate = useNavigate();
@@ -11,51 +12,33 @@ export default function CreateClass() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSave = async (e) => {
+// Replace your handleSubmit function with this:
+const handleSave = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
       const payload = {
         name: name,
         numeric_order: parseInt(numericOrder, 10)
       };
 
-      const response = await fetch(`${baseUrl}v1/academics/class-levels/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        let errorMsg = "Failed to create Class Level.";
-        if (typeof data === "object") {
-          errorMsg = Object.entries(data)
-            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
-            .join(" | ");
-        }
-        throw new Error(errorMsg);
-      }
+      // Now your component is clean. 
+      // It doesn't know about baseUrl, v1, or tokens.
+      await schoolAdminApi.createClassLevel(payload);
 
       alert("Class Level created successfully!");
       navigate("/school-admin");
 
     } catch (err) {
-      console.error(err);
-      setError(err.message);
+      console.error("Submission Error:", err);
+      // The apiClient catches the response error automatically
+      setError(err.response?.data?.detail || "Failed to create Class Level.");
     } finally {
       setLoading(false);
     }
-  };
+};
 
   return (
     <SchoolLayout title="Create Class Level">

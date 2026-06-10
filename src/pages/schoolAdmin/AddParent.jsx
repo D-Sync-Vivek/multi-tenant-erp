@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { schoolAdminApi } from '../../services/schoolAdminApi';
 
 export default function AddParent() {
   const navigate = useNavigate();
@@ -30,9 +31,6 @@ export default function AddParent() {
     setSuccessMsg(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
       // ==========================================
       // STEP 1: CREATE THE CORE IDENTITY (User)
       // ==========================================
@@ -43,27 +41,7 @@ export default function AddParent() {
         last_name: lastName
       };
 
-      const userResponse = await fetch(`${baseUrl}v1/users/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(userPayload)
-      });
-
-      const userData = await userResponse.json();
-
-      if (!userResponse.ok) {
-        let errorMsg = "Failed to create core user identity.";
-        if (typeof userData === "object") {
-          errorMsg = Object.entries(userData)
-            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
-            .join(" | ");
-        }
-        throw new Error(errorMsg);
-      }
+      const userData = await schoolAdminApi.createUser(userPayload);
 
       // ==========================================
       // STEP 2: CREATE THE PARENT PROFILE
@@ -78,27 +56,7 @@ export default function AddParent() {
           address: address
         };
 
-        const profileResponse = await fetch(`${baseUrl}v1/profiles/parents/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify(profilePayload)
-        });
-
-        const profileData = await profileResponse.json();
-
-        if (!profileResponse.ok) {
-          console.error("Profile Creation Error:", profileData);
-          let profileErrorMsg = "User was created, but linking the Parent Profile failed.";
-          if (typeof profileData === "object") {
-             profileErrorMsg += " " + Object.entries(profileData)
-              .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
-              .join(" | ");
-          }
-          throw new Error(profileErrorMsg);
-        }
+        await schoolAdminApi.createParentProfile(profilePayload);
       }
 
       setSuccessMsg("Guardian registration complete! Profile established successfully.");
@@ -108,8 +66,15 @@ export default function AddParent() {
       }, 1500);
 
     } catch (err) {
-      console.error(err);
-      setError(err.message);
+      console.error("Onboarding Error:", err);
+      // Extracts error detail if available, otherwise shows generic error
+      const errorMsg = err.response?.data 
+        ? Object.entries(err.response.data)
+            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
+            .join(" | ")
+        : (err.message || "Failed to onboard guardian.");
+      
+      setError(errorMsg);
       window.scrollTo(0, 0);
     } finally {
       setLoading(false);
@@ -352,12 +317,12 @@ export default function AddParent() {
               </div>
 
               {/* ACTION BUTTONS */}
-              <div className="flex justify-end gap-4 pt-4">
+              <div className="flex justify-end gap-4 pt-6">
                 <button
                   type="button"
                   disabled={loading}
                   onClick={() => navigate("/school-admin/parents")}
-                  className="px-8 py-3.5 font-bold text-[#6b7280] hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
+                  className="px-8 py-3.5 font-bold text-[#6b7280] hover:bg-slate-100 rounded-md transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -365,7 +330,7 @@ export default function AddParent() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-10 py-3.5 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-bold rounded-md shadow-lg shadow-[#0058be]/20 flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:scale-100"
+                  className="px-10 py-3.5 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-bold rounded-md shadow-lg shadow-[#0058be]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 min-w-[200px] disabled:opacity-70 disabled:scale-100"
                 >
                   {loading ? (
                     <>

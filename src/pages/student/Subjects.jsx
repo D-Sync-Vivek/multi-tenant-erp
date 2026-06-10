@@ -1,14 +1,40 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useStudent } from "../../context/StudentProvider";
+import { getSectionById } from "../../services/studentAPIs";
+
 
 
 export default function Subjects() {
-  const {academic, dashboard, loading} = useStudent();
+const { academic, dashboard, enrollment, loading } = useStudent();
+
+const [classLevelId, setClassLevelId] = useState(null);
+
+useEffect(() => {
+    const fetchSection = async () => {
+      try {
+        if (!enrollment?.section) return;
+
+        const sectionData = await getSectionById(
+          enrollment.section
+        );
+
+        setClassLevelId(sectionData.class_level);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchSection();
+  }, [enrollment]);
+
 
   if (loading) return <MainLayout title="My Subjects"><div>Loading...</div></MainLayout>;
 
-  const subjects = academic?.subs || [];
+  const subjects = (academic?.subs || []).filter(
+  (subject) =>
+    subject.class_levels?.includes(classLevelId)
+);
   const grades = dashboard?.grades?.results || [];
   const academicYears = academic?.years || [];
 

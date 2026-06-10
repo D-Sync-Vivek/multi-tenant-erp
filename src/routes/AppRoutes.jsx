@@ -40,6 +40,12 @@ import TeacherAssignment from "../pages/schoolAdmin/TeacherAssignment";
 import AssignTeacher from "../pages/schoolAdmin/AssignTeacher";
 import SchoolSettings from "../pages/schoolAdmin/Settings";
 import SchoolNotifications from "../pages/schoolAdmin/Notifications";
+import ParentDetail from "../pages/schoolAdmin/ParentDetail";
+import StudentDetail from "../pages/schoolAdmin/StudentDetail";
+import EditStudent from "../pages/schoolAdmin/EditStudent";
+import TeacherDetail from "../pages/schoolAdmin/TeacherDetail";
+import MappingDetail from "../pages/schoolAdmin/MappingDetail";
+import EditTeacherAssignment from "../pages/schoolAdmin/EditTeacherAssignment";
 
 /* ================= STUDENT ================= */
 import StudentDashboard from "../pages/student/Dashboard";
@@ -165,6 +171,7 @@ function AppRoutes() {
         <Route path="/school-admin/academic-years/edit/:id" element={<CreateAcademicYear />} />
         <Route path="/school-admin/roles" element={<RolesPermissions />} />
         <Route path="/school-admin/roles/create" element={<CreateRole />} />
+        <Route path="/school-admin/roles/edit/:id" element={<CreateRole />} />
         <Route path="/school-admin/students" element={<Students />} />
         <Route path="/school-admin/students/add" element={<AddStudent />} />
         <Route path="/school-admin/teachers" element={<Teachers />} />
@@ -175,6 +182,13 @@ function AppRoutes() {
         <Route path="/school-admin/mapping/create" element={<AddMapping />} />
         <Route path="/school-admin/teacher-assignment" element={<TeacherAssignment />} />
         <Route path="/school-admin/teacher-assignment/create" element={<AssignTeacher />} />
+        <Route path="/school-admin/parents/:id" element={<ParentDetail />} />
+        <Route path="/school-admin/students" element={<Students />} />
+        <Route path="/school-admin/students/:id" element={<StudentDetail />} />
+        <Route path="/school-admin/students/edit/:id" element={<EditStudent />} />
+        <Route path="/school-admin/teachers/:id" element={<TeacherDetail />} />
+        <Route path="/school-admin/mapping/:id" element={<MappingDetail />} />
+        <Route path="/school-admin/teacher-assignment/edit/:id" element={<EditTeacherAssignment />} />
 
         {/* ================= STUDENT ================= */}
         <Route path="/students" element={<Navigate to="/student" replace />} />

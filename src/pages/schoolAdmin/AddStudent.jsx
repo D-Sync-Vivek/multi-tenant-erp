@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { schoolAdminApi } from '../../services/schoolAdminApi';
 
 export default function AddStudent() {
   const navigate = useNavigate();
@@ -23,19 +24,14 @@ export default function AddStudent() {
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
-  const handleSave = async (e) => {
+const handleSave = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setSuccessMsg(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
-      // ==========================================
-      // STEP 1: CREATE THE CORE IDENTITY (User)
-      // ==========================================
+      // 1. Create the Core User
       const userPayload = {
         email: email,
         password: password,
@@ -43,76 +39,30 @@ export default function AddStudent() {
         last_name: lastName
       };
 
-      const userResponse = await fetch(`${baseUrl}v1/users/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(userPayload)
-      });
+      // Use the service layer!
+      const userData = await schoolAdminApi.createUser(userPayload);
 
-      const userData = await userResponse.json();
-
-      if (!userResponse.ok) {
-        let errorMsg = "Failed to create core user identity.";
-        if (typeof userData === "object") {
-          errorMsg = Object.entries(userData)
-            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
-            .join(" | ");
-        }
-        throw new Error(errorMsg);
-      }
-
-      // ==========================================
-      // STEP 2: CREATE THE STUDENT PROFILE
-      // ==========================================
+      // 2. Create the Student Profile
       if (userData.id) {
         const profilePayload = {
-          user: userData.id, // Linking the OneToOneField
+          user: userData.id,
           enrollment_number: enrollmentNumber,
-          date_of_birth: dateOfBirth || null, // Handle empty dates safely for Django DateField
+          date_of_birth: dateOfBirth || null,
           phone_number: phoneNumber,
           blood_group: bloodGroup,
           address: address,
           is_archived: false
         };
 
-        const profileResponse = await fetch(`${baseUrl}v1/profiles/students/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify(profilePayload)
-        });
-
-        const profileData = await profileResponse.json();
-
-        if (!profileResponse.ok) {
-          console.error("Profile Creation Error:", profileData);
-          
-          let profileErrorMsg = "Core user was created, but failed to link the Student Profile.";
-          if (typeof profileData === "object") {
-             profileErrorMsg += " " + Object.entries(profileData)
-              .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
-              .join(" | ");
-          }
-          throw new Error(profileErrorMsg);
-        }
+        await schoolAdminApi.createStudentProfile(profilePayload);
       }
 
-      setSuccessMsg("Student registration complete! Identity and profile linked successfully.");
-      
-      // Delay navigation so they can see the success message
-      setTimeout(() => {
-        navigate("/school-admin/students");
-      }, 1500);
+      setSuccessMsg("Student registration complete!");
+      setTimeout(() => navigate("/school-admin/students"), 1500);
 
     } catch (err) {
       console.error(err);
-      setError(err.message);
+      setError(err.response?.data?.detail || "Registration failed. Check console for details.");
       window.scrollTo(0, 0);
     } finally {
       setLoading(false);
@@ -182,9 +132,7 @@ export default function AddStudent() {
                 
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                      First Name
-                    </label>
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">First Name</label>
                     <input
                       required
                       value={firstName}
@@ -195,9 +143,7 @@ export default function AddStudent() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                      Last Name (Optional)
-                    </label>
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">Last Name (Optional)</label>
                     <input
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
@@ -209,9 +155,7 @@ export default function AddStudent() {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                      Email Address (Login ID)
-                    </label>
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">Email Address (Login ID)</label>
                     <input
                       type="email"
                       required
@@ -223,9 +167,7 @@ export default function AddStudent() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                      Temporary Password
-                    </label>
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">Temporary Password</label>
                     <input
                       type="password"
                       required
@@ -250,9 +192,7 @@ export default function AddStudent() {
 
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                      Enrollment Number
-                    </label>
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">Enrollment Number</label>
                     <input
                       required
                       value={enrollmentNumber}
@@ -263,9 +203,7 @@ export default function AddStudent() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                      Date of Birth
-                    </label>
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">Date of Birth</label>
                     <input
                       type="date"
                       required
@@ -278,9 +216,7 @@ export default function AddStudent() {
 
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                      Phone Number
-                    </label>
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">Phone Number</label>
                     <input
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
@@ -290,9 +226,7 @@ export default function AddStudent() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                      Blood Group
-                    </label>
+                    <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">Blood Group</label>
                     <select
                       value={bloodGroup}
                       onChange={(e) => setBloodGroup(e.target.value)}
@@ -312,9 +246,7 @@ export default function AddStudent() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">
-                    Residential Address
-                  </label>
+                  <label className="text-xs font-semibold text-[#6b7280] tracking-wider uppercase">Residential Address</label>
                   <textarea
                     rows="2"
                     value={address}
@@ -358,38 +290,19 @@ export default function AddStudent() {
 
             {/* RIGHT COLUMN */}
             <div className="space-y-6">
-              
               <div className="bg-[#0b1c30] text-white p-6 rounded-xl shadow-lg relative overflow-hidden">
                  <div className="absolute top-0 right-0 p-4 opacity-10">
-                   <span className="material-symbols-outlined text-8xl">data_object</span>
+                    <span className="material-symbols-outlined text-8xl">data_object</span>
                  </div>
                  <h3 className="text-lg font-bold mb-3 relative z-10 text-blue-200">Relational Architecture</h3>
                  <p className="text-sm text-slate-300 relative z-10 leading-relaxed mb-4">
-                   Your Django backend is executing two sequential REST transactions here. It creates the authentication model, then attaches the extended domain attributes via the OneToOne mapping.
+                    Your Django backend is executing two sequential REST transactions here.
                  </p>
                  <div className="bg-[#1e3450] p-3 rounded-md border border-[#2b4b72] relative z-10 space-y-1">
-                    <p className="text-xs font-mono text-green-300">
-                       1. POST /api/v1/users/
-                    </p>
-                    <p className="text-xs font-mono text-purple-300">
-                       2. POST /api/v1/profiles/students/
-                    </p>
+                    <p className="text-xs font-mono text-green-300">1. POST /api/v1/users/</p>
+                    <p className="text-xs font-mono text-purple-300">2. POST /api/v1/profiles/students/</p>
                  </div>
               </div>
-
-              {/* Photo Placeholder */}
-              <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm text-center">
-                <div className="w-32 h-32 mx-auto rounded-full bg-[#f8f9ff] flex items-center justify-center overflow-hidden border-4 border-white shadow-md">
-                  <span className="material-symbols-outlined text-6xl text-gray-300">face</span>
-                </div>
-                <h4 className="mt-4 font-semibold text-slate-800">
-                  Profile Asset
-                </h4>
-                <p className="text-xs text-[#6b7280]">
-                  You can upload a custom profile picture later from the student's detail view.
-                </p>
-              </div>
-
             </div>
           </div>
         </form>

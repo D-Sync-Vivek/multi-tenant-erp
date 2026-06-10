@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
+import { schoolAdminApi } from '../../services/schoolAdminApi';
 
 export default function Parents() {
   const navigate = useNavigate();
@@ -19,23 +20,10 @@ export default function Parents() {
     setError(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
-      const response = await fetch(`${baseUrl}v1/profiles/parents/`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json"
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch parent directory.");
-      }
-
-      const data = await response.json();
+      // Production-level call: No manual URLs or tokens needed here
+      const data = await schoolAdminApi.getParents();
       
+      // Handle DRF pagination structure
       if (data.results) {
         setParents(data.results);
         setTotalCount(data.count);
@@ -45,7 +33,7 @@ export default function Parents() {
       }
     } catch (err) {
       console.error("Fetch Parents Error:", err);
-      setError(err.message);
+      setError(err.response?.data?.detail || "Failed to fetch parent directory.");
     } finally {
       setLoading(false);
     }
@@ -289,7 +277,6 @@ export default function Parents() {
             </div>
           </div>
         </div>
-
       </div>
     </SchoolLayout>
   );

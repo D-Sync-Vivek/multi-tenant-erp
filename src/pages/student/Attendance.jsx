@@ -23,6 +23,9 @@ export default function Attendance() {
     });
   }, [records, selectedYear]);
 
+  console.log("RECORDS", records);
+  console.log("FILTERED", filteredRecords);
+
   // --- CALENDAR DATA MAPPING ---
   const attendanceMap = useMemo(() => {
     if (!filteredRecords || !Array.isArray(filteredRecords)) return {};
@@ -56,7 +59,7 @@ export default function Attendance() {
   const attendanceDifference = attendance - minRequirement;
   const requirementMet = attendance >= minRequirement;
 
-  // ✅ useMemo BEFORE early return — Rules of Hooks fix
+  // ✅ useMemo for monthly distribution
   const monthlyDistribution = useMemo(() => {
     const summary = { Present: 0, Absent: 0, Late: 0 };
     filteredRecords.forEach((record) => {
@@ -73,7 +76,7 @@ export default function Attendance() {
     return summary;
   }, [filteredRecords, year, month]);
 
-  // ✅ Early return SABSE LAST — saare hooks ke baad
+  // ✅ Early return after all hooks
   if (loading) return <MainLayout title="Attendance">Loading...</MainLayout>;
 
   return (
@@ -146,14 +149,14 @@ export default function Attendance() {
               <span className="p-2 bg-purple-50 text-purple-600 rounded-lg">
                 <span className="material-symbols-outlined">gavel</span>
               </span>
-              <span
-                className={`text-xs font-bold px-2 py-1 rounded-full ${
-                  requirementMet
-                    ? "text-green-600 bg-green-50"
-                    : "text-red-600 bg-red-50"
-                }`}
-              >
-                {requirementMet ? "Requirement Met" : "Requirement Not Met"}
+              <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                requirementMet
+                  ? "text-green-600 bg-green-50"
+                  : "text-red-600 bg-red-50"
+              }`}>
+                {requirementMet
+                  ? "Requirement Met"
+                  : "Requirement Not Met"}
               </span>
             </div>
             <div>

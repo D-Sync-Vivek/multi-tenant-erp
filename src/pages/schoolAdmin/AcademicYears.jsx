@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
+// 1. Import the clean API service function
+import { getAcademicYears } from '../../services/schoolAdminApi';
 
 export default function AcademicYears() {
   const navigate = useNavigate();
@@ -18,25 +20,8 @@ export default function AcademicYears() {
     setLoading(true);
     setError(null);
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
-      const endpoint = `${baseUrl}v1/academics/academic-years/`;
-      console.log("Fetching academic years from:", endpoint);
-
-      const response = await fetch(endpoint, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json"
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch academic years. Server responded with status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      // 2. Production-level call! No baseUrls, manual tokens, or missing slashes.
+      const data = await getAcademicYears();
       console.log("Academic Years API Response:", data);
       
       // DRF paginated responses contain the array in data.results
@@ -51,7 +36,8 @@ export default function AcademicYears() {
       
     } catch (err) {
       console.error("Error fetching academic years:", err);
-      setError(err.message);
+      // Safely extract Axios error messages if available
+      setError(err.response?.data?.detail || err.message || "Failed to fetch academic years.");
     } finally {
       setLoading(false);
     }
@@ -179,11 +165,11 @@ export default function AcademicYears() {
                       </td>
                       <td className="text-right pr-8">
                         <button 
-  onClick={() => navigate(`/school-admin/academic-years/edit/${year.id}`)}
-  className="text-[#0058be] font-medium hover:underline"
->
-  Edit
-</button>
+                          onClick={() => navigate(`/school-admin/academic-years/edit/${year.id}`)}
+                          className="text-[#0058be] font-medium hover:underline"
+                        >
+                          Edit
+                        </button>
                       </td>
                     </tr>
                   ))

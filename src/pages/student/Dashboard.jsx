@@ -12,15 +12,25 @@ export default function Dashboard() {
   }
   
   const attendance = studentData?.attendance?.results || [];
-  const attendanceRate = calculateAttendance(attendance);
+  const attendanceRate = Number(calculateAttendance(attendance));
   const grades = studentData?.grades?.results || [];
   const gpa = calculateGPA(grades);
+  
   const attendanceStatus =
-  attendanceRate >= 80
-    ? "ON TRACK"
-    : attendanceRate >= 65
-      ? "SATISFACTORY"
-      : "AT RISK";
+    attendanceRate >= 80
+      ? {
+          label: "ON TRACK",
+          className: "text-green-800 bg-green-100",
+        }
+      : attendanceRate >= 65
+        ? {
+            label: "SATISFACTORY",
+            className: "text-amber-800 bg-amber-100",
+          }
+        : {
+            label: "AT RISK",
+            className: "text-red-800 bg-red-100",
+          };
 
   return (
     <MainLayout title="Dashboard">
@@ -58,9 +68,7 @@ export default function Dashboard() {
                   calendar_today
                 </span>
               </span>
-              <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded">
-                {attendanceStatus}
-              </span>
+              <span className={`text-xs font-bold px-2 py-1 rounded ${attendanceStatus.className}`}>{attendanceStatus.label}</span>
             </div>
             <div className="mt-4">
               <p className="text-sm font-medium text-on-surface-variant mb-1">
@@ -121,141 +129,8 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
-           {/*  <section className="bg-surface-container-low rounded-xl p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold headline-font">
-                  School Board
-                </h3>
-                <button className="text-primary text-sm font-semibold hover:underline">
-                  View All
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div className="flex gap-4 p-4 bg-surface-container-lowest rounded-md custom-shadow">
-                  <div className="shrink-0 w-12 h-12 bg-tertiary-fixed text-tertiary rounded-md flex items-center justify-center">
-                    <span
-                      className="material-symbols-outlined"
-                      data-icon="campaign"
-                    >
-                      campaign
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-on-surface">
-                      Annual Science Fair 2024 Registration
-                    </h4>
-                    <p className="text-sm text-on-surface-variant line-clamp-2">
-                      The registration for the upcoming annual science fair is
-                      now open for all students from Grades 9 to 12. Submit your
-                      project abstracts by Friday.
-                    </p>
-                    <span className="text-[10px] font-bold text-outline-variant uppercase mt-2 block">
-                      Post 2 hours ago &#x2022; Principal&apos;s Office
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 p-4 bg-surface-container-lowest rounded-md custom-shadow">
-                  <div className="shrink-0 w-12 h-12 bg-primary-fixed text-primary rounded-md flex items-center justify-center">
-                    <span
-                      className="material-symbols-outlined"
-                      data-icon="event"
-                    >
-                      event
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-on-surface">
-                      Updated Library Hours for Finals Week
-                    </h4>
-                    <p className="text-sm text-on-surface-variant line-clamp-2">
-                      To support your preparation for finals, the main campus
-                      library will remain open until 10:00 PM starting next
-                      Monday.
-                    </p>
-                    <span className="text-[10px] font-bold text-outline-variant uppercase mt-2 block">
-                      Post Yesterday &#x2022; Librarian
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </section> */}
-
-            {/* <section>
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold headline-font">
-                  Upcoming Tasks
-                </h3>
-                <div className="flex gap-2">
-                  <button className="px-3 py-1 bg-surface-container-high rounded-full text-xs font-bold">
-                    ALL
-                  </button>
-                  <button className="px-3 py-1 text-xs font-bold text-on-surface-variant">
-                    ASSIGNMENTS
-                  </button>
-                  <button className="px-3 py-1 text-xs font-bold text-on-surface-variant">
-                    QUIZZES
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-5 bg-surface-container-lowest rounded-lg custom-shadow border-l-4 border-primary">
-                  <div className="flex justify-between mb-3">
-                    <span className="text-[10px] font-black tracking-widest text-primary uppercase">
-                      Assignment
-                    </span>
-                    <span className="text-xs font-bold text-error">
-                      Due tomorrow
-                    </span>
-                  </div>
-                  <h4 className="font-bold mb-1">
-                    Advanced Calculus: Derivations
-                  </h4>
-                  <p className="text-sm text-on-surface-variant mb-4">
-                    Complete problems 14 through 28 from Chapter 4.
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <div className="flex -space-x-2">
-                      <div className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-[10px] font-bold">
-                        +12
-                      </div>
-                    </div>
-                    <button className="text-xs font-bold py-2 px-4 bg-primary-container text-white rounded-md">
-                      Open Task
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-5 bg-surface-container-lowest rounded-lg custom-shadow border-l-4 border-secondary">
-                  <div className="flex justify-between mb-3">
-                    <span className="text-[10px] font-black tracking-widest text-secondary uppercase">
-                      Quiz
-                    </span>
-                    <span className="text-xs font-bold text-on-surface-variant">
-                      Fri, 22 Sep
-                    </span>
-                  </div>
-                  <h4 className="font-bold mb-1">Modern History: WW2 Impact</h4>
-                  <p className="text-sm text-on-surface-variant mb-4">
-                    Focus on economic consequences and geopolitical shifts.
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center text-xs text-on-surface-variant gap-1">
-                      <span
-                        className="material-symbols-outlined text-sm"
-                        data-icon="timer"
-                      >
-                        timer
-                      </span>
-                      45 mins
-                    </div>
-                    <button className="text-xs font-bold py-2 px-4 bg-surface-container-high text-secondary rounded-md">
-                      Study Guide
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section> */}
+            {/* School Board section commented out */}
+            {/* Upcoming Tasks section commented out */}
           </div>
 
           <div className="lg:col-span-4 space-y-8">

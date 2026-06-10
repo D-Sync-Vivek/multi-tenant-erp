@@ -45,8 +45,9 @@ export default function AiTutor() {
 
 <div className="flex justify-end items-start gap-4">
 <div className="max-w-[80%] bg-primary-container text-on-primary-container p-4 rounded-xl rounded-tr-none shadow-sm">
-<p className="text-sm leading-relaxed">Can you explain the basic concept of Quantum Mechanics? It feels very abstract and I&apos;m struggling with the Wave-Particle Duality part.</p>
-<span className="text-[10px] mt-2 block opacity-70">10:42 AM</span>
+<p className="text-sm leading-relaxed">
+  {/*Can you explain the basic concept of Quantum Mechanics? It feels very abstract and I&apos;m struggling with the Wave-Particle Duality part.*/}</p>
+<span className="text-[10px] mt-2 block opacity-70">{/*10:42 AM*/}</span>
 </div>
 <img alt="Alexander" className="w-8 h-8 rounded-full" data-alt="avatar of a young male student" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7_trmCu23ZZmsRJDMng8NWkwGY3sTQc4xZPc_FRgBdbmG10XKSkz2yS7FAcuW71TiDgeYzeTjn57egF1JBjkssiaLtrhwfnjdt8iicIjqQ61rnJ-H__30CLll4IaFIbI7I7N3iY0xiXJR4fZQcXiB9xtUeeY8fhkR_xZRXzfYE-WTo8fTv0ql0-V_Q_8ddK7Fe9H5kVrUGG7cop9JaC9fKYUcKyUR8aK7pIpMUL3XuZbMGGGqtIefoi_TzDcK97XQhY-ZSbejNw"/>
 </div>
@@ -56,15 +57,15 @@ export default function AiTutor() {
 <span className="material-symbols-outlined text-sm" data-icon="smart_toy" data-weight="fill" style={{ fontVariationSettings: `&apos` }}>smart_toy</span>
 </div>
 <div className="max-w-[85%] bg-surface-container-low p-5 rounded-xl rounded-tl-none space-y-4">
-<p className="text-sm font-semibold text-secondary">Hello Alexander! Let&apos;s demystify Quantum Mechanics together.</p>
-<p className="text-sm leading-relaxed text-on-surface-variant">Think of Wave-Particle Duality not as a contradiction, but as a &quot;Dual Identity&quot;. Imagine a coin: it has two sides, but it&apos;s still one coin. Depending on how you look at it or measure it, it shows one side or the other.</p>
+<p className="text-sm font-semibold text-secondary">{/*Hello Alexander! Let&apos;s demystify Quantum Mechanics together.*/}</p>
+<p className="text-sm leading-relaxed text-on-surface-variant">{/*Think of Wave-Particle Duality not as a contradiction, but as a &quot;Dual Identity&quot;. Imagine a coin: it has two sides, but it&apos;s still one coin. Depending on how you look at it or measure it, it shows one side or the other.*/}</p>
 
 <div className="bg-white p-4 rounded-lg border border-primary/10 space-y-3">
 <div className="flex gap-3">
 <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">1</div>
 <div>
-<p className="text-xs font-bold text-on-surface">The Wave Nature</p>
-<p className="text-xs text-on-surface-variant">Light or electrons spread out through space, interfering with each other like ripples in a pond.</p>
+<p className="text-xs font-bold text-on-surface">{/*The Wave Nature*/}</p>
+<p className="text-xs text-on-surface-variant">{/*Light or electrons spread out through space, interfering with each other like ripples in a pond.*/}</p>
 </div>
 </div>
 <div className="flex gap-3">
@@ -197,4 +198,3 @@ export default function AiTutor() {
     </MainLayout>
   );
 }
-

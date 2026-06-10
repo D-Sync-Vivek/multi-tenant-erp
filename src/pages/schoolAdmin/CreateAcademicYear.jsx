@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { schoolAdminApi } from '../../services/schoolAdminApi';
 
 // Mock layout for preview environment (uncomment your import locally)
 // import SchoolLayout from "../../components/erp/school/SchoolLayout";
@@ -14,57 +15,40 @@ const SchoolLayout = ({ title, children }) => (
 
 export default function CreateAcademicYear() {
   const navigate = useNavigate();
-  const { id } = useParams(); // Extract ID from URL if it exists
+  const { id } = useParams(); 
   const isEditMode = Boolean(id);
 
-  // Form states mapping to Django AcademicYear fields
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isActive, setIsActive] = useState(true);
   
-  // UI states
   const [loading, setLoading] = useState(false);
-  const [initialLoad, setInitialLoad] = useState(isEditMode); // True if we need to fetch data first
+  const [initialLoad, setInitialLoad] = useState(isEditMode); 
   const [error, setError] = useState(null);
 
-  // Fetch existing data if in Edit Mode
   useEffect(() => {
+    const fetchAcademicYearDetails = async () => {
+      try {
+        const data = await schoolAdminApi.getAcademicYearDetails(id);
+        
+        setName(data.name || "");
+        setStartDate(data.start_date || "");
+        setEndDate(data.end_date || "");
+        setIsActive(data.is_active ?? true);
+
+      } catch (err) {
+        console.error("Fetch Error:", err);
+        setError(err.response?.data?.detail || err.message || "Failed to load academic year details.");
+      } finally {
+        setInitialLoad(false);
+      }
+    };
+
     if (isEditMode) {
       fetchAcademicYearDetails();
     }
-  }, [id]);
-
-  const fetchAcademicYearDetails = async () => {
-    try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
-      const response = await fetch(`${baseUrl}v1/academics/academic-years/${id}/`, {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error("Failed to load academic year details.");
-
-      const data = await response.json();
-      
-      // Populate the form with the fetched data
-      setName(data.name || "");
-      setStartDate(data.start_date || "");
-      setEndDate(data.end_date || "");
-      setIsActive(data.is_active ?? true);
-
-    } catch (err) {
-      console.error("Fetch Error:", err);
-      setError(err.message);
-    } finally {
-      setInitialLoad(false);
-    }
-  };
+  }, [id, isEditMode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,18 +56,6 @@ export default function CreateAcademicYear() {
     setError(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
-      // Dynamically set endpoint and method based on mode
-      const endpoint = isEditMode 
-        ? `${baseUrl}v1/academics/academic-years/${id}/` 
-        : `${baseUrl}v1/academics/academic-years/`;
-        
-      const method = isEditMode ? "PATCH" : "POST";
-
-      console.log(`${isEditMode ? "Updating" : "Posting new"} academic year to:`, endpoint);
-
       const payload = {
         name: name,
         start_date: startDate,
@@ -91,27 +63,10 @@ export default function CreateAcademicYear() {
         is_active: isActive
       };
 
-      const response = await fetch(endpoint, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Handle DRF validation errors gracefully
-        let errorMessage = `Failed to ${isEditMode ? "update" : "create"} Academic Year.`;
-        if (typeof data === "object") {
-          errorMessage = Object.entries(data)
-            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
-            .join(" | ");
-        }
-        throw new Error(errorMessage);
+      if (isEditMode) {
+        await schoolAdminApi.updateAcademicYear(id, payload);
+      } else {
+        await schoolAdminApi.createAcademicYear(payload);
       }
 
       alert(`Academic Year ${isEditMode ? "updated" : "created"} successfully!`);
@@ -119,7 +74,13 @@ export default function CreateAcademicYear() {
 
     } catch (err) {
       console.error("Submission Error:", err);
-      setError(err.message);
+      
+      // Improve the error message for the user
+      if (err.response?.status === 500 && err.response?.data?.includes("duplicate key")) {
+        setError("This Academic Year already exists. Please edit the existing one instead.");
+      } else {
+        setError("Failed to save. Please ensure all fields are correct.");
+      }
     } finally {
       setLoading(false);
     }
@@ -134,26 +95,12 @@ export default function CreateAcademicYear() {
     setError(null);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || process.env?.REACT_APP_API_BASE_URL;
-      const token = localStorage.getItem("accessToken");
-
-      const response = await fetch(`${baseUrl}v1/academics/academic-years/${id}/`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete the academic year.");
-      }
-
+      await schoolAdminApi.deleteAcademicYear(id);
       alert("Academic Year deleted successfully!");
       navigate("/school-admin/academic-years");
-
     } catch (err) {
       console.error("Delete Error:", err);
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message || "Failed to delete the academic year.");
       setLoading(false);
     }
   };
@@ -162,7 +109,6 @@ export default function CreateAcademicYear() {
     navigate("/school-admin/academic-years");
   };
 
-  // Show a loading screen while fetching initial data for edit mode
   if (initialLoad) {
     return (
       <SchoolLayout title="Academic Years">

@@ -15,10 +15,10 @@ export default function ToolActionButtons({
     
     const filename = `${toolName.replace(/\s+/g, '_')}_${new Date().getTime()}.${exportType.toLowerCase()}`;
     
-    // Pointing to your gs-rag backend
-    const endpoint = exportType === 'PPTX' 
-      ? 'http://localhost:8001/api/v1/export/pptx' 
-      : 'http://localhost:8001/api/v1/export/pdf';
+    const baseUrl = process.env.REACT_APP_AI_API_URL;
+    const endpoint = exportType === 'PPTX'
+         ? `${baseUrl}/api/v1/export/pptx`
+         : `${baseUrl}/api/v1/export/pdf`;
       
     const payload = exportType === 'PPTX' 
       ? contentData 
