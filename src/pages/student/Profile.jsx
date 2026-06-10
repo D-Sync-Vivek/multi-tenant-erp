@@ -75,7 +75,7 @@ export default function Profile() {
               <div className="flex flex-wrap justify-center md:justify-start gap-3">
                 <button className="bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-sm hover:opacity-90 transition-all">
                   <span className="material-symbold-outlined" data-icon="edit">
-                    edit
+                    {/* edit */}
                   </span>
                   Edit Profile
                 </button>

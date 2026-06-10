@@ -1,6 +1,10 @@
 import React from 'react';
 import MainLayout from '../../layouts/MainLayout';
+
+import { useTheme } from "../../context/ThemeContext";
+
 export default function Settings() {
+  const { darkMode, setDarkMode } = useTheme();
   return (
     <MainLayout title="Account Settings">
       <div className="max-w-4xl mx-auto">
@@ -35,10 +39,25 @@ export default function Settings() {
 <div className="flex items-center justify-between p-4 bg-surface-container-low rounded-md">
 <div className="flex items-center gap-3">
 <span className="material-symbols-outlined text-on-surface-variant" data-icon="dark_mode">dark_mode</span>
-<span className="font-semibold">Dark Mode</span>
+<span className="font-semibold">
+  {darkMode ? "Light Mode" : "Dark Mode"}
+</span>
 </div>
-<button className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 transition-colors focus:outline-none">
-<span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"/>
+<button
+  onClick={() => setDarkMode(!darkMode)}
+  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+    darkMode
+      ? "bg-primary"
+      : "bg-slate-300"
+  }`}
+>
+  <span
+    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+      darkMode
+        ? "translate-x-6"
+        : "translate-x-1"
+    }`}
+  />
 </button>
 </div>
 </div>

@@ -5,13 +5,13 @@ import { useStudent } from '../../context/StudentProvider';
 const navItems = [
   { icon: 'dashboard', label: 'Dashboard', path: '/student' },
   { icon: 'menu_book', label: 'My Subjects', path: '/student/subjects' },
-  { icon: 'book', label: 'Learning Materials', path: '/student/materials' },
-  { icon: 'assignment', label: 'Assignments', path: '/student/assignments' },
+ // { icon: 'book', label: 'Learning Materials', path: '/student/materials' },
+ // { icon: 'assignment', label: 'Assignments', path: '/student/assignments' },
   { icon: 'description', label: 'Grades & Report Card', path: '/student/grades' },
   { icon: 'event_available', label: 'Attendance', path: '/student/attendance' },
   { icon: 'psychology', label: 'AI Tutor', path: '/student/ai-tutor' },
-  { icon: 'quiz', label: 'Practice & Quiz', path: '/student/quiz' },
-  { icon: 'auto_awesome', label: 'Recommendations', path: '/student/recommendations' },
+ // { icon: 'quiz', label: 'Practice & Quiz', path: '/student/quiz' },
+  //{ icon: 'auto_awesome', label: 'Recommendations', path: '/student/recommendations' },
 ];
 
 
