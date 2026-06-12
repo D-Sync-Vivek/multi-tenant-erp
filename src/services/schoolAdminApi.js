@@ -212,6 +212,8 @@ export const getParentStudentMappings = async (page = 1, search = "") => {
     return response.data;
 };
 
+// In src/services/schoolAdminApi.js
+
 export const getTeacherAssignments = async (page = 1, search = "") => {
     const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
     const response = await apiClient.get(`/academics/teacher-assignments/?page=${page}${searchParam}`);

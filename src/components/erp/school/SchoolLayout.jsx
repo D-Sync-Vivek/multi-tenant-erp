@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react"; 
 import SchoolSidebar from "./SchoolSidebar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // MAGIC: Added useLocation
 import { schoolAdminApi } from "../../../services/schoolAdminApi";
 
 export default function SchoolLayout({ children, title = "Dashboard" }) {
   const navigate = useNavigate();
+  const location = useLocation(); // MAGIC: Tracking the current URL
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   // Real-Time Interaction Buffers
@@ -217,7 +218,8 @@ export default function SchoolLayout({ children, title = "Dashboard" }) {
         </header>
 
         {/* 4. WORKSPACE INJECTED CHILDREN FRAMER VIEW */}
-        <div className="pt-24 px-8 pb-16 flex-1 flex flex-col animate-fadeIn">
+        {/* MAGIC: Added key={location.pathname} to trigger animations on page change */}
+        <div key={location.pathname} className="pt-24 px-8 pb-16 flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
           {children}
         </div>
 

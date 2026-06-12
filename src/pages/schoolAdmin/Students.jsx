@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from '../../services/schoolAdminApi';
 import ActionMenu from "./ActionMenu";
 import Pagination from "../../components/erp/global/Pagination";
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 export default function Students() {
   const navigate = useNavigate();
@@ -13,7 +15,11 @@ export default function Students() {
   const [error, setError] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+
+  // --- Page size + sorting (client-side) ---
+  const [pageSize, setPageSize] = useState(10);
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState("asc");
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,30 +33,32 @@ export default function Students() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Reset to page 1 whenever search changes
+  // Reset to page 1 whenever search or page size changes
   useEffect(() => {
     setCurrentPage(1);
+  }, [debouncedSearch, pageSize]);
+
+  // Fetch students whenever the search changes.
+  // NOTE: page is intentionally NOT passed to the API here — the backend
+  // returns its own full/paginated result set for the search term, and
+  // pagination for display is handled entirely client-side below to avoid
+  // requesting backend pages that don't exist (causing 404 "Invalid page").
+  useEffect(() => {
+    fetchStudents(debouncedSearch);
   }, [debouncedSearch]);
 
-  // Fetch students when page or debounced search changes
-  useEffect(() => {
-    fetchStudents(currentPage, debouncedSearch);
-  }, [currentPage, debouncedSearch]);
-
-  const fetchStudents = async (page, search = "") => {
+  const fetchStudents = async (search = "") => {
     setLoading(true);
     setError(null);
     try {
-      const data = await schoolAdminApi.getStudents(page, search);
-      
+      const data = await schoolAdminApi.getStudents(1, search);
+
       if (data.results) {
         setStudents(data.results);
         setTotalCount(data.count);
-        setTotalPages(Math.ceil(data.count / 10));
       } else {
         setStudents(data);
         setTotalCount(data.length);
-        setTotalPages(1);
       }
     } catch (err) {
       console.error("Fetch Students Error:", err);
@@ -67,125 +75,280 @@ export default function Students() {
     return "ST";
   };
 
+  // --- Sort the full fetched dataset ---
+  const sortedStudents = useMemo(() => {
+    if (!sortKey) return students;
+    const list = [...students];
+    list.sort((a, b) => {
+      let aVal, bVal;
+      switch (sortKey) {
+        case "name":
+          aVal = `${a.first_name || ""} ${a.last_name || ""}`.trim().toLowerCase();
+          bVal = `${b.first_name || ""} ${b.last_name || ""}`.trim().toLowerCase();
+          break;
+        case "enrollment":
+          aVal = (a.enrollment_number || "").toLowerCase();
+          bVal = (b.enrollment_number || "").toLowerCase();
+          break;
+        case "contact":
+          aVal = (a.phone_number || "").toLowerCase();
+          bVal = (b.phone_number || "").toLowerCase();
+          break;
+        case "status":
+          aVal = a.is_archived ? 1 : 0;
+          bVal = b.is_archived ? 1 : 0;
+          break;
+        default:
+          return 0;
+      }
+      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [students, sortKey, sortDir]);
+
+  // --- Client-side pagination over the fetched dataset ---
+  const totalPages = Math.max(1, Math.ceil(sortedStudents.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIdx = (safePage - 1) * pageSize;
+  const paginatedStudents = sortedStudents.slice(startIdx, startIdx + pageSize);
+
+  // Keep currentPage in range if data shrinks (e.g. after a search)
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const toggleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const SortIcon = ({ active, dir }) => (
+    <span
+      className={`material-symbols-outlined text-[16px] transition-colors ${
+        active ? "text-blue-600" : "text-slate-300"
+      }`}
+    >
+      {active ? (dir === "asc" ? "arrow_upward" : "arrow_downward") : "unfold_more"}
+    </span>
+  );
+
+  const SortableHeader = ({ label, sortKeyName, align = "left" }) => (
+    <th className={`px-6 py-5 font-bold ${align === "center" ? "text-center" : align === "right" ? "text-right" : ""}`}>
+      <button
+        onClick={() => toggleSort(sortKeyName)}
+        className={`flex items-center gap-1.5 hover:text-blue-600 transition-colors ${
+          align === "center" ? "mx-auto" : align === "right" ? "ml-auto" : ""
+        }`}
+      >
+        {label}
+        <SortIcon active={sortKey === sortKeyName} dir={sortDir} />
+      </button>
+    </th>
+  );
+
   return (
     <SchoolLayout title="Student Directory">
-      <div className="pt-6 px-8 max-w-7xl mx-auto">
-        {/* header */}
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <h2 className="text-3xl font-bold">Institution Students</h2>
-            <p className="text-[#6b7280] mt-1">
+      <div className="pt-8 px-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out flex flex-col h-full">
+        
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-black tracking-tight text-slate-900">Institution Students</h2>
+            <p className="text-slate-500 text-sm font-medium">
               Manage student profiles, track enrollment status, and view basic records.
             </p>
           </div>
 
           <button
             onClick={() => navigate("/school-admin/students/add")}
-            className="bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white px-6 py-3 rounded-md font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 active:scale-95 transition-all duration-300 flex items-center gap-2 outline-none border border-blue-500"
           >
-            <span className="material-symbols-outlined">person_add</span>
+            <span className="material-symbols-outlined text-[20px]">person_add</span>
             Register Student
           </button>
         </div>
 
+        {/* Error Banner */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
-            {error}
+          <div className="mb-8 p-4 bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-700 rounded-2xl text-sm font-medium flex items-center gap-3 shadow-sm animate-in fade-in zoom-in-95">
+            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-red-600 text-lg">error</span>
+            </div>
+            <span>{error}</span>
           </div>
         )}
 
-        {/* table container */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
-          {/* filters */}
-          <div className="p-6 flex justify-between bg-[#eff4ff] border-b border-blue-50">
-            <div className="relative w-80">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+        {/* Main Table Container (Bento Box Style) */}
+        <div className="bg-white rounded-3xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-200/60 overflow-hidden flex flex-col flex-1 mb-8">
+          
+          {/* Top Filter Bar */}
+          <div className="p-5 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 border-b border-slate-100">
+            
+            <div className="relative w-full sm:w-96 group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg transition-colors group-focus-within:text-blue-500">
                 search
               </span>
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name or enrollment no..."
-                className="w-full bg-white pl-9 pr-9 py-2 rounded-md text-sm border-transparent focus:border-[#0058be]/30 focus:ring-2 focus:ring-[#0058be]/10 outline-none transition-all shadow-sm"
+                placeholder="Search by name, email, or enrollment no..."
+                className="w-full bg-white border border-slate-200/80 pl-11 pr-10 py-2.5 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
               />
               {searchQuery && (
                 <button 
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors outline-none"
                 >
-                  <span className="material-symbols-outlined text-sm">close</span>
+                  <span className="material-symbols-outlined text-[14px] font-bold">close</span>
                 </button>
               )}
             </div>
-            <div className="text-sm text-[#6b7280] font-medium flex items-center">
-              Showing {students.length} of {totalCount} records
+
+            <div className="flex items-center gap-3">
+              {/* Row count selector */}
+              <div className="flex items-center gap-2 bg-white rounded-lg border border-slate-100 shadow-sm px-3 py-2">
+                <label htmlFor="page-size" className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                  Rows
+                </label>
+                <select
+                  id="page-size"
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="text-xs font-bold text-slate-500 tracking-wide uppercase px-4 py-2 bg-white rounded-lg border border-slate-100 shadow-sm">
+                <span className="text-blue-600 mr-1">{sortedStudents.length}</span> of {totalCount} Records
+              </div>
             </div>
           </div>
 
-          {/* table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-[#f8f9ff] text-xs text-[#727785] uppercase tracking-wider">
+          {/* Table Area */}
+          <div className="overflow-x-auto flex-1">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-white border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 <tr>
-                  <th className="px-6 py-4">Student Details</th>
-                  <th>Enrollment No.</th>
-                  <th>Contact Info</th>
-                  <th className="text-center">Status</th>
-                  <th className="text-right pr-6">Action</th>
+                  <SortableHeader label="Student Details" sortKeyName="name" />
+                  <SortableHeader label="Enrollment No." sortKeyName="enrollment" />
+                  <SortableHeader label="Contact Info" sortKeyName="contact" />
+                  <SortableHeader label="Status" sortKeyName="status" align="center" />
+                  <th className="px-6 py-5 font-bold text-right">Actions</th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-50/80">
                 {loading ? (
+                  /* Premium Loading State */
                   <tr>
-                    <td colSpan="5" className="text-center py-12 text-gray-500">
-                      <div className="flex flex-col items-center gap-2">
-                        <span className="material-symbols-outlined animate-spin text-[#0058be]">progress_activity</span>
-                        Loading student profiles...
+                    <td colSpan="5" className="px-6 py-20 text-center">
+                      <div className="flex flex-col items-center justify-center gap-4 animate-in fade-in duration-500">
+                        <div className="relative w-12 h-12 flex items-center justify-center">
+                          <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+                          <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                          <span className="material-symbols-outlined text-blue-600 text-lg animate-pulse">school</span>
+                        </div>
+                        <p className="text-sm font-bold text-slate-400 tracking-wide uppercase">Syncing Directory...</p>
                       </div>
                     </td>
                   </tr>
-                ) : students.length === 0 ? (
+                ) : paginatedStudents.length === 0 ? (
+                  /* Premium Empty State */
                   <tr>
-                    <td colSpan="5" className="text-center py-12 text-gray-500">
-                      {searchQuery ? "No students match your search." : "No students enrolled in this institution yet."}
+                    <td colSpan="5" className="px-6 py-24 text-center">
+                      <div className="flex flex-col items-center justify-center gap-3 animate-in fade-in duration-500">
+                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 mb-2">
+                          <span className="material-symbols-outlined text-3xl text-slate-300">
+                            {searchQuery ? "search_off" : "person_search"}
+                          </span>
+                        </div>
+                        <h4 className="text-lg font-black text-slate-700 tracking-tight">
+                          {searchQuery ? "No matching records found" : "Directory is empty"}
+                        </h4>
+                        <p className="text-sm font-medium text-slate-400 max-w-sm">
+                          {searchQuery 
+                            ? `We couldn't find any students matching "${searchQuery}". Try adjusting your search terms.` 
+                            : "There are currently no students enrolled in the system. Click 'Register Student' to begin."}
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
-                  students.map((s) => (
-                    <tr key={s.id} className="hover:bg-[#fcfdff] transition-colors">
+                  /* Actual Data Rows */
+                  paginatedStudents.map((s) => (
+                    <tr key={s.id} className="group hover:bg-blue-50/30 transition-colors duration-200">
+                      
+                      {/* Name & Avatar */}
                       <td className="px-6 py-4">
                         <div className="flex gap-4 items-center">
-                          {s.profile_picture ? (
-                            <img src={s.profile_picture} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-gray-200" />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#e5eeff] to-[#cce0ff] text-[#0058be] flex items-center justify-center font-bold text-sm shadow-inner border border-white">
-                              {getInitials(s.first_name, s.last_name, s.email)}
-                            </div>
-                          )}
+                          <div className="relative shrink-0">
+                            {s.profile_picture ? (
+                              <img src={s.profile_picture} alt="Profile" className="w-11 h-11 rounded-2xl object-cover shadow-sm border border-slate-200/60 group-hover:border-blue-300 transition-colors" />
+                            ) : (
+                              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/80 text-blue-600 flex items-center justify-center font-black text-sm shadow-sm border border-blue-200/50 group-hover:border-blue-300 transition-colors">
+                                {getInitials(s.first_name, s.last_name, s.email)}
+                              </div>
+                            )}
+                          </div>
                           <div>
-                            <p className="font-semibold text-gray-900">{s.first_name || s.last_name ? `${s.first_name} ${s.last_name}` : "Pending Name"}</p>
-                            <p className="text-xs text-[#6b7280] font-mono mt-0.5">{s.email || "No Email Provided"}</p>
+                            <p className="font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+                              {s.first_name || s.last_name ? `${s.first_name} ${s.last_name}` : "Pending Name"}
+                            </p>
+                            <p className="text-[11px] font-bold tracking-wider text-slate-400 mt-0.5">
+                              {s.email || "NO EMAIL"}
+                            </p>
                           </div>
                         </div>
                       </td>
-                      <td className="text-sm text-gray-900 font-semibold font-mono">{s.enrollment_number || "N/A"}</td>
-                      <td className="text-sm text-[#727785]">{s.phone_number || "No Phone"}</td>
-                      <td className="text-center">
+
+                      {/* Enrollment Number */}
+                      <td className="px-6 py-4">
+                        <span className="text-xs font-mono font-bold text-slate-600 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md group-hover:bg-white transition-colors">
+                          {s.enrollment_number || "N/A"}
+                        </span>
+                      </td>
+
+                      {/* Phone Number */}
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-semibold text-slate-500">
+                          {s.phone_number || "—"}
+                        </p>
+                      </td>
+
+                      {/* Status Badge */}
+                      <td className="px-6 py-4 text-center">
                         {!s.is_archived ? (
-                           <span className="px-3 py-1 bg-[#e5eeff] text-[#0058be] rounded-full text-xs font-semibold flex items-center gap-1 w-max mx-auto border border-blue-100">
-                               <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                               Active
-                           </span>
+                          <span className="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100/50 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1 w-max mx-auto shadow-sm">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Active
+                          </span>
                         ) : (
-                           <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold flex items-center gap-1 w-max mx-auto border border-gray-200">
-                               <span className="material-symbols-outlined text-[14px]">archive</span>
-                               Archived
-                           </span>
+                          <span className="px-3 py-1 bg-slate-100 text-slate-500 border border-slate-200/60 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1 w-max mx-auto">
+                            <span className="material-symbols-outlined text-[12px]">inventory_2</span>
+                            Archived
+                          </span>
                         )}
                       </td>
-                      <td className="text-right pr-6">
-                        <ActionMenu studentId={s.id} />
+
+                      {/* Actions */}
+                      <td className="px-6 py-4 text-right">
+                        <div className="opacity-70 group-hover:opacity-100 transition-opacity">
+                          <ActionMenu studentId={s.id} />
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -194,12 +357,15 @@ export default function Students() {
             </table>
           </div>
 
-          {totalPages > 1 && (
-            <Pagination 
-              currentPage={currentPage} 
-              totalPages={totalPages} 
-              onPageChange={(page) => setCurrentPage(page)} 
-            />
+          {/* Bottom Pagination Area */}
+          {!loading && totalPages > 1 && (
+            <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-center">
+              <Pagination 
+                currentPage={safePage} 
+                totalPages={totalPages} 
+                onPageChange={(page) => setCurrentPage(page)} 
+              />
+            </div>
           )}
         </div>
       </div>

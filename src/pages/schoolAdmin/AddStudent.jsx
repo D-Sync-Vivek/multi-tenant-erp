@@ -301,7 +301,7 @@ const handleSave = async (e) => {
                  <div className="bg-[#1e3450] p-3 rounded-md border border-[#2b4b72] relative z-10 space-y-1">
                     <p className="text-xs font-mono text-green-300">1. POST /api/v1/users/</p>
                     <p className="text-xs font-mono text-purple-300">2. POST /api/v1/profiles/students/</p>
-                 </div>
+                 </div>/
               </div>
             </div>
           </div>
