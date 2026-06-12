@@ -1,4 +1,8 @@
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+import remarkGfm from 'remark-gfm';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import MainLayout from '../../layouts/MainLayout';
 
@@ -592,7 +596,9 @@ export default function AiTutor() {
                     </div>
                     <div className="max-w-[80%] bg-white border border-outline-variant/10 p-5 rounded-2xl rounded-tl-none shadow-sm">
                       <div className="text-sm leading-relaxed text-on-surface prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-on-surface prose-p:my-1.5 prose-strong:font-semibold prose-ul:my-2 prose-ul:pl-4 prose-ol:my-2 prose-ol:pl-4 prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded prose-code:text-xs">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                          {msg.content}
+                        </ReactMarkdown>
                       </div>
                       <span className="text-[10px] mt-3 block opacity-40">AI Generated · {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
