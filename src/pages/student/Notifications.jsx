@@ -1,103 +1,71 @@
-import React, { useState, useEffect, useCallback } from "react";
-import SchoolLayout from "../../components/erp/school/SchoolLayout";
-import { schoolAdminApi } from "../../services/schoolAdminApi";
+import React, { useState } from "react";
 
-// Static premium system logs event data architecture
-const adminMockNotifications = [
+// 1. Safe, hardcoded mock data (No API needed)
+const studentMockNotifications = [
   {
     id: 1,
-    title: "System Core Backup Snapshot",
-    message: "Automated incremental snapshot processing across secure distributed server clusters verified successfully.",
-    category: "system",
-    timeLabel: "2 hours ago",
+    title: "Final Grade Posted: Advanced Physics",
+    message: "Your instructor has posted the final grades for the semester. Click to view your detailed assessment breakdown.",
+    category: "academic",
+    timeLabel: "1 hour ago",
     is_read: false,
     severity: "success",
     details: {
-      host: "aws-us-east-cluster-4",
-      dbSize: "41.2 GB",
-      duration: "142ms",
-      hash: "SHA-256: 9e107d9d372bb"
+      course: "Physics 401",
+      instructor: "Dr. Sarah Jenkins",
+      term: "Fall 2025"
     }
   },
   {
     id: 2,
-    title: "Macro Academic Session Imbalance",
-    message: "Cycle management audit flags missing timetable structures for incoming high-school cohorts.",
-    category: "academic",
-    timeLabel: "4 hours ago",
+    title: "Upcoming Assignment Deadline",
+    message: "Your World History essay 'The Industrial Revolution' is due tomorrow at 11:59 PM.",
+    category: "alerts",
+    timeLabel: "3 hours ago",
     is_read: false,
     severity: "warning",
     details: {
-      affectedScope: "Grade 10 & 11 Sections",
-      conflictType: "Unassigned Subject Core",
-      impactLevel: "High Priority"
+      subject: "World History",
+      pointsPossible: "100",
+      submissionType: "PDF Upload"
     }
   },
   {
     id: 3,
-    title: "Intrusive API Handshake Blocked",
-    message: "Security firewall automatically blacklisted client gateway trying to bypass authentication loops.",
-    category: "security",
+    title: "Library Book Overdue",
+    message: "The book 'Introduction to Algorithms' is currently 2 days overdue. Please return it to the campus library.",
+    category: "alerts",
     timeLabel: "Yesterday",
-    is_read: false,
+    is_read: true,
     severity: "critical",
     details: {
-      originIp: "198.51.100.42",
-      requestType: "POST /api/v1/profiles/students/",
-      locationTrace: "Frankfurt, DE"
+      itemId: "LIB-99281A",
+      dailyFine: "$0.50",
+      location: "Main Campus Library"
     }
   },
   {
     id: 4,
-    title: "Machine Learning Schedule Strategy",
-    message: "Neural optimization engine generated an alternative room allocation matrix to scale facility metrics.",
-    category: "system",
-    timeLabel: "Yesterday",
+    title: "Campus Science Fair Registration",
+    message: "Registration for the annual spring science fair is now open! Secure your booth by next Friday.",
+    category: "general",
+    timeLabel: "2 days ago",
     is_read: true,
     severity: "info",
     details: {
-      efficiencyGain: "+14.8% space utilization",
-      targetCampus: "Main Alpha Block",
-      resourceId: "ML-ALLOC-PROP-26"
+      eventDate: "March 15, 2026",
+      location: "Main Gymnasium",
+      contact: "science.dept@school.edu"
     }
   }
 ];
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Consumed cleanly below!
+  // 2. Load the mock data directly into state (No loading screens or error handling required)
+  const [notifications, setNotifications] = useState(studentMockNotifications);
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedId, setExpandedId] = useState(null);
-
-  const loadNotifications = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await schoolAdminApi.getNotifications();
-      
-      // Extract data safely whether it's a raw array or a paginated DRF object
-      const realData = response?.results || response;
-
-      if (Array.isArray(realData) && realData.length > 0) {
-        setNotifications(realData);
-      } else {
-        // If the database has 0 notifications, populate our beautiful mock layout!
-        setNotifications(adminMockNotifications);
-      }
-    } catch (err) {
-      console.warn("Backend unpopulated, deploying premium interface layer:", err);
-      setError("Synchronizer notice: Operating under local fallback cluster layout.");
-      setNotifications(adminMockNotifications);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
 
   const handleMarkAsRead = (id, e) => {
     e.stopPropagation();
@@ -130,26 +98,27 @@ export default function Notifications() {
   const getSeverityStyle = (severity) => {
     switch (severity) {
       case "critical":
-        return { bg: "bg-rose-50 border-rose-100", text: "text-rose-600", icon: "gshield", accent: "border-l-rose-500" };
+        return { bg: "bg-rose-50 border-rose-100", text: "text-rose-600", icon: "error", accent: "border-l-rose-500" };
       case "warning":
-        return { bg: "bg-amber-50 border-amber-100", text: "text-amber-600", icon: "warning", accent: "border-l-amber-500" };
+        return { bg: "bg-amber-50 border-amber-100", text: "text-amber-600", icon: "schedule", accent: "border-l-amber-500" };
       case "success":
-        return { bg: "bg-emerald-50 border-emerald-100", text: "text-emerald-600", icon: "check_circle", accent: "border-l-emerald-500" };
+        return { bg: "bg-emerald-50 border-emerald-100", text: "text-emerald-600", icon: "school", accent: "border-l-emerald-500" };
       default:
-        return { bg: "bg-indigo-50 border-indigo-100", text: "text-indigo-600", icon: "auto_awesome", accent: "border-l-indigo-500" };
+        return { bg: "bg-indigo-50 border-indigo-100", text: "text-indigo-600", icon: "campaign", accent: "border-l-indigo-500" };
     }
   };
 
   return (
-    <SchoolLayout title="System Alerts & Diagnostics">
+    // 3. Removed external layout wrapper to guarantee no import crashes. It uses a standard full-width div.
+    <div className="w-full min-h-screen bg-slate-50 pt-8">
       <div className="px-8 pb-16 max-w-5xl mx-auto w-full">
 
         {/* Header Controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 mt-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-slate-900">Administrative Operations Logs</h2>
+            <h2 className="text-2xl font-black tracking-tight text-slate-900">My Notifications</h2>
             <p className="text-xs font-medium text-slate-400 mt-1">
-              Analyze automated cloud metrics, security infrastructure blocks, and cognitive scheduler logs.
+              Stay updated on your grades, assignments, and campus events.
             </p>
           </div>
           <button 
@@ -164,7 +133,7 @@ export default function Notifications() {
         {/* Dynamic Filters Bar */}
         <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 mb-6 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
           <div className="md:col-span-2 flex bg-slate-50 p-1 rounded-lg gap-1 w-full">
-            {["all", "system", "academic", "security"].map((tab) => (
+            {["all", "academic", "alerts", "general"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -186,41 +155,28 @@ export default function Notifications() {
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search traces or hashes..."
+              placeholder="Search notifications..."
               className="w-full bg-slate-50 pl-9 pr-4 py-2 rounded-lg text-xs font-semibold border border-transparent focus:border-blue-400 focus:bg-white outline-none transition-all"
             />
           </div>
         </div>
 
-        {/* CLEAN SOLUTION: The state variable error is now explicitly consumed here */}
-        {error && (
-          <div className="mb-6 p-4 bg-indigo-50/60 border border-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center gap-2 animate-fadeIn shadow-2xs">
-            <span className="material-symbols-outlined text-base">cloud_sync</span>
-            {error}
-          </div>
-        )}
-
-        {/* Unread Active Badge Counter Header */}
+        {/* Unread Active Badge Counter */}
         <div className="flex items-center gap-2 mb-4">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Log Buffer Feed</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Recent Activity</h4>
           {unreadCount > 0 && (
             <span className="bg-blue-600 px-2 py-0.5 rounded-full text-[10px] font-black text-white uppercase tracking-tight animate-pulse">
-              {unreadCount} Unhandled
+              {unreadCount} New
             </span>
           )}
         </div>
 
         {/* Main Notifications Stream Grid */}
         <div className="flex flex-col gap-3.5">
-          {loading ? (
-            <div className="bg-white rounded-xl border border-slate-100 py-16 text-center text-slate-400 flex flex-col items-center justify-center gap-3 shadow-sm">
-              <span className="material-symbols-outlined animate-spin text-blue-600 text-3xl">progress_activity</span>
-              <p className="text-xs font-bold tracking-tight">Accessing core security bus state matrix...</p>
-            </div>
-          ) : filteredNotifications.length === 0 ? (
+          {filteredNotifications.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-100 py-16 text-center text-slate-400 flex flex-col items-center justify-center gap-2 shadow-sm">
               <span className="material-symbols-outlined text-4xl text-slate-200">notifications_off</span>
-              <p className="text-xs font-bold tracking-tight">Log clean. No system events match parameter boundaries.</p>
+              <p className="text-xs font-bold tracking-tight">You're all caught up!</p>
             </div>
           ) : (
             filteredNotifications.map((n) => {
@@ -260,7 +216,7 @@ export default function Notifications() {
                         <button
                           onClick={(e) => handleMarkAsRead(n.id, e)}
                           className="w-7 h-7 rounded-full bg-slate-50 border border-slate-100 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
-                          title="Resolve Entry"
+                          title="Mark as Read"
                         >
                           <span className="material-symbols-outlined text-base">check</span>
                         </button>
@@ -268,7 +224,7 @@ export default function Notifications() {
                       <button
                         onClick={(e) => handleDeleteNotification(n.id, e)}
                         className="w-7 h-7 rounded-full bg-slate-50 border border-slate-100 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
-                        title="Purge Entry"
+                        title="Delete Notification"
                       >
                         <span className="material-symbols-outlined text-base">delete</span>
                       </button>
@@ -279,14 +235,13 @@ export default function Notifications() {
 
                   </div>
 
-                  {/* Sliding Dropdown Drawer for Technical Diagnostics */}
+                  {/* Sliding Dropdown Drawer for Details */}
                   <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-slate-50/50 border-t border-slate-50 px-5 rounded-b-xl ${
                     isExpanded ? "max-h-48 py-4 opacity-100" : "max-h-0 py-0 opacity-0 pointer-events-none"
                   }`}>
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center justify-between text-[11px] uppercase tracking-wider font-bold text-slate-400 border-b border-slate-100 pb-1.5">
-                        <span>Cluster Environment Trace Analysis</span>
-                        <span className="font-mono text-slate-500">Log reference ID: #{n.id}2026X</span>
+                        <span>Additional Details</span>
                       </div>
                       
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-semibold">
@@ -297,17 +252,6 @@ export default function Notifications() {
                           </div>
                         ))}
                       </div>
-
-                      {n.category === "system" && !n.is_read && (
-                        <div className="mt-1 flex items-center gap-2">
-                          <button 
-                            onClick={(e) => e.stopPropagation()}
-                            className="px-3 py-1.5 bg-blue-600 text-white font-bold text-[10px] tracking-tight uppercase rounded-md shadow-xs hover:bg-blue-700 transition"
-                          >
-                            Synchronize Node Architecture
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -317,11 +261,7 @@ export default function Notifications() {
           )}
         </div>
 
-        <footer className="mt-16 py-6 text-center text-slate-400 text-[11px] font-bold tracking-tight border-t border-slate-100/60">
-          Academic Architect v4.2.0 • ScholarFlow Pro Ecosystem
-        </footer>
-
       </div>
-    </SchoolLayout>
+    </div>
   );
 }

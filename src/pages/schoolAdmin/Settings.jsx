@@ -1,551 +1,131 @@
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useState } from "react";
 
-export default function Settings(){
-
-const [form,setForm]=useState({
-schoolName:"St. Augustine International Academy",
-email:"admin@staugustine.edu",
-phone:"+1 (555) 0123-4567",
-country:"United States",
-address:"742 Evergreen Terrace, Springfield",
-language:"English",
-timezone:"GMT-05",
-grading:"4.0 GPA",
-attendance:true,
-academicYear:"2023-2024"
-});
-
-const change=(e)=>{
-setForm({...form,[e.target.name]:e.target.value});
-};
-
-const toggleAttendance=()=>{
-setForm({...form,attendance:!form.attendance});
-};
-
-const save=(e)=>{
-e.preventDefault();
-
-alert("Settings saved successfully");
-};
-
-const resetForm=()=>{
-window.location.reload();
-};
-
-return(
-
-<SchoolLayout title="Settings">
-
-<div className="max-w-6xl mx-auto">
-
-{/* heading */}
-
-<div className="mb-10">
-
-<h1 className="text-3xl font-bold mb-2">
-
-School Configuration
-
-</h1>
-
-<p className="text-[#6b7280]">
-
-Manage your institution's identity and academic parameters.
-
-</p>
-
-</div>
-
-
-
-
-
-<form onSubmit={save} className="space-y-14">
-
-
-{/* SCHOOL PROFILE */}
-
-<div className="grid lg:grid-cols-3 gap-10">
-
-
-{/* LEFT TEXT */}
-
-<div>
-
-<h3 className="text-xl font-semibold text-[#0b1c30] mb-2">
-School Profile
-</h3>
-
-<p className="text-[#6b7280] text-sm leading-relaxed">
-Public identity details for your institution. These appear on reports and communication.
-</p>
-
-</div>
-
-
-
-{/* RIGHT CARD */}
-
-<div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm">
-
-
-{/* logo */}
-
-<div className="flex gap-8 items-start mb-10">
-
-
-<div className="relative">
-
-<div className="w-32 h-32 rounded-xl overflow-hidden bg-[#e5eeff] flex items-center justify-center">
-
-<img
-  src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0PxJ_8SB7PeuHJ6jEs7-sIwRwTikSfENbH1FouMWRNesI1WjU1QhW18afOaKuUkTgzx7xYH-vVcaIRiNE8eNHAuALHoeL_FcyjHHlxYrSLsHIni34it7gZu4Ye4xXRTDGVivmbLWPf6oKR2vyHwQag5cnmHisA22-LERoPtMFtuXddOD2LmYnFZtoNgZ5TfGJ_go7yarLqr4L7lAO_tb-BU5R1HAbQHNbUL-Y95JynVeOYanWM4IzC2dCBlHejLnYTk0geV04Ow"
-  alt="Institution Logo"
-/>
-
-</div>
-
-
-<button
-type="button"
-className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg bg-[#0058be] text-white flex items-center justify-center shadow">
-
-<span className="material-symbols-outlined text-sm">
-edit
-</span>
-
-</button>
-
-
-</div>
-
-
-
-<div>
-
-<p className="font-semibold text-[#0b1c30]">
-Institution Logo
-</p>
-
-<p className="text-sm text-[#6b7280] mb-4">
-Recommended size: 400x400px. PNG or SVG preferred.
-</p>
-
-
-<button
-type="button"
-className="px-5 py-2 bg-[#e5eeff] text-[#0058be] font-semibold rounded-md">
-
-Upload New Logo
-
-</button>
-
-
-</div>
-
-
-</div>
-
-
-
-{/* fields */}
-
-<div className="grid md:grid-cols-2 gap-6">
-
-
-{/* school name */}
-
-<div>
-
-<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
-
-School Name
-
-</label>
-
-<input
-name="schoolName"
-value={form.schoolName}
-onChange={change}
-className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
-/>
-
-</div>
-
-
-
-{/* email */}
-
-<div>
-
-<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
-
-Official Email
-
-</label>
-
-<input
-name="email"
-value={form.email}
-onChange={change}
-className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
-/>
-
-</div>
-
-
-
-{/* phone */}
-
-<div>
-
-<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
-
-Phone Number
-
-</label>
-
-<input
-name="phone"
-value={form.phone}
-onChange={change}
-className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
-/>
-
-</div>
-
-
-
-{/* country */}
-
-<div>
-
-<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
-
-Country
-
-</label>
-
-<select
-name="country"
-value={form.country}
-onChange={change}
-className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none">
-
-<option>
-United States
-</option>
-
-<option>
-India
-</option>
-
-</select>
-
-</div>
-
-
-
-{/* address */}
-
-<div className="md:col-span-2">
-
-<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
-
-Street Address
-
-</label>
-
-<input
-name="address"
-value={form.address}
-onChange={change}
-className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none"
-/>
-
-</div>
-
-
-
-{/* language */}
-
-<div>
-
-<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
-
-Preferred Language
-
-</label>
-
-<select
-name="language"
-value={form.language}
-onChange={change}
-className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none">
-
-<option>
-English (US)
-</option>
-
-<option>
-Hindi
-</option>
-
-</select>
-
-</div>
-
-
-
-{/* timezone */}
-
-<div>
-
-<label className="text-xs font-bold tracking-widest text-[#6b7280] uppercase mb-2 block">
-
-Timezone
-
-</label>
-
-<select
-name="timezone"
-value={form.timezone}
-onChange={change}
-className="w-full bg-[#eff4ff] px-4 py-3 rounded-md outline-none">
-
-<option>
-(GMT-05:00) Eastern Time
-</option>
-
-<option>
-(GMT+05:30) IST
-</option>
-
-</select>
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-{/* ACADEMIC PREFERENCES */}
-
-<div className="grid lg:grid-cols-3 gap-10">
-
-
-<div>
-
-<h3 className="text-xl font-semibold text-[#0b1c30] mb-2">
-Academic Preferences
-</h3>
-
-<p className="text-sm text-[#6b7280]">
-Define the operational logic for grading, attendance, and reporting cycles.
-</p>
-
-</div>
-
-
-
-<div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm space-y-10">
-
-
-{/* grading */}
-
-<div className="flex justify-between items-start border-b pb-6">
-
-<div>
-
-<p className="font-semibold text-[#0b1c30]">
-Grading Scale System
-</p>
-
-<p className="text-sm text-[#6b7280]">
-Choose how student performance is evaluated across the platform.
-</p>
-
-</div>
-
-
-<select
-name="grading"
-value={form.grading}
-onChange={change}
-className="bg-[#eff4ff] px-5 py-3 rounded-md">
-
-<option>
-4.0 GPA Scale
-</option>
-
-<option>
-Percentage (0-100)
-</option>
-
-</select>
-
-
-</div>
-
-
-
-{/* attendance */}
-
-<div className="flex justify-between items-center border-b pb-6">
-
-
-<div>
-
-<p className="font-semibold text-[#0b1c30]">
-Attendance Tracking
-</p>
-
-<p className="text-sm text-[#6b7280]">
-Enable automated alerts for parents when a student is absent.
-</p>
-
-</div>
-
-
-<button
-type="button"
-onClick={toggleAttendance}
-className={`w-12 h-6 rounded-full transition ${
-form.attendance
-?"bg-[#0058be]"
-:"bg-gray-300"
-}`}>
-
-<div
-className={`w-5 h-5 bg-white rounded-full transform transition ${
-form.attendance
-?"translate-x-6"
-:"translate-x-1"
-}`}
-/>
-
-</button>
-
-
-</div>
-
-
-
-{/* academic year */}
-
-<div className="flex justify-between items-start">
-
-
-<div>
-
-<p className="font-semibold text-[#0b1c30]">
-Default Academic Year
-</p>
-
-<p className="text-sm text-[#6b7280]">
-The active period for current course registrations and schedules.
-</p>
-
-</div>
-
-
-<select
-name="academicYear"
-value={form.academicYear}
-onChange={change}
-className="bg-[#eff4ff] px-5 py-3 rounded-md">
-
-<option>
-2023-2024 (Current)
-</option>
-
-<option>
-2024-2025
-</option>
-
-</select>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-{/* AI recommendation */}
-
-<div className="bg-[#ffdcc6] p-6 rounded-xl flex gap-4">
-
-
-<span className="material-symbols-outlined text-[#924700]">
-auto_awesome
-</span>
-
-
-<div>
-
-<p className="font-semibold text-[#924700]">
-Intelligent Recommendation
-</p>
-
-<p className="text-sm text-[#924700]">
-Based on your region's common standards, switching to a 4.0 GPA scale with weighted honors may improve report card clarity for higher education transfers.
-</p>
-
-</div>
-
-
-</div>
-
-
-
-{/* buttons */}
-
-<div className="flex justify-end gap-4 pt-6 border-t">
-
-
-<button
-type="button"
-onClick={resetForm}
-className="px-6 py-2.5 bg-[#e5eeff] text-[#0b1c30] font-semibold rounded-md">
-
-Discard Changes
-
-</button>
-
-
-<button
-type="submit"
-className="px-8 py-2.5 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white font-semibold rounded-md shadow">
-
-Save Changes
-
-</button>
-
-
-</div>
-
-
-</form>
-
-
-</div>
-
-</SchoolLayout>
-
-);
-
+export default function Settings() {
+  const [isSaving, setIsSaving] = useState(false);
+  const [form, setForm] = useState({
+    schoolName: "St. Augustine International Academy",
+    email: "admin@staugustine.edu",
+    phone: "+1 (555) 0123-4567",
+    country: "United States",
+    address: "742 Evergreen Terrace, Springfield",
+    language: "English",
+    timezone: "GMT-05",
+    grading: "4.0 GPA",
+    attendance: true,
+    academicYear: "2023-2024"
+  });
+
+  const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  
+  // FIXED TOGGLE: Uses a slightly wider container to prevent jumpiness
+  const toggleAttendance = () => setForm({ ...form, attendance: !form.attendance });
+
+  const save = (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    // Simulate server delay for presentation effect
+    setTimeout(() => {
+      setIsSaving(false);
+      alert("Configuration updated successfully!");
+    }, 1000);
+  };
+
+  return (
+    <SchoolLayout title="Settings">
+      <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
+        <div className="mb-10">
+          <h1 className="text-3xl font-black text-[#0b1c30] mb-2">School Configuration</h1>
+          <p className="text-[#6b7280]">Manage your institution's identity and academic parameters.</p>
+        </div>
+
+        <form onSubmit={save} className="space-y-14">
+          {/* SCHOOL PROFILE */}
+          <div className="grid lg:grid-cols-3 gap-10">
+            <div>
+              <h3 className="text-xl font-bold text-[#0b1c30] mb-2">School Profile</h3>
+              <p className="text-[#6b7280] text-sm leading-relaxed">Public identity details for your reports and communication.</p>
+            </div>
+
+            <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-slate-100">
+              <div className="flex gap-8 items-start mb-10">
+                <div className="relative group">
+                  <div className="w-32 h-32 rounded-xl bg-[#e5eeff] flex items-center justify-center border-2 border-dashed border-[#0058be]/30">
+                    <span className="material-symbols-outlined text-4xl text-[#0058be]/50">school</span>
+                  </div>
+                  <button type="button" className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg bg-[#0058be] text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105">
+                    <span className="material-symbols-outlined text-sm">edit</span>
+                  </button>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0b1c30]">Institution Logo</p>
+                  <p className="text-sm text-[#6b7280] mb-4">Recommended: 400x400px. PNG/SVG.</p>
+                  <button type="button" className="px-5 py-2 bg-[#eff4ff] text-[#0058be] font-bold text-sm rounded-md hover:bg-[#e5eeff] transition-colors">Upload New Logo</button>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                {['schoolName', 'email', 'phone'].map((field) => (
+                  <div key={field}>
+                    <label className="text-[10px] font-black tracking-widest text-[#6b7280] uppercase mb-2 block">{field.replace(/([A-Z])/g, ' $1')}</label>
+                    <input name={field} value={form[field]} onChange={change} className="w-full bg-[#f9fbff] border border-slate-200 px-4 py-3 rounded-lg outline-none focus:border-[#0058be] transition-all" />
+                  </div>
+                ))}
+                <div>
+                  <label className="text-[10px] font-black tracking-widest text-[#6b7280] uppercase mb-2 block">Country</label>
+                  <select name="country" value={form.country} onChange={change} className="w-full bg-[#f9fbff] border border-slate-200 px-4 py-3 rounded-lg outline-none cursor-pointer">
+                    <option>United States</option><option>India</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-[10px] font-black tracking-widest text-[#6b7280] uppercase mb-2 block">Street Address</label>
+                  <input name="address" value={form.address} onChange={change} className="w-full bg-[#f9fbff] border border-slate-200 px-4 py-3 rounded-lg outline-none focus:border-[#0058be] transition-all" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ACADEMIC PREFERENCES */}
+          <div className="grid lg:grid-cols-3 gap-10">
+            <div>
+              <h3 className="text-xl font-bold text-[#0b1c30] mb-2">Academic Preferences</h3>
+              <p className="text-sm text-[#6b7280]">Define operational logic for grading and reporting cycles.</p>
+            </div>
+
+            <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-8">
+              {[
+                { label: "Grading Scale System", sub: "Choose how performance is evaluated.", key: "grading", type: "select" },
+                { label: "Attendance Tracking", sub: "Automated alerts for absences.", key: "attendance", type: "toggle" },
+                { label: "Default Academic Year", sub: "Active period for registrations.", key: "academicYear", type: "select" }
+              ].map((item) => (
+                <div key={item.key} className="flex justify-between items-center pb-6 border-b border-slate-50 last:border-0 last:pb-0">
+                  <div>
+                    <p className="font-bold text-[#0b1c30]">{item.label}</p>
+                    <p className="text-xs text-[#6b7280]">{item.sub}</p>
+                  </div>
+                  {item.type === "toggle" ? (
+                    <button type="button" onClick={toggleAttendance} className={`w-14 h-7 rounded-full transition-all duration-300 flex items-center px-1 ${form.attendance ? "bg-[#0058be]" : "bg-slate-300"}`}>
+                      <div className={`w-5 h-5 bg-white rounded-full transition-transform duration-300 ${form.attendance ? "translate-x-7" : "translate-x-0"}`} />
+                    </button>
+                  ) : (
+                    <select name={item.key} value={form[item.key]} onChange={change} className="bg-[#f9fbff] border border-slate-200 px-4 py-2 rounded-lg text-sm font-bold">
+                      <option>4.0 GPA Scale</option><option>Percentage (0-100)</option>
+                    </select>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Footer */}
+          <div className="flex justify-end gap-4 pt-8 border-t border-slate-100">
+            <button type="button" onClick={() => window.location.reload()} className="px-6 py-3 text-[#0b1c30] font-bold text-sm hover:underline">Discard</button>
+            <button type="submit" disabled={isSaving} className="px-8 py-3 bg-[#0058be] text-white font-bold text-sm rounded-lg shadow-lg shadow-blue-200 hover:bg-[#00489c] transition-all flex items-center gap-2">
+              {isSaving ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Save Changes"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </SchoolLayout>
+  );
 }

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from '../../services/schoolAdminApi';
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 export default function Parents() {
   const navigate = useNavigate();
@@ -11,9 +13,11 @@ export default function Parents() {
   const [error, setError] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
 
-  // Pagination & Search States
+  // Pagination, sorting & search state
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState("asc");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -25,31 +29,32 @@ export default function Parents() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Reset to page 1 whenever search changes
+  // Reset to page 1 whenever search or page size changes
   useEffect(() => {
     setCurrentPage(1);
+  }, [debouncedSearch, pageSize]);
+
+  // Fetch parents whenever the search changes.
+  // NOTE: page is intentionally NOT sent to the API — the backend returns
+  // its result set for page 1, and pagination for display is handled
+  // entirely client-side below to avoid requesting backend pages that
+  // don't exist (which causes a 404 "Invalid page").
+  useEffect(() => {
+    fetchParents(debouncedSearch);
   }, [debouncedSearch]);
 
-  // Fetch parents when page or debounced search changes
-  useEffect(() => {
-    fetchParents(currentPage, debouncedSearch);
-  }, [currentPage, debouncedSearch]);
-
-  const fetchParents = async (page, search = "") => {
+  const fetchParents = async (search = "") => {
     setLoading(true);
     setError(null);
     try {
-      // Pass both page and search parameters
-      const data = await schoolAdminApi.getParents(page, search);
-      
+      const data = await schoolAdminApi.getParents(1, search);
+
       if (data.results) {
         setParents(data.results);
         setTotalCount(data.count);
-        setTotalPages(Math.ceil(data.count / 10)); // Assuming 10 items per page
       } else {
         setParents(data);
         setTotalCount(data.length);
-        setTotalPages(1);
       }
     } catch (err) {
       console.error("Fetch Parents Error:", err);
@@ -70,6 +75,86 @@ export default function Parents() {
     const colors = ["bg-[#e9ddff] text-[#6b38d4]", "bg-[#d8e2ff] text-[#0058be]", "bg-[#ffdcc6] text-[#924700]", "bg-[#eff4ff] text-[#2170e4]"];
     return colors[index % colors.length];
   };
+
+  // --- Sort the fetched dataset ---
+  const sortedParents = useMemo(() => {
+    if (!sortKey) return parents;
+    const list = [...parents];
+    list.sort((a, b) => {
+      let aVal, bVal;
+      switch (sortKey) {
+        case "name":
+          aVal = `${a.first_name || ""} ${a.last_name || ""}`.trim().toLowerCase();
+          bVal = `${b.first_name || ""} ${b.last_name || ""}`.trim().toLowerCase();
+          break;
+        case "contact":
+          aVal = (a.phone_number || "").toLowerCase();
+          bVal = (b.phone_number || "").toLowerCase();
+          break;
+        case "occupation":
+          aVal = (a.occupation || "").toLowerCase();
+          bVal = (b.occupation || "").toLowerCase();
+          break;
+        case "emergency":
+          aVal = (a.emergency_contact_number || "").toLowerCase();
+          bVal = (b.emergency_contact_number || "").toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [parents, sortKey, sortDir]);
+
+  // --- Client-side pagination over the fetched dataset ---
+  const totalPages = Math.max(1, Math.ceil(sortedParents.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIdx = (safePage - 1) * pageSize;
+  const paginatedParents = sortedParents.slice(startIdx, startIdx + pageSize);
+
+  // Keep currentPage in range if data shrinks (e.g. after a search)
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const toggleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const SortIcon = ({ active, dir }) => (
+    <span
+      className={`material-symbols-outlined text-[16px] transition-colors ${
+        active ? "text-[#0058be]" : "text-gray-300"
+      }`}
+    >
+      {active ? (dir === "asc" ? "arrow_upward" : "arrow_downward") : "unfold_more"}
+    </span>
+  );
+
+  const SortableHeader = ({ label, sortKeyName }) => (
+    <th className="px-6 py-4 font-semibold tracking-wider">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleSort(sortKeyName);
+        }}
+        className="flex items-center gap-1.5 hover:text-[#0058be] transition-colors"
+      >
+        {label}
+        <SortIcon active={sortKey === sortKeyName} dir={sortDir} />
+      </button>
+    </th>
+  );
 
   return (
     <SchoolLayout title="Parents">
@@ -106,14 +191,15 @@ export default function Parents() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md border border-red-200 flex items-center gap-2">
+            <span className="material-symbols-outlined">error</span>
             {error}
           </div>
         )}
 
         {/* table container */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-          <div className="p-6 flex justify-between items-center bg-[#f8f9ff] border-b border-gray-100">
+          <div className="p-6 flex flex-wrap gap-4 justify-between items-center bg-[#f8f9ff] border-b border-gray-100">
             <div className="relative w-80">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
                 search
@@ -124,7 +210,6 @@ export default function Parents() {
                 placeholder="Search guardians..."
                 className="w-full bg-white pl-9 pr-9 py-2.5 rounded-md text-sm border border-gray-200 focus:border-[#0058be]/30 outline-none transition-all shadow-sm"
               />
-              {/* Clear button added for proper search UX */}
               {searchQuery && (
                 <button 
                   onClick={() => setSearchQuery("")}
@@ -135,12 +220,29 @@ export default function Parents() {
               )}
             </div>
 
-            <div className="flex items-center gap-4 text-xs text-[#6b7280] font-medium">
-              Showing {parents.length} of {totalCount} records
-              <button className="flex items-center gap-1 hover:text-[#0058be] transition-colors">
-                <span className="material-symbols-outlined text-[18px]">filter_list</span>
-                Filter
-              </button>
+            <div className="flex items-center gap-3 text-xs text-[#6b7280] font-medium">
+              {/* Row count selector */}
+              <div className="flex items-center gap-2 bg-white rounded-md border border-gray-200 shadow-sm px-3 py-2">
+                <label htmlFor="page-size" className="font-bold uppercase tracking-wide">
+                  Rows
+                </label>
+                <select
+                  id="page-size"
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="bg-transparent text-sm font-bold text-gray-700 outline-none cursor-pointer"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <span>
+                Showing {sortedParents.length} of {totalCount} records
+              </span>
             </div>
           </div>
 
@@ -148,10 +250,10 @@ export default function Parents() {
             <table className="w-full text-left">
               <thead className="bg-white text-xs uppercase text-[#6b7280] border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-4 font-semibold tracking-wider">Parent Details</th>
-                  <th className="px-6 py-4 font-semibold tracking-wider">Contact Info</th>
-                  <th className="px-6 py-4 font-semibold tracking-wider">Occupation</th>
-                  <th className="px-6 py-4 font-semibold tracking-wider">Emergency Contact</th>
+                  <SortableHeader label="Parent Details" sortKeyName="name" />
+                  <SortableHeader label="Contact Info" sortKeyName="contact" />
+                  <SortableHeader label="Occupation" sortKeyName="occupation" />
+                  <SortableHeader label="Emergency Contact" sortKeyName="emergency" />
                   <th className="px-6 py-4 text-right"></th>
                 </tr>
               </thead>
@@ -166,17 +268,17 @@ export default function Parents() {
                       </div>
                     </td>
                   </tr>
-                ) : parents.length === 0 ? (
+                ) : paginatedParents.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="text-center py-12 text-gray-500">
                       {searchQuery ? "No guardians match your search." : "No parents found in the directory."}
                     </td>
                   </tr>
                 ) : (
-                  parents.map((p, i) => (
+                  paginatedParents.map((p, i) => (
                     <tr
                       key={p.id}
-                      className="hover:bg-[#fcfdff] transition-colors cursor-pointer"
+                      className="hover:bg-[#fcfdff] transition-colors cursor-pointer group"
                       onClick={() => navigate(`/school-admin/parents/${p.id}`)}
                     >
                       <td className="px-6 py-5">
@@ -234,32 +336,44 @@ export default function Parents() {
             </table>
           </div>
 
-          {/* Fully Functional Pagination */}
-          <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50">
-            <button 
-              disabled={currentPage === 1}
-              onClick={(e) => { e.stopPropagation(); setCurrentPage(p => Math.max(1, p - 1)); }}
-              className={`flex items-center gap-1 text-sm font-semibold text-[#0058be] hover:bg-blue-50 px-3 py-1.5 rounded-md transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <span className="material-symbols-outlined text-sm">arrow_back</span>
-              Previous
-            </button>
+          {/* Pagination */}
+          {!loading && totalPages > 1 && (
+            <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50">
+              <button 
+                disabled={safePage === 1}
+                onClick={(e) => { e.stopPropagation(); setCurrentPage(p => Math.max(1, p - 1)); }}
+                className={`flex items-center gap-1 text-sm font-semibold text-[#0058be] hover:bg-blue-50 px-3 py-1.5 rounded-md transition-colors ${safePage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <span className="material-symbols-outlined text-sm">arrow_back</span>
+                Previous
+              </button>
 
-            <div className="flex gap-1">
-              <span className="w-8 h-8 flex items-center justify-center rounded-md bg-[#0058be] text-white text-sm font-bold shadow-sm">
-                {currentPage}
-              </span>
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={(e) => { e.stopPropagation(); setCurrentPage(p); }}
+                    className={`min-w-[32px] h-8 flex items-center justify-center rounded-md text-sm font-bold transition-colors ${
+                      p === safePage
+                        ? "bg-[#0058be] text-white shadow-sm"
+                        : "text-[#0058be] hover:bg-blue-50"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+
+              <button 
+                disabled={safePage >= totalPages}
+                onClick={(e) => { e.stopPropagation(); setCurrentPage(p => Math.min(totalPages, p + 1)); }}
+                className={`flex items-center gap-1 text-sm font-semibold text-[#0058be] hover:bg-blue-50 px-3 py-1.5 rounded-md transition-colors ${safePage >= totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Next
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </button>
             </div>
-
-            <button 
-              disabled={currentPage >= totalPages || totalPages === 0}
-              onClick={(e) => { e.stopPropagation(); setCurrentPage(p => Math.min(totalPages, p + 1)); }}
-              className={`flex items-center gap-1 text-sm font-semibold text-[#0058be] hover:bg-blue-50 px-3 py-1.5 rounded-md transition-colors ${(currentPage >= totalPages || totalPages === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              Next
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </button>
-          </div>
+          )}
         </div>
 
         {/* insights */}
