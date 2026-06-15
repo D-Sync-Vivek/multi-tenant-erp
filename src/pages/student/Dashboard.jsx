@@ -14,10 +14,9 @@ function Skeleton({ className = "" }) {
 function DashboardSkeleton() {
   return (
     <MainLayout title="Dashboard">
-      {/* px-4 on mobile, px-8 on md+ — prevents edge overflow */}
-      <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 space-y-6 md:space-y-8">
-        <div className="rounded-xl bg-gray-200 animate-pulse h-28 sm:h-36" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+      <div className="px-8 py-8 space-y-8">
+        <div className="rounded-xl bg-gray-200 animate-pulse h-36" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => (
             <div key={i} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
               <div className="flex justify-between">
@@ -29,9 +28,8 @@ function DashboardSkeleton() {
             </div>
           ))}
         </div>
-        {/* On mobile: single column stack; md+: original 3-col grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 grid grid-cols-2 gap-6">
             <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm space-y-3">
               <div className="flex justify-between">
                 <Skeleton className="w-24 h-4" />
@@ -225,39 +223,28 @@ export default function Dashboard() {
 
   return (
     <MainLayout title="Dashboard">
-      {/*
-        ── RESPONSIVE PADDING ──
-        Mobile:  px-4  py-4  (tight edges, breathing room)
-        Tablet:  px-6  py-6
-        Desktop: px-8  py-8  (original)
-      */}
-      <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 space-y-4 md:space-y-6">
+      <div className="px-8 py-8 space-y-6">
 
-        {/* ── HERO BANNER ──
-            Mobile: smaller text + padding; lg: decorative icon visible */}
-        <section className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary to-primary-container p-5 sm:p-6 md:p-8 text-white">
+        {/* ── HERO BANNER ── */}
+        <section className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary to-primary-container p-8 text-white">
           <div className="relative z-10 max-w-2xl">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold font-headline mb-1 md:mb-2">
+            <h2 className="text-3xl font-extrabold font-headline mb-2">
               Welcome back, {student?.first_name}!
             </h2>
-            <p className="text-white/80 text-sm md:text-lg">
+            <p className="text-white/80 text-lg">
               You are currently leading {enroll?.class_level_name} with
               exceptional progress. Here&apos;s what&apos;s happening in your
               academic journey today.
             </p>
           </div>
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-          {/* Hide decorative icon on small screens — it overflows */}
           <div className="absolute right-12 bottom-0 hidden lg:block">
             <span className="material-symbols-outlined text-[160px] opacity-10">auto_awesome</span>
           </div>
         </section>
 
-        {/* ── ROW 1: STAT CARDS ──
-            Mobile:  1 column  (stacked)
-            Tablet:  2 columns (sm:grid-cols-2)
-            Desktop: 3 columns (md:grid-cols-3) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+        {/* ── ROW 1: 3 STAT CARDS ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
           {/* Attendance */}
           <div className="bg-surface-container-lowest px-4 py-3 rounded-xl custom-shadow flex items-center justify-between border border-outline-variant/10 hover:scale-[1.01] transition-all">
@@ -272,7 +259,7 @@ export default function Dashboard() {
                 </p>
               </div>
             </div>
-            <span className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${attendanceStatus.className}`}>
+            <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${attendanceStatus.className}`}>
               {attendanceStatus.label}
             </span>
           </div>
@@ -295,8 +282,8 @@ export default function Dashboard() {
             </span>
           </div>
 
-          {/* Fees — spans full width on 2-col tablet layout */}
-          <div className="bg-surface-container-lowest px-4 py-3 rounded-xl custom-shadow flex items-center justify-between border border-outline-variant/10 hover:scale-[1.01] transition-all sm:col-span-2 md:col-span-1">
+          {/* Fees */}
+          <div className="bg-surface-container-lowest px-4 py-3 rounded-xl custom-shadow flex items-center justify-between border border-outline-variant/10 hover:scale-[1.01] transition-all">
             <div className="flex items-center gap-3">
               <span className="p-2 rounded-md bg-green-50 text-green-700 flex-shrink-0">
                 <span className="material-symbols-outlined text-xl">verified</span>
@@ -312,19 +299,14 @@ export default function Dashboard() {
 
         </div>
 
-        {/* ── ROW 2: Calendar + Subjects + Right col ──
-            Mobile:  single column stack
-            Desktop: 3-col (2 + 1) grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-start">
+        {/* ── ROW 2: Calendar + Subjects + Right col ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          <div className="md:col-span-2 grid grid-cols-2 gap-6 items-stretch">
 
-          {/* Left 2/3: Calendar + Subjects */}
-          <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 items-stretch">
-
-            {/* ── ATTENDANCE CALENDAR ──
-                On mobile this renders full-width; on sm+ it's half */}
-            <Link to="/student/attendance" className="block group">
-              <div className="h-full bg-surface-container-lowest rounded-xl p-3 sm:p-4 custom-shadow border border-outline-variant/10 group-hover:border-primary/40 transition-all duration-200 flex flex-col">
-                <div className="flex items-center justify-between mb-2 sm:mb-3">
+            {/* Calendar */}
+            <Link to="/student/attendance" className="block group h-full">
+              <div className="h-full bg-surface-container-lowest rounded-xl p-4 custom-shadow border border-outline-variant/10 group-hover:border-primary/40 transition-all duration-200 flex flex-col">
+                <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-xs font-bold text-on-surface">{monthWord} {year}</p>
                     <p className="text-[10px] text-on-surface-variant">Visual Presence Log</p>
@@ -334,8 +316,6 @@ export default function Dashboard() {
                     <span className="material-symbols-outlined text-xs">arrow_forward</span>
                   </span>
                 </div>
-
-                {/* Calendar grid — always 7 cols, but cells scale with container */}
                 <div className="flex-1">
                   <div className="grid grid-cols-7 gap-0.5">
                     {["S","M","T","W","T","F","S"].map((d, i) => (
@@ -358,9 +338,7 @@ export default function Dashboard() {
                     })}
                   </div>
                 </div>
-
-                {/* Legend */}
-                <div className="flex gap-2 sm:gap-3 mt-2 sm:mt-3 pt-2 border-t border-surface-container-low flex-wrap">
+                <div className="flex gap-3 mt-3 pt-2 border-t border-surface-container-low flex-wrap">
                   {[
                     { color: "bg-green-400",  label: "Present", count: monthlyDist.Present },
                     { color: "bg-red-400",    label: "Absent",  count: monthlyDist.Absent  },
@@ -377,14 +355,14 @@ export default function Dashboard() {
               </div>
             </Link>
 
-            {/* ── MY SUBJECTS ── */}
+            {/* Subjects */}
             <div className="h-full bg-surface-container-lowest rounded-xl custom-shadow border border-outline-variant/10 overflow-hidden flex flex-col">
               <div className="flex items-center justify-between px-4 pt-4 pb-2 border-b border-surface-container-low flex-shrink-0">
                 <div>
                   <p className="text-xs font-bold text-on-surface">My Subjects</p>
                   <p className="text-[10px] text-on-surface-variant">Graded first</p>
                 </div>
-                <Link to="/student/grades" className="flex items-center gap-0.5 text-[10px] font-bold text-primary hover:underline whitespace-nowrap">
+                <Link to="/student/grades" className="flex items-center gap-0.5 text-[10px] font-bold text-primary hover:underline">
                   View More
                   <span className="material-symbols-outlined text-xs">arrow_forward</span>
                 </Link>
@@ -400,16 +378,15 @@ export default function Dashboard() {
                       : null;
                     const grade = gradeInfo ? getGradeLetter(gradeInfo.marks_obtained, gradeInfo.max_marks) : null;
                     return (
-                      <div key={subject.id} className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 sm:py-4 hover:bg-surface-container-low/40 transition-colors">
+                      <div key={subject.id} className="flex items-center gap-3 px-4 py-5 hover:bg-surface-container-low/40 transition-colors">
                         <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${bg}`}>
                           <span className="material-symbols-outlined text-sm">{icon}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            {/* truncate prevents long names from overflowing */}
-                            <p className="text-xs sm:text-sm font-bold text-on-surface truncate pr-1">{subject.name}</p>
-                            {gradeInfo ? (
-                              <span className="text-[10px] sm:text-xs text-on-surface-variant flex-shrink-0">{gradeInfo.marks_obtained}/{gradeInfo.max_marks}</span>
+                            <p className="text-sm font-bold text-on-surface truncate pr-1">{subject.name}</p>
+                            {subPct ? (
+                              <span className="text-xs text-on-surface-variant flex-shrink-0 font-semibold">{subPct}%</span>
                             ) : (
                               <span className="text-[10px] text-outline flex-shrink-0">N/A</span>
                             )}
@@ -437,35 +414,30 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── RIGHT COLUMN ──
-              Mobile: renders below the 2-col grid, full width
-              Desktop: right sidebar column */}
+          {/* Right Column */}
           <div className="flex flex-col gap-4">
-
-            {/* Quick Actions */}
-            <section className="bg-surface-container-low rounded-xl p-4 sm:p-5">
-              <h3 className="text-sm font-black text-on-surface-variant uppercase tracking-widest mb-3 sm:mb-4">Quick Actions</h3>
+            <section className="bg-surface-container-low rounded-xl p-5">
+              <h3 className="text-sm font-black text-on-surface-variant uppercase tracking-widest mb-4">Quick Actions</h3>
               <div className="grid grid-cols-2 gap-3">
-                <Link to="/student/help" className="flex flex-col items-center justify-center p-3 sm:p-4 bg-surface-container-lowest rounded-lg custom-shadow hover:bg-blue-50 transition-colors group">
+                <Link to="/student/help" className="flex flex-col items-center justify-center p-4 bg-surface-container-lowest rounded-lg custom-shadow hover:bg-blue-50 transition-colors group">
                   <span className="material-symbols-outlined text-primary mb-2 group-hover:scale-110 transition-transform">support_agent</span>
-                  <span className="text-xs sm:text-sm font-bold text-on-surface text-center">Help Desk</span>
+                  <span className="text-sm font-bold text-on-surface">Help Desk</span>
                 </Link>
-                <Link to="/student/fees" className="flex flex-col items-center justify-center p-3 sm:p-4 bg-surface-container-lowest rounded-lg custom-shadow hover:bg-blue-50 transition-colors group">
+                <Link to="/student/fees" className="flex flex-col items-center justify-center p-4 bg-surface-container-lowest rounded-lg custom-shadow hover:bg-blue-50 transition-colors group">
                   <span className="material-symbols-outlined text-primary mb-2 group-hover:scale-110 transition-transform">account_balance_wallet</span>
-                  <span className="text-xs sm:text-sm font-bold text-on-surface text-center">Fees</span>
+                  <span className="text-sm font-bold text-on-surface">Fees</span>
                 </Link>
               </div>
             </section>
 
-            {/* Recent Activity */}
-            <section className="bg-surface-container-lowest rounded-xl p-4 sm:p-5 custom-shadow">
-              <h3 className="text-sm font-black text-on-surface-variant uppercase tracking-widest mb-4 sm:mb-5">Recent Activity</h3>
-              <div className="relative space-y-4 sm:space-y-5 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container">
+            <section className="bg-surface-container-lowest rounded-xl p-5 custom-shadow">
+              <h3 className="text-sm font-black text-on-surface-variant uppercase tracking-widest mb-5">Recent Activity</h3>
+              <div className="relative space-y-5 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container">
                 <div className="relative pl-8">
                   <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-green-100 flex items-center justify-center ring-4 ring-white">
                     <span className="material-symbols-outlined text-green-700 text-xs">check_circle</span>
                   </div>
-                  <p className="text-xs sm:text-sm font-bold text-on-surface">Grade Updated: Physics Lab</p>
+                  <p className="text-sm font-bold text-on-surface">Grade Updated: Physics Lab</p>
                   <p className="text-xs text-on-surface-variant">You received an <span className="font-bold text-green-700">A</span> for the Optics experiment.</p>
                   <span className="text-[10px] text-outline-variant mt-1 block">15 mins ago</span>
                 </div>
@@ -473,7 +445,7 @@ export default function Dashboard() {
                   <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center ring-4 ring-white">
                     <span className="material-symbols-outlined text-blue-700 text-xs">upload</span>
                   </div>
-                  <p className="text-xs sm:text-sm font-bold text-on-surface">Submission Received</p>
+                  <p className="text-sm font-bold text-on-surface">Submission Received</p>
                   <p className="text-xs text-on-surface-variant">English Literature Essay: &quot;Modernism in 1920s&quot;</p>
                   <span className="text-[10px] text-outline-variant mt-1 block">2 hours ago</span>
                 </div>
@@ -481,27 +453,25 @@ export default function Dashboard() {
                   <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center ring-4 ring-white">
                     <span className="material-symbols-outlined text-amber-700 text-xs">info</span>
                   </div>
-                  <p className="text-xs sm:text-sm font-bold text-on-surface">Attendance Marked</p>
+                  <p className="text-sm font-bold text-on-surface">Attendance Marked</p>
                   <p className="text-xs text-on-surface-variant">Present for Period 4: Computer Science.</p>
                   <span className="text-[10px] text-outline-variant mt-1 block">4 hours ago</span>
                 </div>
               </div>
-              <button className="w-full mt-4 sm:mt-5 py-3 border-t border-surface-container text-xs font-bold text-primary hover:text-primary-container transition-colors uppercase tracking-tight">
+              <button className="w-full mt-5 py-3 border-t border-surface-container text-xs font-bold text-primary hover:text-primary-container transition-colors uppercase tracking-tight">
                 Show More History
               </button>
             </section>
 
-            {/* Course Credits */}
-            <div className="relative p-4 sm:p-5 rounded-lg bg-surface-container-highest overflow-hidden">
+            <div className="relative p-5 rounded-lg bg-surface-container-highest overflow-hidden">
               <div className="absolute top-4 right-4 bg-white/40 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-on-surface">Active</div>
-              <h4 className="text-sm font-medium text-on-surface-variant mb-3 sm:mb-4">Course Credits</h4>
+              <h4 className="text-sm font-medium text-on-surface-variant mb-4">Course Credits</h4>
               <div className="text-2xl font-bold font-headline text-on-surface">24.0 / 30.0</div>
-              <div className="w-full bg-white/30 h-1.5 rounded-full mt-3 sm:mt-4">
+              <div className="w-full bg-white/30 h-1.5 rounded-full mt-4">
                 <div className="bg-primary h-full rounded-full" style={{ width: "80%" }} />
               </div>
-              <p className="text-[10px] text-on-surface-variant mt-2 sm:mt-3">You are on track to graduate early in June 2025.</p>
+              <p className="text-[10px] text-on-surface-variant mt-3">You are on track to graduate early in June 2025.</p>
             </div>
-
           </div>
         </div>
 
