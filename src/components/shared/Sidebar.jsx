@@ -8,8 +8,8 @@ const navItems = [
   { icon: 'description',     label: 'Grades & Report Card', path: '/student/grades'     },
   { icon: 'event_available', label: 'Attendance',           path: '/student/attendance' },
   { icon: 'psychology',      label: 'AI Tutor',             path: '/student/ai-tutor'   },
-  { icon: 'support_agent',   label: 'Help Desk',            path: '/student/help'       },
   { icon: 'account_balance_wallet', label: 'Fees',          path: '/student/fees'       },
+  { icon: 'support_agent',   label: 'Help Desk',            path: '/student/help'       },
 ];
 
 export default function Sidebar() {
