@@ -1,9 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 import { generateQuestionPaper, saveAIContent, getSavedAIContentById, updateSavedAIContent } from '../../services/api';
 import ToolActionButtons from '../../components/erp/global/ToolActionButtons';
 import AIResultEditor from '../../components/erp/global/AIResultEditor';
+import AIWorkspacePreviewSkeleton from '../../components/erp/global/AIWorkspacePreviewSkeleton';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import remarkGfm from 'remark-gfm';
+import 'katex/dist/katex.min.css';
+
 const MATHEMATICS_CHAPTERS = {
   '9': [
     '1 - NUMBER SYSTEMS',
@@ -146,6 +153,18 @@ const AIToolWorkspaceQuestionPaper = () => {
 
   const toggleAnswer = (idx) => {
     setVisibleAnswers(prev => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  // Called by ToolActionButtons before PDF export
+  const setAllAnswersVisible = async (isVisible) => {
+    if (!result) return;
+    const newVisible = {};
+    if (isVisible && result.sections) {
+      result.sections.forEach((sec, si) => {
+        sec.questions?.forEach((_, qi) => { newVisible[`q_${si}_${qi}`] = true; });
+      });
+    }
+    setVisibleAnswers(newVisible);
   };
 
   const handleGenerate = async (e) => {
@@ -314,7 +333,9 @@ const AIToolWorkspaceQuestionPaper = () => {
               
               <div className="p-6 md:p-8 flex-1 overflow-y-auto bg-neutral-50/50" ref={previewRef}>
                 <div className="max-w-2xl mx-auto space-y-8 bg-white p-8 rounded-xl shadow-sm border border-outline-variant/30 font-serif text-[#1e293b]">
-                  {isEditing && result ? (
+                  {loading ? (
+                    <AIWorkspacePreviewSkeleton />
+                  ) : isEditing && result ? (
                     <AIResultEditor data={result} onChange={(newData) => { setResult(newData); setIsDirty(true); }} />
                   ) : result ? (
                     <>
@@ -354,10 +375,12 @@ const AIToolWorkspaceQuestionPaper = () => {
                                 return (
                                   <div key={qi} className="space-y-3">
                                     <div className="flex justify-between items-start gap-4 text-sm leading-relaxed text-slate-900">
-                                      <p className="flex-1 font-medium">
-                                        <span className="font-bold mr-2 text-slate-950">{qi + 1}.</span>
-                                        {q.question_text}
-                                      </p>
+                                      <div className="flex-1 font-medium flex gap-2">
+                                        <span className="font-bold mr-2 text-slate-950 shrink-0">{qi + 1}.</span>
+                                        <div className="prose prose-sm max-w-none text-slate-900">
+                                          <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{q.question_text}</ReactMarkdown>
+                                        </div>
+                                      </div>
                                       <span className="font-bold text-slate-700 text-xs whitespace-nowrap">[{q.marks || 5} M]</span>
                                     </div>
 
@@ -376,7 +399,9 @@ const AIToolWorkspaceQuestionPaper = () => {
                                       {visibleAnswers[keyId] && (
                                         <div className="mt-2 p-4 bg-primary/5 rounded-lg border border-primary/10 relative text-xs">
                                           <span className="absolute -top-2.5 left-4 bg-white px-2 text-[9px] font-bold text-primary uppercase tracking-wider font-display">Answer Key & Grading Notes</span>
-                                          <p className="text-slate-700 leading-relaxed font-sans whitespace-pre-wrap">{q.answer_key}</p>
+                                          <div className="text-slate-700 leading-relaxed font-sans prose prose-sm max-w-none">
+                                            <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{q.answer_key}</ReactMarkdown>
+                                          </div>
                                         </div>
                                       )}
                                     </div>
@@ -389,104 +414,13 @@ const AIToolWorkspaceQuestionPaper = () => {
                       </div>
                     </>
                   ) : (
-                    <>
-                      {/* Examination Paper Mock Header */}
-                      <div className="text-center pb-6 border-b-2 border-double border-slate-900 space-y-2">
-                        <h1 className="text-2xl font-bold font-display uppercase tracking-wider text-slate-950 leading-tight">First Terminal Examination</h1>
-                        <h2 className="text-sm font-semibold tracking-wide text-slate-700">CLASS: 10 | SUBJECT: MATHEMATICS</h2>
-                        
-                        <div className="flex justify-between items-center text-xs font-semibold pt-4 text-slate-600">
-                          <span>TIME ALLOWED: 2 Hours</span>
-                          <span>TOTAL MARKS: 50</span>
-                        </div>
-                      </div>
-
-                      {/* Candidate Registration fields */}
-                      <div className="py-4 border-b border-slate-200 text-xs font-mono text-slate-500 flex justify-between flex-wrap gap-2">
-                        <span>CANDIDATE NAME: .............................................................</span>
-                        <span>ROLL NO: ....................</span>
-                      </div>
-
-                      <div className="space-y-8">
-                        {/* Section A */}
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center border-b border-slate-900 pb-1 pt-2">
-                            <h3 className="font-bold text-base uppercase tracking-wide text-slate-900 font-display">SECTION A: CONCEPTUAL & GEOMETRIC PROOFS</h3>
-                            <span className="text-xs font-bold text-slate-700 font-display">[20 Marks]</span>
-                          </div>
-                          
-                          <p className="text-xs italic text-slate-600 mb-3 leading-relaxed font-body">Instructions: All questions are compulsory. Draw clean neat figures where necessary.</p>
-
-                          <div className="space-y-6 font-body">
-                            <div className="space-y-3">
-                              <div className="flex justify-between items-start gap-4 text-sm leading-relaxed text-slate-900">
-                                <p className="flex-1 font-medium">
-                                  <span className="font-bold mr-2 text-slate-950">1.</span>
-                                  Prove that a tangent at any point of a circle is perpendicular to the radius through the point of contact.
-                                </p>
-                                <span className="font-bold text-slate-700 text-xs whitespace-nowrap">[10 M]</span>
-                              </div>
-
-                              <div className="flex flex-col gap-1.5 ml-5">
-                                <button onClick={() => toggleAnswer('d_sa1')} className="flex items-center gap-1 text-[11px] font-bold text-primary hover:underline outline-none border-none cursor-pointer bg-transparent w-max self-start font-display">
-                                  <span className="material-symbols-outlined text-xs">{visibleAnswers['d_sa1'] ? 'visibility_off' : 'visibility'}</span>
-                                  {visibleAnswers['d_sa1'] ? 'Hide Solution' : 'Reveal Answer Key'}
-                                </button>
-                                {visibleAnswers['d_sa1'] && (
-                                  <div className="mt-2 p-4 bg-primary/5 rounded-lg border border-primary/10 relative text-xs">
-                                    <span className="absolute -top-2.5 left-4 bg-white px-2 text-[9px] font-bold text-primary uppercase tracking-wider font-display">Answer Key & Grading Notes</span>
-                                    <p className="text-slate-700 leading-relaxed font-sans">
-                                      - **Given**: A circle with centre O and a tangent XY at point P.
-                                      <br/>- **To Prove**: OP ⊥ XY
-                                      <br/>- **Construction**: Take a point Q on XY, other than P and join OQ. Let OQ intersect circle at R.
-                                      <br/>- **Proof**: Since Q is on tangent XY outside the circle, OQ &gt; OP (radius).
-                                      <br/>This holds true for any point on the tangent XY other than P. OP is therefore the shortest distance from centre O to tangent XY. Hence, OP is perpendicular to XY.
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="space-y-3">
-                              <div className="flex justify-between items-start gap-4 text-sm leading-relaxed text-slate-900">
-                                <p className="flex-1 font-medium">
-                                  <span className="font-bold mr-2 text-slate-950">2.</span>
-                                  Prove that the lengths of tangents drawn from an external point to a circle are equal.
-                                </p>
-                                <span className="font-bold text-slate-700 text-xs whitespace-nowrap">[10 M]</span>
-                              </div>
-
-                              <div className="flex flex-col gap-1.5 ml-5">
-                                <button onClick={() => toggleAnswer('d_sa2')} className="flex items-center gap-1 text-[11px] font-bold text-primary hover:underline outline-none border-none cursor-pointer bg-transparent w-max self-start font-display">
-                                  <span className="material-symbols-outlined text-xs">{visibleAnswers['d_sa2'] ? 'visibility_off' : 'visibility'}</span>
-                                  {visibleAnswers['d_sa2'] ? 'Hide Solution' : 'Reveal Answer Key'}
-                                </button>
-                                {visibleAnswers['d_sa2'] && (
-                                  <div className="mt-2 p-4 bg-primary/5 rounded-lg border border-primary/10 relative text-xs">
-                                    <span className="absolute -top-2.5 left-4 bg-white px-2 text-[9px] font-bold text-primary uppercase tracking-wider font-display">Answer Key & Grading Notes</span>
-                                    <p className="text-slate-700 leading-relaxed font-sans">
-                                      - **Construction**: Draw a circle with centre O. Let P be an external point and PQ, PR be tangents. Join OP, OQ, OR.
-                                      <br/>- **Triangles Comparison**: In right triangles OQP and ORP (since tangent perpendicular to radius):
-                                      <br/>1. OQ = OR (Radii of same circle)
-                                      <br/>2. OP = OP (Common side)
-                                      <br/>3. ∠OQP = ∠ORP = 90°
-                                      <br/>- **Congruence**: By RHS criteria, ΔOQP ≅ ΔORP.
-                                      <br/>- **Conclusion**: By CPCT, PQ = PR. (Lengths of tangents are equal).
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </>
+                    <div className="text-center py-20 text-slate-400 italic">No paper generated yet. Configure options and click Generate.</div>
                   )}
                 </div>
               </div>
 
-              {/* NEW ACTION BAR COMPONENT */}
-              {result && (
+              {/* ACTION BAR COMPONENT */}
+              {result && !loading && (
                 <div className="px-6 pb-6 bg-surface-container-lowest">
                   <ToolActionButtons 
                     onSave={handleSave}
@@ -495,6 +429,8 @@ const AIToolWorkspaceQuestionPaper = () => {
                     toolName="Question Paper" 
                     exportType="PDF" 
                     contentRef={previewRef}
+                    requiresAnswerPrompt={true}
+                    onToggleAnswers={setAllAnswersVisible}
                   />
                 </div>
               )}

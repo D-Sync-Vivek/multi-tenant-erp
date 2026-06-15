@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 import { generatePresentationOutline, saveAIContent, getSavedAIContentById, updateSavedAIContent } from '../../services/api';
 import ToolActionButtons from '../../components/erp/global/ToolActionButtons';
 import AIResultEditor from '../../components/erp/global/AIResultEditor';
+import AIWorkspacePreviewSkeleton from '../../components/erp/global/AIWorkspacePreviewSkeleton';
+import html2pdf from 'html2pdf.js';
+
 const MATHEMATICS_CHAPTERS = {
   '9': [
     '1 - NUMBER SYSTEMS',
@@ -144,6 +147,38 @@ const AIToolWorkspacePresentationOutline = () => {
 
 
   const [activeSlide, setActiveSlide] = useState(0);
+  const [showTranscript, setShowTranscript] = useState(true);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const printRef = useRef(null);
+
+  // Custom multi-page PDF export
+  const handleExportPDF = async () => {
+    if (!currentSlides || !printRef.current) return;
+    setIsExportingPDF(true);
+
+    const element = printRef.current;
+    // Reveal hidden print container
+    element.style.display = 'block';
+    await new Promise(r => setTimeout(r, 80)); // let browser paint
+
+    try {
+      const filename = `Presentation_Outline_${new Date().getTime()}.pdf`;
+      const opt = {
+        margin: [0.4, 0.4, 0.4, 0.4],
+        filename,
+        image: { type: 'jpeg', quality: 0.97 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+      };
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      alert('Failed to export PDF.');
+    } finally {
+      element.style.display = 'none';
+      setIsExportingPDF(false);
+    }
+  };
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -354,7 +389,9 @@ const AIToolWorkspacePresentationOutline = () => {
               
               <div className="p-6 md:p-8 flex-1 overflow-y-auto bg-neutral-100 flex flex-col justify-between" ref={previewRef}>
                 <div className="max-w-2xl mx-auto w-full space-y-6">
-                  {isEditing && result ? (
+                  {loading ? (
+                    <AIWorkspacePreviewSkeleton />
+                  ) : isEditing && result ? (
                     <AIResultEditor data={result} onChange={(newData) => { setResult(newData); setIsDirty(true); }} />
                   ) : (
                     <>
@@ -420,6 +457,7 @@ const AIToolWorkspacePresentationOutline = () => {
                   </div>
 
                   {/* Dark Mode Presenter Speaker Notes Console */}
+                  {showTranscript && (
                   <div className="bg-[#18181b] text-emerald-400 p-6 rounded-2xl font-mono text-xs sm:text-sm leading-relaxed border-l-4 border-emerald-500 shadow-inner relative select-text">
                     <span className="absolute top-3 right-4 bg-white/5 text-[9px] px-2 py-0.5 rounded font-display font-bold text-neutral-400 uppercase tracking-widest">
                       Speaker Notes Script
@@ -429,14 +467,34 @@ const AIToolWorkspacePresentationOutline = () => {
                     </h4>
                     <p className="whitespace-pre-wrap leading-relaxed">{slide.speaker_notes || "No presenter script compiled for this slide."}</p>
                   </div>
+                  )}
                   </>
                   )}
                 </div>
               </div>
 
               {/* NEW ACTION BAR COMPONENT */}
-              {result && (
+              {result && !loading && (
                 <div className="px-6 pb-6 bg-surface-container-lowest">
+                  {/* Transcript toggle */}
+                  <div className="flex items-center gap-3 mb-3 pt-4">
+                    <button
+                      onClick={() => setShowTranscript(prev => !prev)}
+                      className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all outline-none cursor-pointer ${
+                        showTranscript
+                          ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
+                          : 'bg-surface-container-low text-on-surface-variant border-outline-variant/20'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">
+                        {showTranscript ? 'mic' : 'mic_off'}
+                      </span>
+                      {showTranscript ? 'Transcript Visible' : 'Transcript Hidden'}
+                    </button>
+                    <span className="text-xs text-on-surface-variant font-body">
+                      PDF will {showTranscript ? 'include' : 'exclude'} speaker notes
+                    </span>
+                  </div>
                   <ToolActionButtons 
                     onSave={handleSave}
                     isSaving={isSaving}
@@ -444,9 +502,42 @@ const AIToolWorkspacePresentationOutline = () => {
                     toolName="Presentation Outline" 
                     exportType="PDF" 
                     contentRef={previewRef}
+                    onExport={handleExportPDF}
                   />
                 </div>
               )}
+
+              {/* Hidden Print Layout — All slides rendered linearly for PDF */}
+              <div ref={printRef} style={{ display: 'none' }} className="bg-white p-6">
+                <h1 style={{ fontFamily: 'sans-serif', fontSize: '22px', fontWeight: 'bold', marginBottom: '6px', color: '#0f172a' }}>
+                  {currentTitle}
+                </h1>
+                <p style={{ fontFamily: 'sans-serif', fontSize: '11px', color: '#64748b', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+                  Class {className} | {subject} &nbsp;&bull;&nbsp; {currentSlides.length} Slides
+                </p>
+                {currentSlides.map((s, idx) => (
+                  <div key={idx} style={{ marginBottom: '28px', pageBreakInside: 'avoid', borderLeft: '4px solid #4f46e5', paddingLeft: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                      <span style={{ background: '#4f46e5', color: 'white', borderRadius: '4px', padding: '2px 10px', fontSize: '10px', fontWeight: 'bold', fontFamily: 'sans-serif', whiteSpace: 'nowrap' }}>
+                        Slide {s.slide_number || idx + 1}
+                      </span>
+                      <h2 style={{ fontFamily: 'sans-serif', fontSize: '15px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>{s.title}</h2>
+                    </div>
+                    <ul style={{ paddingLeft: '20px', margin: '0 0 10px 0' }}>
+                      {s.bullet_points?.map((bp, bpIdx) => (
+                        <li key={bpIdx} style={{ fontFamily: 'sans-serif', fontSize: '12px', color: '#334155', marginBottom: '4px', lineHeight: '1.6' }}>{bp}</li>
+                      ))}
+                    </ul>
+                    {showTranscript && s.speaker_notes && (
+                      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px', marginTop: '8px' }}>
+                        <p style={{ fontFamily: 'monospace', fontSize: '10px', color: '#475569', margin: 0, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                          🎤 {s.speaker_notes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
 
             </div>
           </div>

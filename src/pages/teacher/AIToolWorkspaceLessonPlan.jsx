@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 import { generateLessonPlan, saveAIContent, getSavedAIContentById, updateSavedAIContent } from '../../services/api';
 import ToolActionButtons from '../../components/erp/global/ToolActionButtons';
 import AIResultEditor from '../../components/erp/global/AIResultEditor';
+import AIWorkspacePreviewSkeleton from '../../components/erp/global/AIWorkspacePreviewSkeleton';
 const MATHEMATICS_CHAPTERS = {
   '9': [
     '1 - NUMBER SYSTEMS',
@@ -369,7 +370,9 @@ const AIToolWorkspaceLessonPlan = () => {
               
               <div className="p-6 md:p-8 flex-1 overflow-y-auto" ref={previewRef}>
                 <div className="max-w-2xl mx-auto space-y-8">
-                  {isEditing && result ? (
+                  {loading ? (
+                    <AIWorkspacePreviewSkeleton />
+                  ) : isEditing && result ? (
                     <AIResultEditor data={result} onChange={(newData) => { setResult(newData); setIsDirty(true); }} />
                   ) : result ? (
                     <>
@@ -604,7 +607,7 @@ const AIToolWorkspaceLessonPlan = () => {
               </div>
 
               {/* NEW ACTION BAR COMPONENT */}
-              {result && (
+              {result && !loading && (
                 <div className="px-6 pb-6 bg-surface-container-lowest">
                   <ToolActionButtons 
                     onSave={handleSave}

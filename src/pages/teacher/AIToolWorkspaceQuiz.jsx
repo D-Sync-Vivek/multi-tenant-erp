@@ -1,9 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 import { generateQuiz, saveAIContent, getSavedAIContentById, updateSavedAIContent } from '../../services/api';
 import ToolActionButtons from '../../components/erp/global/ToolActionButtons';
 import AIResultEditor from '../../components/erp/global/AIResultEditor';
+import AIWorkspacePreviewSkeleton from '../../components/erp/global/AIWorkspacePreviewSkeleton';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import remarkGfm from 'remark-gfm';
+import 'katex/dist/katex.min.css';
 
 const MATHEMATICS_CHAPTERS = {
   '9': [
@@ -74,7 +80,7 @@ const AIToolWorkspaceQuiz = () => {
   const previewRef = useRef(null);
 
   const [isSaving, setIsSaving] = useState(false);
-  const [isDirty, setIsDirty] = useState(false); // True if there are unsaved changes
+  const [isDirty, setIsDirty] = useState(false);
   const [currentSaveId, setCurrentSaveId] = useState(savedId);
 
   // Load saved content if ID exists
@@ -86,7 +92,6 @@ const AIToolWorkspaceQuiz = () => {
           setResult(data.data);
           setSubject(data.subject || 'Mathematics');
           setClassName(data.class_name || '10');
-          // Clear dirty flag since we just loaded
           setIsDirty(false);
         })
         .catch(err => {
@@ -97,7 +102,7 @@ const AIToolWorkspaceQuiz = () => {
     }
   }, [savedId]);
 
-  // Handle BeforeUnload for unsaved changes (browser close/refresh)
+  // Handle BeforeUnload for unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (isDirty) {
@@ -109,7 +114,6 @@ const AIToolWorkspaceQuiz = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  // Handle navigating back safely
   const handleBackNavigation = (e) => {
     e.preventDefault();
     if (isDirty) {
@@ -123,12 +127,16 @@ const AIToolWorkspaceQuiz = () => {
     setVisibleAnswers(prev => ({ ...prev, [idx]: !prev[idx] }));
   };
 
+  // Called by ToolActionButtons before PDF export — reveals/hides ALL answers (MCQs + short answers)
   const setAllAnswersVisible = async (isVisible) => {
     if (!result) return;
     const newVisible = {};
     if (isVisible) {
+      if (result.mcqs) {
+        result.mcqs.forEach((_, i) => { newVisible[`mcq_${i}`] = true; });
+      }
       if (result.short_answers) {
-        result.short_answers.forEach((_, i) => newVisible[i] = true);
+        result.short_answers.forEach((_, i) => { newVisible[i] = true; });
       }
     }
     setVisibleAnswers(newVisible);
@@ -139,13 +147,21 @@ const AIToolWorkspaceQuiz = () => {
     setError(null);
     setLoading(true);
     try {
-      if (!className || !subject || !chapterName || !topic) { throw new Error('Please provide class_name, subject, chapter_name and topic'); }
-
-      const payload = { class_name: String(className), subject: String(subject), chapter_name: String(chapterName), topic: String(topic), num_mcqs: Number(numMCQs), num_short_answers: Number(numShortAnswers) };
+      if (!className || !subject || !chapterName || !topic) {
+        throw new Error('Please provide class_name, subject, chapter_name and topic');
+      }
+      const payload = {
+        class_name: String(className),
+        subject: String(subject),
+        chapter_name: String(chapterName),
+        topic: String(topic),
+        num_mcqs: Number(numMCQs),
+        num_short_answers: Number(numShortAnswers)
+      };
       const data = await generateQuiz(payload);
       setResult(data);
       setIsDirty(true);
-      setCurrentSaveId(null); // It's a new generation
+      setCurrentSaveId(null);
     } catch (err) {
       const details = err && err.details ? err.details : null;
       if (details) {
@@ -172,7 +188,6 @@ const AIToolWorkspaceQuiz = () => {
         content_type: 'Quiz',
         data: result
       };
-
       if (currentSaveId) {
         await updateSavedAIContent(currentSaveId, payload);
         alert("Quiz updated successfully!");
@@ -233,7 +248,7 @@ const AIToolWorkspaceQuiz = () => {
                     <label className="text-xs font-bold text-on-surface-variant px-1 uppercase tracking-wider font-display">Subject</label>
                     <select
                       value={subject}
-                      onChange={(e)=>setSubject(e.target.value)}
+                      onChange={(e) => setSubject(e.target.value)}
                       className="bg-surface-container-low border-none rounded-md py-3 px-4 text-sm focus:ring-2 focus:ring-primary/40 outline-none font-body w-full"
                     >
                       <option value="Mathematics">Mathematics</option>
@@ -243,7 +258,7 @@ const AIToolWorkspaceQuiz = () => {
                     <label className="text-xs font-bold text-on-surface-variant px-1 uppercase tracking-wider font-display">Class</label>
                     <select
                       value={className}
-                      onChange={(e)=>handleClassChange(e.target.value)}
+                      onChange={(e) => handleClassChange(e.target.value)}
                       className="bg-surface-container-low border-none rounded-md py-3 px-4 text-sm focus:ring-2 focus:ring-primary/40 outline-none font-body w-full"
                     >
                       <option value="9">9</option>
@@ -255,7 +270,7 @@ const AIToolWorkspaceQuiz = () => {
                   <label className="text-xs font-bold text-on-surface-variant px-1 uppercase tracking-wider font-display">Chapter Name</label>
                   <select
                     value={chapterName}
-                    onChange={(e)=>setChapterName(e.target.value)}
+                    onChange={(e) => setChapterName(e.target.value)}
                     className="bg-surface-container-low border-none rounded-md py-3 px-4 text-sm focus:ring-2 focus:ring-primary/40 outline-none font-body w-full"
                   >
                     {(MATHEMATICS_CHAPTERS[className] || []).map(ch => (
@@ -267,15 +282,15 @@ const AIToolWorkspaceQuiz = () => {
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="flex flex-col gap-1.5 col-span-1">
                     <label className="text-xs font-bold text-on-surface-variant px-1 uppercase tracking-wider font-display">Topic</label>
-                    <input value={topic} onChange={(e)=>setTopic(e.target.value)} className="bg-surface-container-low border-none rounded-md py-3 px-4 text-sm focus:ring-2 focus:ring-primary/40 outline-none font-body" placeholder="e.g., Cell organelles" type="text" />
+                    <input value={topic} onChange={(e) => setTopic(e.target.value)} className="bg-surface-container-low border-none rounded-md py-3 px-4 text-sm focus:ring-2 focus:ring-primary/40 outline-none font-body" placeholder="e.g., Cell organelles" type="text" />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-on-surface-variant px-1 uppercase tracking-wider font-display"># MCQs</label>
-                    <input value={numMCQs} type="number" onChange={(e)=>setNumMCQs(Number(e.target.value))} className="bg-surface-container-low border-none rounded-md py-3 px-4 text-sm focus:ring-2 focus:ring-primary/40 outline-none font-body" min="0" max="30" />
+                    <input value={numMCQs} type="number" onChange={(e) => setNumMCQs(Number(e.target.value))} className="bg-surface-container-low border-none rounded-md py-3 px-4 text-sm focus:ring-2 focus:ring-primary/40 outline-none font-body" min="0" max="30" />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-on-surface-variant px-1 uppercase tracking-wider font-display"># Short Ans</label>
-                    <input value={numShortAnswers} type="number" onChange={(e)=>setNumShortAnswers(Number(e.target.value))} className="bg-surface-container-low border-none rounded-md py-3 px-4 text-sm focus:ring-2 focus:ring-primary/40 outline-none font-body" min="0" max="30" />
+                    <input value={numShortAnswers} type="number" onChange={(e) => setNumShortAnswers(Number(e.target.value))} className="bg-surface-container-low border-none rounded-md py-3 px-4 text-sm focus:ring-2 focus:ring-primary/40 outline-none font-body" min="0" max="30" />
                   </div>
                 </div>
                 
@@ -337,7 +352,9 @@ const AIToolWorkspaceQuiz = () => {
               
               <div className="p-6 md:p-8 flex-1 overflow-y-auto" ref={previewRef}>
                 <div className="max-w-2xl mx-auto space-y-8">
-                  {isEditing && result ? (
+                  {loading ? (
+                    <AIWorkspacePreviewSkeleton />
+                  ) : isEditing && result ? (
                     <AIResultEditor data={result} onChange={(newData) => { setResult(newData); setIsDirty(true); }} />
                   ) : result ? (
                     <>
@@ -357,36 +374,55 @@ const AIToolWorkspaceQuiz = () => {
                             Multiple Choice Questions
                           </h2>
                           <div className="space-y-4">
-                            {result.mcqs.map((m, i) => (
-                              <div key={i} className="p-5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                                <p className="font-bold text-on-surface text-base sm:text-lg mb-4 font-body leading-relaxed">
-                                  <span className="mr-2 text-primary">{i + 1}.</span>{m.question}
-                                </p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-0 sm:ml-6 font-body">
-                                  {m.options?.map((opt, oi) => {
-                                    const isCorrect = opt === m.correct_answer;
-                                    return (
-                                      <div 
-                                        key={oi} 
-                                        className={`flex items-start gap-2 p-3 rounded-xl border text-sm transition-all ${
-                                          isCorrect 
-                                            ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-semibold' 
-                                            : 'bg-surface-container-low text-on-surface-variant border-transparent'
-                                        }`}
-                                      >
-                                        <span className={`font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded ${isCorrect ? 'bg-emerald-200 text-emerald-950' : 'bg-surface-container-high'}`}>
-                                          {String.fromCharCode(65 + oi)}
-                                        </span>
-                                        <span className="flex-1">{opt}</span>
-                                        {isCorrect && (
-                                          <span className="material-symbols-outlined text-emerald-600 text-base self-center">check_circle</span>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
+                            {result.mcqs.map((m, i) => {
+                              const mcqKey = `mcq_${i}`;
+                              const isAnswerVisible = !!visibleAnswers[mcqKey];
+                              return (
+                                <div key={i} className="p-5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                                  <div className="font-bold text-on-surface text-base sm:text-lg mb-4 font-body leading-relaxed flex gap-2">
+                                    <span className="text-primary shrink-0">{i + 1}.</span>
+                                    <div className="prose prose-sm max-w-none">
+                                      <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{m.question}</ReactMarkdown>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-0 sm:ml-6 font-body">
+                                    {m.options?.map((opt, oi) => {
+                                      const isCorrect = opt === m.correct_answer;
+                                      const showCorrect = isAnswerVisible && isCorrect;
+                                      return (
+                                        <div
+                                          key={oi}
+                                          className={`flex items-start gap-2 p-3 rounded-xl border text-sm transition-all ${
+                                            showCorrect
+                                              ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-semibold'
+                                              : 'bg-surface-container-low text-on-surface-variant border-transparent'
+                                          }`}
+                                        >
+                                          <span className={`font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded shrink-0 ${showCorrect ? 'bg-emerald-200 text-emerald-950' : 'bg-surface-container-high'}`}>
+                                            {String.fromCharCode(65 + oi)}
+                                          </span>
+                                          <span className="flex-1">{opt}</span>
+                                          {showCorrect && (
+                                            <span className="material-symbols-outlined text-emerald-600 text-base self-center">check_circle</span>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  <div className="mt-3">
+                                    <button
+                                      onClick={() => toggleAnswer(mcqKey)}
+                                      className="flex items-center gap-1 text-xs font-bold text-primary hover:underline outline-none border-none cursor-pointer bg-transparent w-max font-display"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">
+                                        {isAnswerVisible ? 'visibility_off' : 'visibility'}
+                                      </span>
+                                      {isAnswerVisible ? 'Hide Answer' : 'Reveal Answer'}
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </section>
                       )}
@@ -400,9 +436,12 @@ const AIToolWorkspaceQuiz = () => {
                           <div className="space-y-4">
                             {result.short_answers.map((s, i) => (
                               <div key={i} className="p-5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                                <p className="font-bold text-on-surface text-base sm:text-lg mb-3 font-body leading-relaxed">
-                                  <span className="mr-2 text-primary">{i + 1}.</span>{s.question}
-                                </p>
+                                <div className="font-bold text-on-surface text-base sm:text-lg mb-3 font-body leading-relaxed flex gap-2">
+                                  <span className="text-primary shrink-0">{i + 1}.</span>
+                                  <div className="prose prose-sm max-w-none">
+                                    <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{s.question}</ReactMarkdown>
+                                  </div>
+                                </div>
                                 
                                 <div className="flex flex-col gap-2 mt-4">
                                   <button 
@@ -418,7 +457,9 @@ const AIToolWorkspaceQuiz = () => {
                                   {visibleAnswers[i] && (
                                     <div className="mt-2 p-4 bg-primary/5 rounded-lg border border-primary/10 relative font-body transition-all">
                                       <span className="absolute -top-2.5 left-4 bg-surface-container-lowest px-2 text-[10px] font-bold text-primary uppercase tracking-wider font-display">Ideal Answer Key</span>
-                                      <p className="text-on-surface-variant leading-relaxed text-sm mt-1 whitespace-pre-wrap">{s.answer_key}</p>
+                                      <div className="text-on-surface-variant leading-relaxed text-sm mt-1 prose prose-sm max-w-none">
+                                        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{s.answer_key}</ReactMarkdown>
+                                      </div>
                                     </div>
                                   )}
                                 </div>
@@ -451,48 +492,19 @@ const AIToolWorkspaceQuiz = () => {
                               <span className="mr-2 text-primary">1.</span>Which of the following cellular organelles is known as the "powerhouse of the cell"?
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:ml-6 font-body">
-                              <div className="flex items-center gap-2 p-3 rounded-xl border text-sm bg-surface-container-low text-on-surface-variant border-transparent">
-                                <span className="font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high">A</span>
-                                <span className="flex-1">Nucleus</span>
-                              </div>
-                              <div className="flex items-center gap-2 p-3 rounded-xl border text-sm bg-surface-container-low text-on-surface-variant border-transparent">
-                                <span className="font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high">B</span>
-                                <span className="flex-1">Ribosome</span>
-                              </div>
-                              <div className="flex items-center gap-3 p-3 rounded-xl border text-sm bg-emerald-50 text-emerald-900 border-emerald-300 font-semibold">
-                                <span className="font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-950 font-display">C</span>
-                                <span className="flex-1">Mitochondria</span>
-                                <span className="material-symbols-outlined text-emerald-600 text-base">check_circle</span>
-                              </div>
-                              <div className="flex items-center gap-2 p-3 rounded-xl border text-sm bg-surface-container-low text-on-surface-variant border-transparent">
-                                <span className="font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high">D</span>
-                                <span className="flex-1">Lysosome</span>
-                              </div>
+                              {['Nucleus','Ribosome','Mitochondria','Lysosome'].map((opt, oi) => (
+                                <div key={oi} className="flex items-center gap-2 p-3 rounded-xl border text-sm bg-surface-container-low text-on-surface-variant border-transparent">
+                                  <span className="font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high">{String.fromCharCode(65+oi)}</span>
+                                  <span className="flex-1">{opt}</span>
+                                </div>
+                              ))}
                             </div>
-                          </div>
-
-                          <div className="p-5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm">
-                            <p className="font-bold text-on-surface text-base sm:text-lg mb-4 font-body leading-relaxed">
-                              <span className="mr-2 text-primary">2.</span>Which organelle plays a central role in protein synthesis?
-                            </p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:ml-6 font-body">
-                              <div className="flex items-center gap-3 p-3 rounded-xl border text-sm bg-emerald-50 text-emerald-900 border-emerald-300 font-semibold">
-                                <span className="font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-950 font-display">A</span>
-                                <span className="flex-1">Ribosome</span>
-                                <span className="material-symbols-outlined text-emerald-600 text-base">check_circle</span>
-                              </div>
-                              <div className="flex items-center gap-2 p-3 rounded-xl border text-sm bg-surface-container-low text-on-surface-variant border-transparent">
-                                <span className="font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high">B</span>
-                                <span className="flex-1">Golgi Apparatus</span>
-                              </div>
-                              <div className="flex items-center gap-2 p-3 rounded-xl border text-sm bg-surface-container-low text-on-surface-variant border-transparent">
-                                <span className="font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high">C</span>
-                                <span className="flex-1">Vacuole</span>
-                              </div>
-                              <div className="flex items-center gap-2 p-3 rounded-xl border text-sm bg-surface-container-low text-on-surface-variant border-transparent">
-                                <span className="font-semibold mr-1 text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high">D</span>
-                                <span className="flex-1">Centrosome</span>
-                              </div>
+                            <div className="mt-3">
+                              <button onClick={() => toggleAnswer('d_mcq1')} className="flex items-center gap-1 text-xs font-bold text-primary hover:underline outline-none border-none cursor-pointer bg-transparent w-max font-display">
+                                <span className="material-symbols-outlined text-sm">{visibleAnswers['d_mcq1'] ? 'visibility_off' : 'visibility'}</span>
+                                {visibleAnswers['d_mcq1'] ? 'Hide Answer' : 'Reveal Answer'}
+                              </button>
+                              {visibleAnswers['d_mcq1'] && <p className="mt-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg">✓ Correct Answer: C - Mitochondria</p>}
                             </div>
                           </div>
                         </div>
@@ -503,7 +515,6 @@ const AIToolWorkspaceQuiz = () => {
                           <span className="material-symbols-outlined rounded-md bg-primary/10 p-1 text-primary text-sm">edit_note</span>
                           Short Answer Questions
                         </h2>
-                        
                         <div className="space-y-4">
                           <div className="p-5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm">
                             <p className="font-bold text-on-surface text-base sm:text-lg mb-3 font-body leading-relaxed">
@@ -518,8 +529,7 @@ const AIToolWorkspaceQuiz = () => {
                                 <div className="mt-2 p-4 bg-primary/5 rounded-lg border border-primary/10 relative font-body transition-all">
                                   <span className="absolute -top-2.5 left-4 bg-surface-container-lowest px-2 text-[10px] font-bold text-primary uppercase tracking-wider font-display">Ideal Answer Key</span>
                                   <p className="text-on-surface-variant leading-relaxed text-sm mt-1">
-                                    The cell wall is a rigid, outer layer found only in plants, fungi, and bacteria, primarily composed of cellulose. It provides structural support and protection.
-                                    <br/><br/>The cell membrane is a flexible, semi-permeable lipid bilayer found in all cells that controls the selective movement of substances in and out of the cell.
+                                    The cell wall is a rigid, outer layer found only in plants, fungi, and bacteria. The cell membrane is a flexible, semi-permeable bilayer found in all cells.
                                   </p>
                                 </div>
                               )}
@@ -533,8 +543,8 @@ const AIToolWorkspaceQuiz = () => {
                 </div>
               </div>
 
-              {/* NEW ACTION BAR COMPONENT */}
-              {result && (
+              {/* Action Bar */}
+              {result && !loading && (
                 <div className="px-6 pb-6 bg-surface-container-lowest">
                   <ToolActionButtons 
                     contentData={result} 

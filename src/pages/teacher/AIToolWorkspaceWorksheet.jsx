@@ -1,9 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 import { generateWorksheet, saveAIContent, getSavedAIContentById, updateSavedAIContent } from '../../services/api';
 import ToolActionButtons from '../../components/erp/global/ToolActionButtons';
 import AIResultEditor from '../../components/erp/global/AIResultEditor';
+import AIWorkspacePreviewSkeleton from '../../components/erp/global/AIWorkspacePreviewSkeleton';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import remarkGfm from 'remark-gfm';
+import 'katex/dist/katex.min.css';
 const MATHEMATICS_CHAPTERS = {
   '9': [
     '1 - NUMBER SYSTEMS',
@@ -147,6 +153,16 @@ const AIToolWorkspaceWorksheet = () => {
 
   const toggleAnswer = (idx) => {
     setVisibleAnswers(prev => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  // Called by ToolActionButtons before PDF export
+  const setAllAnswersVisible = async (isVisible) => {
+    if (!result) return;
+    const newVisible = {};
+    if (isVisible && result.questions) {
+      result.questions.forEach((_, i) => { newVisible[i] = true; });
+    }
+    setVisibleAnswers(newVisible);
   };
 
   const handleGenerate = async (e) => {
@@ -321,7 +337,9 @@ const AIToolWorkspaceWorksheet = () => {
               
               <div className="p-6 md:p-8 flex-1 overflow-y-auto" ref={previewRef}>
                 <div className="max-w-2xl mx-auto space-y-8">
-                  {isEditing && result ? (
+                  {loading ? (
+                    <AIWorkspacePreviewSkeleton />
+                  ) : isEditing && result ? (
                     <AIResultEditor data={result} onChange={(newData) => { setResult(newData); setIsDirty(true); }} />
                   ) : result ? (
                     <>
@@ -350,7 +368,12 @@ const AIToolWorkspaceWorksheet = () => {
                                 <span className="font-bold text-xs font-display text-primary bg-primary/5 px-2 py-0.5 rounded">Question {i + 1}</span>
                                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider font-display ${badgeColor}`}>{q.difficulty || 'Medium'}</span>
                               </div>
-                              <p className="font-bold text-on-surface text-base sm:text-lg mb-4 font-body leading-relaxed">{q.question}</p>
+                              <div className="font-bold text-on-surface text-base sm:text-lg mb-4 font-body leading-relaxed flex gap-2">
+                                <span className="text-primary shrink-0">{i+1}.</span>
+                                <div className="prose prose-sm max-w-none">
+                                  <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{q.question}</ReactMarkdown>
+                                </div>
+                              </div>
                               
                               <div className="flex flex-col gap-2">
                                 <button 
@@ -366,7 +389,9 @@ const AIToolWorkspaceWorksheet = () => {
                                 {visibleAnswers[i] && (
                                   <div className="mt-3 p-4 bg-primary/5 rounded-lg border border-primary/10 relative transition-all duration-200 font-body">
                                     <span className="absolute -top-2.5 left-4 bg-surface-container-lowest px-2 text-[10px] font-bold text-primary uppercase tracking-wider font-display">Answer Key & Explanation</span>
-                                    <p className="text-on-surface-variant leading-relaxed text-sm mt-1 whitespace-pre-wrap">{q.answer_key}</p>
+                                    <div className="text-on-surface-variant leading-relaxed text-sm mt-1 prose prose-sm max-w-none">
+                                      <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{q.answer_key}</ReactMarkdown>
+                                    </div>
                                   </div>
                                 )}
                               </div>
@@ -450,7 +475,7 @@ const AIToolWorkspaceWorksheet = () => {
               </div>
 
               {/* NEW ACTION BAR COMPONENT */}
-              {result && (
+              {result && !loading && (
                 <div className="px-6 pb-6 bg-surface-container-lowest">
                   <ToolActionButtons 
                     onSave={handleSave}
@@ -459,6 +484,8 @@ const AIToolWorkspaceWorksheet = () => {
                     toolName="Worksheet" 
                     exportType="PDF" 
                     contentRef={previewRef}
+                    requiresAnswerPrompt={true}
+                    onToggleAnswers={setAllAnswersVisible}
                   />
                 </div>
               )}

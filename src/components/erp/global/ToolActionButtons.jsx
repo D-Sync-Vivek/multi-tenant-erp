@@ -10,12 +10,13 @@ export default function ToolActionButtons({
   onSave,
   isSaving = false,
   requiresAnswerPrompt = false,
-  onToggleAnswers
+  onToggleAnswers,
+  onExport // Optional custom export function override
 }) {
   const [isExporting, setIsExporting] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false); // State for dropdown menu
 
-  const onExport = async () => {
+  const handleDefaultExport = async () => {
     if (!contentData || !contentRef?.current) {
       alert("No content available to export.");
       return;
@@ -157,7 +158,7 @@ export default function ToolActionButtons({
       </button>
 
       <button 
-        onClick={onExport}
+        onClick={onExport || handleDefaultExport}
         disabled={isExporting || !contentData}
         className="flex items-center gap-2 px-6 py-2.5 bg-[#eff4ff] text-[#0058be] text-sm font-bold rounded-lg hover:bg-[#dce9ff] transition-all disabled:opacity-50"
       >
