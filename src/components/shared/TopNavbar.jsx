@@ -6,10 +6,8 @@ export default function TopNavbar({ title }) {
     // ✅ dark:bg-white hataya — CSS variable se chalega
     <header className="sticky top-0 z-40 bg-surface-container-low/90 backdrop-blur-md border-b border-outline-variant/30 transition-colors duration-300">
       <div className="flex justify-between items-center px-8 py-4">
-        <div className="flex items-center gap-4">
-          <button className="md:hidden p-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
-            <span className="material-symbols-outlined">menu</span>
-          </button>
+        <div className="flex items-center gap-4 pl-12 md:pl-0">
+          
           <h1 className="text-xl font-bold font-headline text-on-background tracking-tight">
             {title}
           </h1>
