@@ -9,7 +9,7 @@ function Skeleton({ className = "" }) {
 function GradeCardSkeleton() {
   return (
     <MainLayout title="Grades & Report Card">
-      <section className="p-8">
+      <section className="p-4 md:p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="md:col-span-2 bg-gray-200 animate-pulse rounded-xl min-h-[180px]" />
           <div className="bg-white rounded-xl p-8 shadow-sm space-y-4">
@@ -25,38 +25,42 @@ function GradeCardSkeleton() {
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-sm">
-          <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <Skeleton className="w-48 h-6" />
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Skeleton className="w-32 h-9 rounded-md" />
               <Skeleton className="w-32 h-9 rounded-md" />
               <Skeleton className="w-10 h-9 rounded-md" />
             </div>
           </div>
-          <div className="bg-gray-50 px-8 py-4 grid grid-cols-6 gap-4">
-            {["w-20","w-20","w-24","w-16","w-28","w-20"].map((w, i) => (
-              <Skeleton key={i} className={`${w} h-3`} />
-            ))}
-          </div>
-          {[1,2,3,4,5].map(i => (
-            <div key={i} className="px-8 py-5 grid grid-cols-6 gap-4 border-t border-gray-50 items-center">
-              <div className="flex items-center gap-3">
-                <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
-                <Skeleton className="w-24 h-4" />
+          <div className="overflow-x-auto">
+            <div className="min-w-[700px]">
+              <div className="bg-gray-50 px-8 py-4 grid grid-cols-6 gap-4">
+                {["w-20","w-20","w-24","w-16","w-28","w-20"].map((w, i) => (
+                  <Skeleton key={i} className={`${w} h-3`} />
+                ))}
               </div>
-              <Skeleton className="w-20 h-4" />
-              <Skeleton className="w-16 h-4" />
-              <Skeleton className="w-10 h-6 rounded-md" />
-              <Skeleton className="w-full h-3" />
-              <Skeleton className="w-28 h-3 ml-auto" />
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className="px-8 py-5 grid grid-cols-6 gap-4 border-t border-gray-50 items-center">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+                    <Skeleton className="w-24 h-4" />
+                  </div>
+                  <Skeleton className="w-20 h-4" />
+                  <Skeleton className="w-16 h-4" />
+                  <Skeleton className="w-10 h-6 rounded-md" />
+                  <Skeleton className="w-full h-3" />
+                  <Skeleton className="w-28 h-3 ml-auto" />
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
           <div className="p-6 border-t border-gray-100">
             <Skeleton className="w-40 h-3" />
           </div>
         </div>
       </section>
-      <footer className="px-9 pb-12">
+      <footer className="px-4 md:px-9 pb-12">
         <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100/30 flex flex-col md:flex-row gap-6 items-center">
           <div className="flex-1 space-y-2">
             <Skeleton className="w-48 h-5" />
@@ -297,6 +301,29 @@ export default function GradeCard() {
               display: none;
             }
           }
+          @media screen and (max-width: 640px) {
+            body {
+              padding: 16px;
+            }
+            .summary {
+              grid-template-columns: 1fr;
+            }
+            .student-info {
+              flex-direction: column;
+            }
+            .grades-table {
+              display: block;
+              overflow-x: auto;
+              white-space: nowrap;
+            }
+            .signature {
+              flex-direction: column;
+              gap: 24px;
+            }
+            .sign-line {
+              width: 100%;
+            }
+          }
         </style>
       </head>
       <body>
@@ -424,20 +451,20 @@ export default function GradeCard() {
 
   return (
     <MainLayout title="Grades & Report Card">
-      <section className="p-8">
+      <section className="p-4 md:p-8">
         {/* Top cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="md:col-span-2 primary-gradient rounded-xl p-8 text-white relative overflow-hidden shadow-lg">
+          <div className="md:col-span-2 primary-gradient rounded-xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg">
             <div className="relative z-10 flex flex-col h-full justify-between">
               <div>
-                <h3 className="text-lg font-headline font-semibold opacity-90">Academic Performance Summary</h3>
-                <p className="text-4xl font-headline font-extrabold mt-2 tracking-tight">GPA {gpa} / 4.0</p>
+                <h3 className="text-base sm:text-lg font-headline font-semibold opacity-90">Academic Performance Summary</h3>
+                <p className="text-2xl sm:text-3xl md:text-4xl font-headline font-extrabold mt-2 tracking-tight">GPA {gpa} / 4.0</p>
               </div>
-              <div className="flex gap-4 mt-8">
-                <button className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-6 py-2.5 rounded-md text-sm font-semibold transition-all">View Analytics</button>
+              <div className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8">
+                <button className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 sm:px-6 py-2.5 rounded-md text-sm font-semibold transition-all">View Analytics</button>
                 <button 
                   onClick={downloadCSVReport}
-                  className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-6 py-2.5 rounded-md text-sm font-semibold transition-all flex items-center gap-2"
+                  className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 sm:px-6 py-2.5 rounded-md text-sm font-semibold transition-all flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-lg">table_chart</span>
                   Export CSV
@@ -447,10 +474,10 @@ export default function GradeCard() {
             <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
           </div>
 
-          <div className="bg-surface-container-lowest rounded-xl p-8 flex flex-col justify-between shadow-sm relative overflow-hidden">
+          <div className="bg-surface-container-lowest rounded-xl p-6 sm:p-8 flex flex-col justify-between shadow-sm relative overflow-hidden">
             <div>
               <span className="text-xs font-bold text-secondary tracking-widest uppercase">Term Progress</span>
-              <h4 className="text-2xl font-headline font-bold text-on-surface mt-2">{latestExam ? latestExam.name : "No Exams Yet"}</h4>
+              <h4 className="text-xl sm:text-2xl font-headline font-bold text-on-surface mt-2">{latestExam ? latestExam.name : "No Exams Yet"}</h4>
               <p className="text-sm text-on-surface-variant">Completed on {latestExam ? new Date(latestExam.end_date).toLocaleDateString() : "--"}</p>
             </div>
             <div className="mt-4">
@@ -473,27 +500,27 @@ export default function GradeCard() {
 
         {/* Table */}
         <div className="bg-surface-container-lowest rounded-xl shadow-sm">
-          <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h3 className="text-xl font-headline font-bold text-on-surface">Subject-wise Breakdown</h3>
-            <div className="flex items-center gap-3">
+          <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h3 className="text-lg sm:text-xl font-headline font-bold text-on-surface">Subject-wise Breakdown</h3>
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
               <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}
-                className="bg-surface-container-low border-none rounded-md text-sm py-2 px-4 focus:ring-2 focus:ring-surface-tint">
+                className="bg-surface-container-low border-none rounded-md text-sm py-2 px-4 focus:ring-2 focus:ring-surface-tint flex-1 min-w-[140px] sm:flex-initial">
                 <option value="all">All Subjects</option>
                 {subjects.map((sub) => <option key={sub.id} value={sub.id}>{sub.name}</option>)}
               </select>
               <select value={selectedExam} onChange={(e) => setSelectedExam(e.target.value)}
-                className="bg-surface-container-low border-none rounded-md text-sm py-2 px-4 focus:ring-2 focus:ring-surface-container-lowest">
+                className="bg-surface-container-low border-none rounded-md text-sm py-2 px-4 focus:ring-2 focus:ring-surface-container-lowest flex-1 min-w-[120px] sm:flex-initial">
                 <option value="all">All Exams</option>
                 {exams.map((exam) => <option key={exam.id} value={exam.id}>{exam.name}</option>)}
               </select>
-              <button className="w-10 h-10 flex items-center justify-center rounded-md bg-surface-container-low hover:bg-surface-container-high transition-colors">
+              <button className="w-10 h-10 flex items-center justify-center rounded-md bg-surface-container-low hover:bg-surface-container-high transition-colors flex-shrink-0">
                 <span className="material-symbols-outlined text-on-surface-variant">filter_list</span>
               </button>
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[800px] text-left border-collapse">
               <thead className="bg-surface-container-low/50">
                 <tr>
                   <th className="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Subject</th>
@@ -525,7 +552,7 @@ export default function GradeCard() {
                       </td>
                       <td className="px-6 py-6 text-sm text-on-surface-variant italic leading-relaxed max-w-xs">&quot;{grade.remarks || "No remarks provided."}&quot;</td>
                       <td className="px-6 py-6 text-right">
-                        <button className="text-blue-700 hover:text-blue-900 font-semibold text-sm hover:underline transition-all">View detailed feedback</button>
+                        <button className="text-blue-700 hover:text-blue-900 font-semibold text-sm hover:underline transition-all whitespace-nowrap">View detailed feedback</button>
                       </td>
                     </tr>
                   );
@@ -539,12 +566,12 @@ export default function GradeCard() {
             </table>
           </div>
 
-          <div className="p-6 bg-surface-container-low/20 border-t border-surface-container flex justify-between items-center rounded-b-xl">
+          <div className="p-4 md:p-6 bg-surface-container-low/20 border-t border-surface-container flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between rounded-b-xl">
             <p className="text-xs font-medium text-on-surface-variant italic">Showing {filteredGrades.length} subjects graded.</p>
             <button 
               onClick={downloadReportCard}
               disabled={downloading}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg shadow-md hover:opacity-90 transition-all disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg shadow-md hover:opacity-90 transition-all disabled:opacity-50 w-full sm:w-auto"
             >
               <span className="material-symbols-outlined text-base">picture_as_pdf</span>
               {downloading ? 'Preparing PDF...' : 'Download PDF Report'}

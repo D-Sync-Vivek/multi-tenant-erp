@@ -3,7 +3,15 @@ import Sidebar from '../components/shared/Sidebar';
 import TopNavbar from '../components/shared/TopNavbar';
 
 export default function MainLayout({ children, title }) {
-  // ✅ Default TRUE — matches sidebar default
+  /*
+    ── SIDEBAR SYNC ──
+    We listen to the 'sidebar-toggle' custom event fired by Sidebar.jsx
+    to know how much left margin the main content needs.
+
+    Desktop expanded  → marginLeft = 288px (w-72)
+    Desktop collapsed → marginLeft = 64px  (w-16)
+    Mobile (any)      → marginLeft = 0px   (sidebar overlays, doesn't push)
+  */
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -22,8 +30,16 @@ export default function MainLayout({ children, title }) {
     return () => window.removeEventListener('sidebar-toggle', handler);
   }, []);
 
-  // collapsed = 64px (w-16), expanded = 288px (w-72)
-  const marginLeft = isMobile ? '0px' : sidebarExpanded ? '288px' : '64px';
+  /*
+    ── MARGIN LOGIC ──
+    Mobile  → 0px   (sidebar slides OVER the content, not beside it)
+    Desktop → 288px expanded | 64px collapsed
+  */
+  const marginLeft = isMobile
+    ? '0px'
+    : sidebarExpanded
+      ? '288px'
+      : '64px';
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -33,7 +49,11 @@ export default function MainLayout({ children, title }) {
         style={{ marginLeft, backgroundColor: 'var(--color-background)' }}
       >
         <TopNavbar title={title} />
-        <div className="flex-1" style={{ backgroundColor: 'var(--color-background)' }}>
+        {/*
+          flex-1 ensures the content area grows to fill remaining vertical space.
+          overflow-x-hidden prevents any child from causing horizontal scroll.
+        */}
+        <div className="flex-1 overflow-x-hidden" style={{ backgroundColor: 'var(--color-background)' }}>
           {children}
         </div>
       </main>

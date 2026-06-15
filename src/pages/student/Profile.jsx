@@ -10,19 +10,19 @@ function Skeleton({ className = "" }) {
 function ProfileSkeleton() {
   return (
     <MainLayout title="Student Profile">
-      <div className="max-w-5xl mx-auto p-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8 md:mb-12">
           {/* Left Card Skeleton */}
-          <div className="md:col-span-8 bg-white rounded-xl p-8 flex flex-col md:flex-row items-center md:items-start gap-8 shadow-sm">
+          <div className="md:col-span-8 bg-white rounded-xl p-5 sm:p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 shadow-sm">
             <div className="relative group">
-              <Skeleton className="w-40 h-40 md:w-48 md:h-48 rounded-2xl" />
+              <Skeleton className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl" />
             </div>
-            <div className="flex-1 text-center md:text-left">
+            <div className="flex-1 text-center md:text-left w-full">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <Skeleton className="w-64 h-10" />
-                <Skeleton className="w-32 h-7 rounded-full" />
+                <Skeleton className="w-64 h-10 mx-auto md:mx-0" />
+                <Skeleton className="w-32 h-7 rounded-full mx-auto md:mx-0" />
               </div>
-              <Skeleton className="w-48 h-6 mb-6" />
+              <Skeleton className="w-48 h-6 mb-6 mx-auto md:mx-0" />
               <div className="flex flex-wrap justify-center md:justify-start gap-3">
                 <Skeleton className="w-36 h-12 rounded-xl" />
               </div>
@@ -49,7 +49,7 @@ function ProfileSkeleton() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {/* Academic Information Skeleton */}
           <section className="space-y-6">
             <div className="flex items-center gap-3 px-2">
@@ -91,7 +91,7 @@ function ProfileSkeleton() {
             <div className="bg-white rounded-xl overflow-hidden shadow-sm">
               <div className="p-6 space-y-6">
                 <div className="flex items-center gap-4">
-                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <Skeleton className="w-10 h-10 rounded-full shrink-0" />
                   <div className="flex-1">
                     <Skeleton className="w-24 h-3 mb-2" />
                     <Skeleton className="w-48 h-5" />
@@ -99,7 +99,7 @@ function ProfileSkeleton() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <Skeleton className="w-10 h-10 rounded-full shrink-0" />
                   <div className="flex-1">
                     <Skeleton className="w-24 h-3 mb-2" />
                     <Skeleton className="w-56 h-5" />
@@ -107,7 +107,7 @@ function ProfileSkeleton() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <Skeleton className="w-10 h-10 rounded-full shrink-0" />
                   <div className="flex-1">
                     <Skeleton className="w-32 h-3 mb-2" />
                     <Skeleton className="w-48 h-5" />
@@ -137,7 +137,7 @@ export default function Profile() {
   if (!student)
     return (
       <MainLayout title="Student Profile">
-        <div className="p-8">No profile data found.</div>
+        <div className="p-4 sm:p-6 md:p-8">No profile data found.</div>
       </MainLayout>
     );
 
@@ -148,12 +148,12 @@ export default function Profile() {
 
   return (
     <MainLayout title="Student Profile">
-      <div className="max-w-5xl mx-auto p-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8 md:mb-12">
           {/* Left Card - Profile Info */}
-          <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-8 flex flex-col md:flex-row items-center md:items-start gap-8 shadow-sm">
-            <div className="relative group">
-              <div className="w-40 h-40 md:w-48 md:h-48 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-50 shadow-xl overflow-hidden">
+          <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-5 sm:p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 shadow-sm">
+            <div className="relative group flex-shrink-0">
+              <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-50 shadow-xl overflow-hidden">
                 {student.profile_picture ? (
                   <img
                     src={student.profile_picture}
@@ -161,27 +161,27 @@ export default function Profile() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="material-symbols-outlined text-6xl">
+                  <span className="material-symbols-outlined text-5xl sm:text-6xl">
                     person
                   </span>
                 )}
               </div>
-              <button className="absolute -bottom-3 -right-3 bg-primary-container text-white p-3 rounded-full shadow-lg hover:scale-110 transition-transform">
+              <button className="absolute -bottom-3 -right-3 bg-primary-container text-white p-2.5 sm:p-3 rounded-full shadow-lg hover:scale-110 transition-transform">
                 <span
-                  className="material-symbols-outlined text-lg"
+                  className="material-symbols-outlined text-base sm:text-lg"
                   data-icon="photo_icon"
                 >
                   photo_camera
                 </span>
               </button>
             </div>
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <h1 className="text-4xl font-extrabold font-headline text-on-surface">
+            <div className="flex-1 text-center md:text-left w-full min-w-0">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 mb-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-headline text-on-surface break-words">
                   {student.first_name} {student?.last_name}
                 </h1>
                 <span
-                  className={`px-4 py-1.5 text-xs font-bold rounded-full self-center md:self-auto ${
+                  className={`px-4 py-1.5 text-xs font-bold rounded-full self-center md:self-auto whitespace-nowrap ${
                     student.is_archived 
                       ? "bg-red-100 text-red-700" 
                       : "bg-surface-container-highest text-primary"
@@ -190,11 +190,11 @@ export default function Profile() {
                   {student?.is_archived ? "ARCHIVED" : "ACTIVE STUDENT"}
                 </span>
               </div>
-              <p className="text-on-surface-variant font-medium text-lg mb-6">
+              <p className="text-on-surface-variant font-medium text-base sm:text-lg mb-4 sm:mb-6">
                 Enrolled via {enroll ? enroll.academic_year_name : "N/A"}
               </p>
               <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                <button className="bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-sm hover:opacity-90 transition-all">
+                <button className="bg-primary text-white px-6 sm:px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-sm hover:opacity-90 transition-all">
                   <span className="material-symbols-outlined" data-icon="edit">
                     edit
                   </span>
@@ -205,7 +205,7 @@ export default function Profile() {
           </div>
 
           {/* Right Stats Cards */}
-          <div className="md:col-span-4 grid grid-cols-1 gap-6">
+          <div className="md:col-span-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-6">
             <div className="bg-surface-container-lowest rounded-xl p-6 flex items-center justify-between shadow-sm">
               <div>
                 <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">
@@ -216,7 +216,7 @@ export default function Profile() {
                 </p>
               </div>
 
-              <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-primary">
+              <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-primary flex-shrink-0">
                 <span
                   className="material-symbols-outlined text-3xl"
                   data-icon="grade"
@@ -236,7 +236,7 @@ export default function Profile() {
                 </p>
               </div>
 
-              <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-primary">
+              <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-primary flex-shrink-0">
                 <span
                   className="material-symbols-outlined text-3xl"
                   data-icon="event_available"
@@ -248,7 +248,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {/* Academic Information Section */}
           <section className="space-y-6">
             <div className="flex items-center gap-3 px-2">
@@ -258,18 +258,18 @@ export default function Profile() {
               >
                 school
               </span>
-              <h2 className="text-xl font-bold font-headline">
+              <h2 className="text-lg sm:text-xl font-bold font-headline">
                 Academic Information
               </h2>
             </div>
             <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                       Class / Grade
                     </label>
-                    <p className="text-on-surface font-semibold text-lg mt-1">
+                    <p className="text-on-surface font-semibold text-base sm:text-lg mt-1">
                       {enroll
                         ? `${enroll.class_level_name} - ${enroll.section_name}`
                         : "Not Assigned"}
@@ -282,7 +282,7 @@ export default function Profile() {
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                       Enrollment Number
                     </label>
-                    <p className="text-on-surface font-semibold text-lg mt-1">
+                    <p className="text-on-surface font-semibold text-base sm:text-lg mt-1 break-all">
                       {student.enrollment_number}
                     </p>
                   </div>
@@ -293,7 +293,7 @@ export default function Profile() {
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                       Roll Number
                     </label>
-                    <p className="text-on-surface font-semibold text-lg mt-1">
+                    <p className="text-on-surface font-semibold text-base sm:text-lg mt-1">
                       {enroll?.roll_number || "Unassigned"}
                     </p>
                   </div>
@@ -311,14 +311,14 @@ export default function Profile() {
               >
                 contact_page
               </span>
-              <h2 className="text-xl font-bold font-headline">
+              <h2 className="text-lg sm:text-xl font-bold font-headline">
                 Personal Contact
               </h2>
             </div>
             <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center flex-shrink-0">
                     <span
                       className="material-symbols-outlined text-primary"
                       data-icon="mail"
@@ -326,18 +326,18 @@ export default function Profile() {
                       mail
                     </span>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                       Email Address
                     </label>
-                    <p className="text-on-surface font-semibold">
+                    <p className="text-on-surface font-semibold break-all">
                       {student.email}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center flex-shrink-0">
                     <span
                       className="material-symbols-outlined text-primary"
                       data-icon="call"
@@ -345,18 +345,18 @@ export default function Profile() {
                       call
                     </span>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                       Residence
                     </label>
-                    <p className="text-on-surface font-semibold">
+                    <p className="text-on-surface font-semibold break-words">
                       {student.address || "Not provided"}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center flex-shrink-0">
                     <span
                       className="material-symbols-outlined text-primary"
                       data-icon="emergency_share"
@@ -364,11 +364,11 @@ export default function Profile() {
                       emergency_share
                     </span>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                       Emergency Contact
                     </label>
-                    <p className="text-on-surface font-semibold">
+                    <p className="text-on-surface font-semibold break-words">
                       {parents.length > 0
                         ? `${parents[0].parent_name} (${parents[0].relationship})`
                         : "No Contact Registered"}

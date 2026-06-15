@@ -13,11 +13,11 @@ function Skeleton({ className = "" }) {
 function AttendanceSkeleton() {
   return (
     <MainLayout title="Attendance">
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
         <section className="flex flex-wrap items-center gap-4">
-          <div className="flex-1 flex gap-4">
-            <Skeleton className="w-48 h-10 rounded-md" />
-            <Skeleton className="w-48 h-10 rounded-md" />
+          <div className="flex-1 flex flex-wrap gap-4 min-w-0">
+            <Skeleton className="w-full sm:w-48 h-10 rounded-md" />
+            <Skeleton className="w-full sm:w-48 h-10 rounded-md" />
           </div>
           <Skeleton className="w-28 h-10 rounded-md" />
         </section>
@@ -33,7 +33,7 @@ function AttendanceSkeleton() {
               </div>
             ))}
           </div>
-          <div className="lg:col-span-8 bg-white rounded-xl p-6 shadow-sm space-y-4">
+          <div className="lg:col-span-8 bg-white rounded-xl p-4 sm:p-6 shadow-sm space-y-4">
             <div className="flex justify-between">
               <Skeleton className="w-36 h-6" />
               <div className="flex gap-2">
@@ -128,15 +128,15 @@ export default function Attendance() {
 
   return (
     <MainLayout title="Attendance">
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
 
         {/* FILTERS */}
-        <section className="flex flex-wrap items-center gap-4">
-          <div className="flex-1 flex gap-4">
+        <section className="flex flex-wrap items-center gap-3 sm:gap-4">
+          <div className="flex-1 flex flex-wrap gap-3 sm:gap-4 min-w-0">
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="bg-surface-container-low border-none rounded-md px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-surface-tint outline-none"
+              className="bg-surface-container-low border-none rounded-md px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-surface-tint outline-none flex-1 min-w-[160px]"
             >
               <option value="">All Academic Years</option>
               {academicYears.map((yr) => (
@@ -146,7 +146,7 @@ export default function Attendance() {
             <select
               value={selectedSubject}
               onChange={(e) => setSelectedSubject(e.target.value)}
-              className="bg-surface-container-low border-none rounded-md px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-surface-tint outline-none"
+              className="bg-surface-container-low border-none rounded-md px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-surface-tint outline-none flex-1 min-w-[160px]"
             >
               <option value="">All Subjects</option>
               {subjects.map((s) => (
@@ -154,7 +154,7 @@ export default function Attendance() {
               ))}
             </select>
           </div>
-          <button className="bg-surface-container-high text-primary px-6 py-2.5 rounded-md font-semibold text-sm hover:bg-blue-200 transition-colors">
+          <button className="bg-surface-container-high text-primary px-6 py-2.5 rounded-md font-semibold text-sm hover:bg-blue-200 transition-colors w-full sm:w-auto">
             Apply Filters
           </button>
         </section>
@@ -164,7 +164,7 @@ export default function Attendance() {
           {/* LEFT: 3 stat cards - Equal height with calendar */}
           <div className="lg:col-span-4 flex flex-col gap-4 h-full">
             {/* Card 1: Overall Attendance - Flexible height */}
-            <div className="bg-surface-container-lowest px-4 py-3 rounded-xl shadow-sm border border-outline-variant/10 flex items-center justify-between flex-1">
+            <div className="bg-surface-container-lowest px-4 py-3 rounded-xl shadow-sm border border-outline-variant/10 flex items-center justify-between gap-3 flex-1">
               <div className="flex items-center gap-3">
                 <span className="p-2 bg-blue-50 text-blue-600 rounded-lg flex-shrink-0">
                   <span className="material-symbols-outlined text-xl">analytics</span>
@@ -176,7 +176,7 @@ export default function Attendance() {
                   </p>
                 </div>
               </div>
-              <div className="w-16 flex flex-col items-end gap-1">
+              <div className="w-16 flex flex-col items-end gap-1 flex-shrink-0">
                 <div className="w-full bg-surface-container rounded-full h-1.5">
                   <div
                     className="bg-primary h-1.5 rounded-full transition-all duration-500"
@@ -188,7 +188,7 @@ export default function Attendance() {
             </div>
 
             {/* Card 2: Min Requirement - Flexible height */}
-            <div className="bg-surface-container-lowest px-4 py-3 rounded-xl shadow-sm border border-outline-variant/10 flex items-center justify-between flex-1">
+            <div className="bg-surface-container-lowest px-4 py-3 rounded-xl shadow-sm border border-outline-variant/10 flex items-center justify-between gap-3 flex-1">
               <div className="flex items-center gap-3">
                 <span className="p-2 bg-purple-50 text-purple-600 rounded-lg flex-shrink-0">
                   <span className="material-symbols-outlined text-xl">gavel</span>
@@ -205,7 +205,7 @@ export default function Attendance() {
                   </p>
                 </div>
               </div>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded-full self-start ${
+              <span className={`text-[10px] font-bold px-2 py-1 rounded-full self-start whitespace-nowrap flex-shrink-0 ${
                 requirementMet ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
               }`}>
                 {requirementMet ? "Met" : "Not Met"}
@@ -249,7 +249,7 @@ export default function Attendance() {
           </div>
 
           {/* RIGHT: Calendar - Same height container */}
-          <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/10 flex flex-col">
+          <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl p-4 sm:p-6 shadow-sm border border-outline-variant/10 flex flex-col">
             <div className="flex justify-between items-center mb-5 shrink-0">
               <div>
                 <h3 className="text-base font-bold font-headline text-on-surface">
@@ -275,9 +275,9 @@ export default function Attendance() {
 
             {/* Calendar Grid - Dynamic height based on weeks */}
             <div className="flex-1">
-              <div className="grid grid-cols-7 gap-1.5">
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                 {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
-                  <div key={d} className="text-center text-[10px] font-bold text-slate-400 pb-1">{d}</div>
+                  <div key={d} className="text-center text-[9px] sm:text-[10px] font-bold text-slate-400 pb-1">{d}</div>
                 ))}
                 {emptyDays.map((b, idx) => <div key={`b-${idx}`} />)}
                 {days.map((day) => {
@@ -286,7 +286,7 @@ export default function Attendance() {
                   return (
                     <div
                       key={day}
-                      className={`h-10 rounded-lg flex items-center justify-center text-xs font-semibold border transition-all cursor-default ${
+                      className={`h-8 sm:h-10 rounded-lg flex items-center justify-center text-[11px] sm:text-xs font-semibold border transition-all cursor-default ${
                         record
                           ? (statusClasses[record.status] ?? "bg-surface-container border-surface-container")
                           : "bg-surface-container-lowest border-surface-container text-on-surface-variant"
@@ -298,7 +298,7 @@ export default function Attendance() {
                 })}
               </div>
 
-              <div className="flex flex-wrap gap-5 mt-5 pt-4 border-t border-surface-container-low">
+              <div className="flex flex-wrap gap-3 sm:gap-5 mt-5 pt-4 border-t border-surface-container-low">
                 {[
                   { color: "bg-green-400",  label: "Present"   },
                   { color: "bg-red-400",    label: "Absent"    },
