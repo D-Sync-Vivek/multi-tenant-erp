@@ -10,47 +10,32 @@ function Skeleton({ className = "" }) {
 function SubjectsSkeleton() {
   return (
     <MainLayout title="My Subjects">
-      <div className="px-8 py-8 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
-          <div className="space-y-2">
-            <Skeleton className="w-40 h-8" />
-            <Skeleton className="w-64 h-4" />
-          </div>
-          <Skeleton className="w-36 h-10 rounded-md" />
+      <div className="p-4 md:p-5 h-full flex flex-col gap-4 overflow-hidden">
+        <div className="flex items-center justify-between shrink-0">
+          <div className="space-y-1"><Skeleton className="w-36 h-6" /><Skeleton className="w-48 h-3" /></div>
+          <Skeleton className="w-32 h-9 rounded-md" />
         </div>
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
-          <div className="bg-gray-50 px-6 py-4 grid grid-cols-4 gap-4">
-            <Skeleton className="w-28 h-3" />
-            <Skeleton className="w-16 h-3" />
-            <Skeleton className="w-24 h-3" />
-            <Skeleton className="w-20 h-3" />
+        <div className="flex-1 bg-white rounded-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gray-50 px-4 py-2.5 grid grid-cols-4 gap-4">
+            {["w-24","w-14","w-20","w-16"].map((w,i) => <Skeleton key={i} className={`${w} h-2.5`} />)}
           </div>
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="px-6 py-5 grid grid-cols-4 gap-4 border-t border-gray-50 items-center">
-              <div className="space-y-2">
-                <Skeleton className="w-36 h-4" />
-                <Skeleton className="w-16 h-3" />
-              </div>
-              <Skeleton className="w-10 h-4" />
-              <div className="space-y-1">
-                <Skeleton className="w-full h-2 rounded-full" />
-                <Skeleton className="w-8 h-3" />
-              </div>
-              <Skeleton className="w-14 h-6 rounded-full" />
+          {[1,2,3,4,5].map(i => (
+            <div key={i} className="px-4 py-3 grid grid-cols-4 gap-4 border-t border-gray-50 items-center">
+              <div className="space-y-1"><Skeleton className="w-28 h-3" /><Skeleton className="w-12 h-2" /></div>
+              <Skeleton className="w-10 h-3" />
+              <Skeleton className="w-full h-1.5 rounded-full" />
+              <Skeleton className="w-14 h-5 rounded-full" />
             </div>
           ))}
         </div>
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 bg-gray-200 animate-pulse rounded-lg min-h-[240px]" />
-          <div className="bg-white rounded-lg border-l-4 border-gray-200 p-6 space-y-4">
-            <Skeleton className="w-40 h-3" />
-            {[1, 2].map(i => (
-              <div key={i} className="flex gap-4">
-                <Skeleton className="w-10 h-10 rounded shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="w-32 h-3" />
-                  <Skeleton className="w-20 h-2.5" />
-                </div>
+        <div className="grid grid-cols-3 gap-4 shrink-0">
+          <div className="col-span-2 bg-gray-200 animate-pulse rounded-xl h-28" />
+          <div className="bg-white rounded-xl border-l-4 border-gray-200 p-4 space-y-2">
+            <Skeleton className="w-28 h-2.5" />
+            {[1,2].map(i => (
+              <div key={i} className="flex gap-2">
+                <Skeleton className="w-7 h-7 rounded shrink-0" />
+                <div className="flex-1 space-y-1"><Skeleton className="w-24 h-2.5" /><Skeleton className="w-16 h-2" /></div>
               </div>
             ))}
           </div>
@@ -116,20 +101,14 @@ export default function Subjects() {
 
   return (
     <MainLayout title="The Academic Architect">
-      <div className="px-8 py-8 max-w-7xl mx-auto">
+      {/* Full height, no scroll */}
+      <div className="p-4 md:p-5 h-full flex flex-col gap-4 overflow-hidden">
 
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+        {/* Header — shrink-0 */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
           <div>
-            <h2 className="text-3xl font-headline font-extrabold text-on-surface tracking-tight">My Subjects</h2>
-            <p className="text-on-surface-variant mt-1 font-medium">Manage your academic curriculum and performance</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <select className="bg-surface-container-lowest border-none rounded-md px-4 py-2 text-sm font-semibold shadow-sm focus:ring-primary">
-              {academicYears.map((data) => (
-                <option key={data.id}>{data.name}</option>
-              ))}
-            </select>
+            <h2 className="text-lg font-headline font-extrabold text-on-surface tracking-tight">My Subjects</h2>
+            <p className="text-[11px] text-on-surface-variant mt-0.5">Manage your academic curriculum and performance</p>
           </div>
           <select className="bg-surface-container-low border-none rounded-md px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-surface-tint outline-none w-full sm:w-auto">
             {academicYears.map((data) => (
@@ -138,9 +117,9 @@ export default function Subjects() {
           </select>
         </div>
 
-        {/* Table */}
-        <div className="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
-          <table className="w-full text-left border-collapse">
+        {/* Table — flex-1 fills remaining space, internal scroll only if needed */}
+        <div className="flex-1 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant/10 min-h-0">
+          <table className="w-full text-left border-collapse h-full">
             <thead>
               <tr className="bg-surface-container-low/50">
                 <th className="px-4 py-2.5 text-[10px] font-bold text-outline uppercase tracking-wider">Subject Name</th>
@@ -201,22 +180,24 @@ export default function Subjects() {
           </table>
         </div>
 
-        {/* Bottom cards */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Bottom cards — shrink-0 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
 
-          {/* ── Dynamic Blue Box ── */}
-          <div className="md:col-span-2 bg-primary-container text-on-primary-container p-8 rounded-lg relative overflow-hidden flex flex-col justify-between min-h-[240px]">
+          {/* Dynamic Blue Box */}
+          <div className="md:col-span-2 bg-primary-container text-on-primary-container px-5 py-4 rounded-xl relative overflow-hidden flex flex-col justify-between">
             <div className="relative z-10">
-              <span className="material-symbols-outlined text-4xl mb-3">{getEmoji()}</span>
-              <h3 className="text-2xl font-headline font-extrabold leading-tight mb-2">
-                Overall Performance: {overallPct}%
-              </h3>
-              <p className="text-primary-fixed opacity-90 text-sm max-w-md mb-4">
-                {getInsightMessage()}
-              </p>
-
-              {/* Stats row */}
-              <div className="flex flex-wrap gap-4 mt-2">
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-2xl shrink-0">{getEmoji()}</span>
+                <div>
+                  <h3 className="text-sm font-headline font-extrabold leading-tight">
+                    Overall Performance: {overallPct}%
+                  </h3>
+                  <p className="text-primary-fixed opacity-90 text-[11px] mt-0.5 max-w-md">
+                    {getInsightMessage()}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3">
                 {topSubject && (
                   <div className="bg-white/20 backdrop-blur-md rounded-lg px-3 py-1.5 flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-sm">star</span>
@@ -246,9 +227,8 @@ export default function Subjects() {
                 )}
               </div>
             </div>
-
-            <div className="relative z-10 mt-6">
-              <button className="bg-white/20 backdrop-blur-md text-white px-6 py-3 rounded-md text-sm font-bold hover:bg-white/30 transition-all">
+            <div className="relative z-10 mt-3">
+              <button className="bg-white/20 backdrop-blur-md text-white px-4 py-1.5 rounded-md text-[11px] font-bold hover:bg-white/30 transition-all">
                 View Detailed Analysis
               </button>
             </div>
@@ -256,21 +236,21 @@ export default function Subjects() {
           </div>
 
           {/* Upcoming tasks */}
-          <div className="bg-surface-container-low p-6 rounded-lg border-l-4 border-tertiary">
-            <h4 className="text-xs font-bold text-tertiary uppercase tracking-widest mb-4">Upcoming Subject Tasks</h4>
-            <ul className="space-y-4">
-              <li className="flex gap-4">
-                <div className="bg-white w-10 h-10 rounded flex-shrink-0 flex items-center justify-center text-tertiary shadow-sm">
-                  <span className="material-symbols-outlined text-xl">lab_profile</span>
+          <div className="bg-surface-container-low px-4 py-3 rounded-xl border-l-4 border-tertiary">
+            <h4 className="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-2">Upcoming Tasks</h4>
+            <ul className="space-y-2">
+              <li className="flex gap-2.5">
+                <div className="bg-white w-8 h-8 rounded flex-shrink-0 flex items-center justify-center text-tertiary shadow-sm">
+                  <span className="material-symbols-outlined text-base">lab_profile</span>
                 </div>
                 <div>
                   <p className="text-[11px] font-bold text-on-surface">Physics Lab Report</p>
                   <p className="text-[10px] text-outline">Due in 2 days</p>
                 </div>
               </li>
-              <li className="flex gap-4">
-                <div className="bg-white w-10 h-10 rounded flex-shrink-0 flex items-center justify-center text-secondary shadow-sm">
-                  <span className="material-symbols-outlined text-xl">history_edu</span>
+              <li className="flex gap-2.5">
+                <div className="bg-white w-8 h-8 rounded flex-shrink-0 flex items-center justify-center text-secondary shadow-sm">
+                  <span className="material-symbols-outlined text-base">history_edu</span>
                 </div>
                 <div>
                   <p className="text-[11px] font-bold text-on-surface">Chem Quiz 4 Prep</p>
