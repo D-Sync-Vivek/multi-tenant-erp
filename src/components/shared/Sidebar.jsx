@@ -3,13 +3,18 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useStudent } from '../../context/StudentProvider';
 
 const navItems = [
-  { icon: 'dashboard',       label: 'Dashboard',           path: '/student'            },
-  { icon: 'menu_book',       label: 'My Subjects',          path: '/student/subjects'   },
-  { icon: 'description',     label: 'Grades & Report Card', path: '/student/grades'     },
-  { icon: 'event_available', label: 'Attendance',           path: '/student/attendance' },
-  { icon: 'psychology',      label: 'AI Tutor',             path: '/student/ai-tutor'   },
-  { icon: 'account_balance_wallet', label: 'Fees',          path: '/student/fees'       },
-  { icon: 'support_agent',   label: 'Help Desk',            path: '/student/help'       },
+  { icon: 'dashboard',            label: 'Dashboard',           path: '/student'            },
+  { icon: 'menu_book',            label: 'My Subjects',         path: '/student/subjects'   },
+  { icon: 'description',          label: 'Grades & Report Card',path: '/student/grades'     },
+  { icon: 'event_available',      label: 'Attendance',          path: '/student/attendance' },
+  { icon: 'psychology',           label: 'AI Tutor',            path: '/student/ai-tutor'   },
+  { icon: 'account_balance_wallet', label: 'Fees',              path: '/student/fees'       },
+  { icon: 'support_agent',        label: 'Help Desk',           path: '/student/help'       },
+];
+
+const bottomItems = [
+  { to: '/student/profile',  icon: 'person',   label: 'Profile'  },
+  { to: '/student/settings', icon: 'settings', label: 'Settings' },
 ];
 
 export default function Sidebar() {
@@ -72,8 +77,44 @@ export default function Sidebar() {
     navigate('/');
   };
 
+  // Shared nav-item class builder
+  const navClass = ({ isActive }) =>
+    `flex items-center rounded-lg transition-all duration-200
+     text-sm font-semibold sidebar-nav-item
+     ${isExpanded ? 'gap-3 px-2' : 'justify-center px-2'}
+     ${isActive
+       ? 'text-primary bg-surface-container-lowest shadow-sm'
+       : 'text-on-surface-variant hover:text-primary hover:bg-surface-container/60'
+     }`;
+
   return (
     <>
+      <style>{`
+        /* ── Sidebar nav items: padding scales with viewport height ── */
+        /* 
+          clamp(min, preferred, max):
+          - On very short screens (≤ 640px tall): 6px top/bottom
+          - Scales up smoothly
+          - On tall screens (≥ 900px tall): 10px top/bottom
+          This guarantees all items fit without scroll on any laptop/desktop.
+        */
+        .sidebar-nav-item {
+          padding-top:    clamp(5px, 1.1vh, 10px);
+          padding-bottom: clamp(5px, 1.1vh, 10px);
+        }
+
+        /* Profile section padding also scales */
+        .sidebar-profile {
+          padding-top:    clamp(8px, 1.2vh, 16px);
+          padding-bottom: clamp(8px, 1.2vh, 16px);
+        }
+
+        /* Top bar stays fixed at h-14 on short screens, h-16 on tall */
+        .sidebar-topbar {
+          height: clamp(52px, 7vh, 64px);
+        }
+      `}</style>
+
       {isMobile && isExpanded && (
         <div
           className="fixed inset-0 bg-black/50 z-40"
@@ -94,7 +135,7 @@ export default function Sidebar() {
         `}
       >
         {/* ── TOP BAR: hamburger + logo ── */}
-        <div className="flex items-center h-16 px-3 flex-shrink-0 border-b border-outline-variant/20">
+        <div className="sidebar-topbar flex items-center px-3 flex-shrink-0 border-b border-outline-variant/20">
           <button
             onClick={toggle}
             className="w-10 h-10 flex items-center justify-center rounded-lg
@@ -115,10 +156,10 @@ export default function Sidebar() {
         </div>
 
         {/* ── PROFILE SECTION ── */}
-        <div className={`flex items-center border-b border-outline-variant/20 flex-shrink-0
+        <div className={`sidebar-profile flex items-center border-b border-outline-variant/20 flex-shrink-0
                          transition-all duration-300
-                         ${isExpanded ? 'gap-3 px-4 py-4' : 'justify-center px-3 py-4'}`}>
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container-highest border-2 border-primary-container flex-shrink-0">
+                         ${isExpanded ? 'gap-3 px-4' : 'justify-center px-3'}`}>
+          <div className="w-9 h-9 rounded-full overflow-hidden bg-surface-container-highest border-2 border-primary-container flex-shrink-0">
             <img
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4LdDXGxUTIj7HONBN-CW82BGC6EFYuHPaHMAz6iW8UEXuuCT3zciyD0shypraeKaWTvVsV441roXBXes6KJauvXAIOdDGtrEtm-cEwnnIAkoYgpP1Yw--PtNzgrsuo5VK1mtG2j9neJr3yMZN7wz4XZGUGptnG1_dzKJZtFlD5ACkwx6xGhU3i5P1pkg1JQ7sxojTwzbsLIVQ_1rdxqVCQmpbt9WBfGB5Gej7XxjuUbCWSutuKvzc-AX7Ovp3gp-NRpGpaMCAvg"
               alt="Avatar"
@@ -140,82 +181,71 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* ── NAV ITEMS ── */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.label}
-              to={item.path}
-              end={item.path === '/student'}
-              onClick={close}
-              title={!isExpanded ? item.label : undefined}
-              className={({ isActive }) =>
-                `flex items-center py-2.5 px-2 rounded-lg transition-all duration-200
-                 text-sm font-semibold
-                 ${isExpanded ? 'gap-4' : 'justify-center'}
-                 ${isActive
-                   ? 'text-primary bg-surface-container-lowest shadow-sm'
-                   : 'text-on-surface-variant hover:text-primary hover:bg-surface-container/60'
-                 }`
-              }
+        {/* ── NAV ITEMS ── flex-col, justify between so items spread evenly ── */}
+        <nav className="flex-1 flex flex-col justify-between py-2 px-2 min-h-0">
+
+          {/* Main nav */}
+          <div className="flex flex-col gap-0.5">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.label}
+                to={item.path}
+                end={item.path === '/student'}
+                onClick={close}
+                title={!isExpanded ? item.label : undefined}
+                className={navClass}
+              >
+                <span className="material-symbols-outlined text-xl flex-shrink-0">
+                  {item.icon}
+                </span>
+                <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                  isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
+                }`}>
+                  {item.label}
+                </span>
+              </NavLink>
+            ))}
+          </div>
+
+          {/* Bottom nav: divider + profile/settings/logout */}
+          <div className="flex flex-col gap-0.5">
+            <div className="my-1 border-t border-outline-variant/20" />
+
+            {bottomItems.map(({ to, icon, label }) => (
+              <NavLink
+                key={label}
+                to={to}
+                onClick={close}
+                title={!isExpanded ? label : undefined}
+                className={navClass}
+              >
+                <span className="material-symbols-outlined text-xl flex-shrink-0">{icon}</span>
+                <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                  isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
+                }`}>
+                  {label}
+                </span>
+              </NavLink>
+            ))}
+
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              title={!isExpanded ? 'Log Out' : undefined}
+              className={`w-full flex items-center rounded-lg transition-all sidebar-nav-item
+                          duration-200 text-sm font-semibold text-error
+                          hover:bg-surface-container/60
+                          ${isExpanded ? 'gap-3 px-2' : 'justify-center px-2'}`}
             >
-              <span className="material-symbols-outlined text-xl flex-shrink-0">
-                {item.icon}
-              </span>
+              <span className="material-symbols-outlined text-xl flex-shrink-0">logout</span>
               <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
                 isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
               }`}>
-                {item.label}
+                Log Out
               </span>
-            </NavLink>
-          ))}
+            </button>
+          </div>
 
-          <div className="my-2 border-t border-outline-variant/20" />
-
-          {[
-            { to: '/student/profile',  icon: 'person',   label: 'Profile'  },
-            { to: '/student/settings', icon: 'settings', label: 'Settings' },
-          ].map(({ to, icon, label }) => (
-            <NavLink
-              key={label}
-              to={to}
-              onClick={close}
-              title={!isExpanded ? label : undefined}
-              className={({ isActive }) =>
-                `flex items-center py-2.5 px-2 rounded-lg transition-all duration-200
-                 text-sm font-semibold
-                 ${isExpanded ? 'gap-4' : 'justify-center'}
-                 ${isActive
-                   ? 'text-primary bg-surface-container-lowest shadow-sm'
-                   : 'text-on-surface-variant hover:text-primary hover:bg-surface-container/60'
-                 }`
-              }
-            >
-              <span className="material-symbols-outlined text-xl flex-shrink-0">{icon}</span>
-              <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
-              }`}>
-                {label}
-              </span>
-            </NavLink>
-          ))}
-
-          {/* Logout */}
-          <button
-            onClick={handleLogout}
-            title={!isExpanded ? 'Log Out' : undefined}
-            className={`w-full flex items-center py-2.5 px-2 rounded-lg transition-all
-                        duration-200 text-sm font-semibold text-error
-                        hover:bg-surface-container/60
-                        ${isExpanded ? 'gap-4' : 'justify-center'}`}
-          >
-            <span className="material-symbols-outlined text-xl flex-shrink-0">logout</span>
-            <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
-              isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
-            }`}>
-              Log Out
-            </span>
-          </button>
         </nav>
       </aside>
 
