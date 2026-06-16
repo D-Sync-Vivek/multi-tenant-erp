@@ -1,148 +1,179 @@
 import React, { useState, useEffect } from "react";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
-import api from "../../services/axiosClient"; // Explicitly using your Axios client
+import api from "../../services/axiosClient";
 
 export default function CreateSection() {
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
-  const [selectedClassLevel, setSelectedClassLevel] = useState("");
   const [classLevels, setClassLevels] = useState([]);
-  
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [classLevelId, setClassLevelId] = useState("");
+  const [sectionName, setSectionName] = useState("");
+  const [loadingLevels, setLoadingLevels] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchClassLevels = async () => {
       try {
-        const response = await api.get(`/academics/class-levels/`);
-        setClassLevels(response.data.results || response.data);
+        const res = await api.get("academics/class-levels/");
+        const data = res.data.results ?? res.data;
+        setClassLevels(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch class levels:", err);
+        setError("Could not load class levels. Please refresh and try again.");
       } finally {
-        setInitialLoading(false);
+        setLoadingLevels(false);
       }
     };
-
     fetchClassLevels();
   }, []);
 
-  const handleSave = async (e) => {
+  const selectedLevel = classLevels.find(
+    (cl) => String(cl.id) === String(classLevelId)
+  );
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedClassLevel) {
-      setError("Please select a parent Class Level.");
+    if (!classLevelId) {
+      setError("Please select a parent class level.");
       return;
     }
-
-    setLoading(true);
-    setError(null);
-
+    if (!sectionName.trim()) {
+      setError("Section identifier is required.");
+      return;
+    }
+    setError("");
+    setSubmitting(true);
     try {
-      const payload = {
-        name: name,
-        class_level: selectedClassLevel
-      };
-
-      await api.post(`/academics/sections/`, payload);
-
-      alert("Section created successfully!");
-      navigate("/school-admin");
-
+      await api.post("academics/sections/", {
+        class_level: classLevelId,
+        name: sectionName.trim(),
+      });
+      navigate(-1);
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.detail || err.message || "Failed to create Section.");
+      console.error("Error creating section:", err);
+      setError(
+        err?.response?.data?.detail ||
+          "Failed to create section. Please try again."
+      );
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <SchoolLayout title="Create Section">
-      <div className="px-6 py-8 max-w-3xl mx-auto">
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-          
-          <div className="mb-6">
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#0f9d58] text-[24px]">groups</span>
-              Define New Section
-            </h3>
-            <p className="text-sm text-[#6b7280] mt-1">
-              Establish a specific classroom division linked to a primary Class Level.
-            </p>
-          </div>
-
-          {error && (
-            <div className="mb-5 p-3 bg-red-50 text-red-700 text-sm rounded border border-red-200">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSave} className="space-y-5">
-            
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-[#6b7280] ml-1">Parent Class Level</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">school</span>
-                <select
-                  required
-                  value={selectedClassLevel}
-                  onChange={e => setSelectedClassLevel(e.target.value)}
-                  className="w-full bg-[#eff4ff] pl-10 pr-4 py-2.5 text-sm rounded outline-none focus:ring-2 focus:ring-[#0058be]/20 border border-transparent focus:border-[#0058be]/40 transition-all appearance-none font-medium text-slate-700"
-                >
-                  <option value="">Select Base Class Level...</option>
-                  {initialLoading ? (
-                    <option disabled>Loading data...</option>
-                  ) : (
-                    classLevels.map((lvl) => (
-                      <option key={lvl.id} value={lvl.id}>
-                        {lvl.name} (Numeric Sort: {lvl.numeric_order})
-                      </option>
-                    ))
-                  )}
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[18px]">expand_more</span>
+    <SchoolLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 md:py-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-surface-container-lowest rounded-lg shadow-sm border border-outline-variant/10 p-6 sm:p-8">
+            {/* Header */}
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-secondary text-2xl">groups</span>
+                <div>
+                  <h2 className="text-xl font-headline font-bold text-on-surface">
+                    Define New Section
+                  </h2>
+                  <p className="text-sm text-on-surface-variant font-body mt-0.5">
+                    Establish a specific classroom division linked to a primary Class Level.
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-[#6b7280] ml-1">Section Identifier</label>
-              <input
-                required
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="e.g., Section A, Batch Alpha, Honors"
-                className="w-full bg-[#eff4ff] text-sm rounded px-3 py-2.5 outline-none focus:ring-2 focus:ring-[#0058be]/20 border border-transparent focus:border-[#0058be]/40 transition-all"
-              />
-              <p className="text-[11px] text-gray-500 ml-1 mt-0.5">
-                Combined together, this will read as "[Class Level] - [Section]" in the frontend.
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
               <button
-                type="button"
-                disabled={loading}
-                onClick={() => navigate("/school-admin")}
-                className="px-5 py-2 text-sm rounded text-gray-600 font-semibold hover:bg-[#eff4ff] transition-colors"
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary transition-colors font-body border border-outline-variant/30 rounded px-3 py-1.5"
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2 bg-gradient-to-r from-[#0f9d58] to-[#0b8043] text-white text-sm rounded font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5"
-              >
-                {loading ? (
-                  <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                ) : (
-                  <span className="material-symbols-outlined text-[16px]">add_circle</span>
-                )}
-                Create Section
+                <span className="material-symbols-outlined text-base">arrow_back</span>
+                Go Back
               </button>
             </div>
-          </form>
+
+            {/* Error */}
+            {error && (
+              <div className="mb-4 px-4 py-3 rounded-lg bg-error/10 border border-error/20 text-error text-sm font-body flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">error</span>
+                {error}
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Parent Class Level */}
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5 font-body">
+                  Parent Class Level <span className="text-error">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-base pointer-events-none">
+                    meeting_room
+                  </span>
+                  <select
+                    value={classLevelId}
+                    onChange={(e) => setClassLevelId(e.target.value)}
+                    disabled={loadingLevels}
+                    className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-outline-variant/30 bg-surface-container text-on-surface text-sm font-body focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary transition appearance-none disabled:opacity-60"
+                  >
+                    <option value="">
+                      {loadingLevels ? "Loading..." : "Select Base Class Level..."}
+                    </option>
+                    {classLevels.map((cl) => (
+                      <option key={cl.id} value={cl.id}>
+                        {cl.name}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-base pointer-events-none">
+                    expand_more
+                  </span>
+                </div>
+              </div>
+
+              {/* Section Identifier */}
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5 font-body">
+                  Section Identifier <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={sectionName}
+                  onChange={(e) => setSectionName(e.target.value)}
+                  placeholder="e.g., Section A, Batch Alpha, Honors"
+                  className="w-full px-4 py-2.5 rounded-lg border border-outline-variant/30 bg-surface-container text-on-surface placeholder:text-outline text-sm font-body focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary transition"
+                />
+                <p className="text-xs text-on-surface-variant mt-1.5 font-body">
+                  Combined together, this will read as "
+                  <span className="font-semibold text-on-surface">
+                    {selectedLevel?.name || "[Class Level]"}
+                  </span>{" "}
+                  -{" "}
+                  <span className="font-semibold text-on-surface">
+                    {sectionName.trim() || "[Section]"}
+                  </span>
+                  " in the frontend.
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  className="px-5 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high rounded-lg transition font-body"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting || loadingLevels}
+                  className="flex items-center gap-2 px-5 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition font-body disabled:opacity-60"
+                >
+                  <span className="material-symbols-outlined text-base">add_circle</span>
+                  {submitting ? "Creating..." : "Create Section"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </SchoolLayout>

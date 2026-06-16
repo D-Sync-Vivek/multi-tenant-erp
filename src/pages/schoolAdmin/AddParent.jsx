@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import api from "../../services/axiosClient";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function AddParent() {
   const navigate = useNavigate();
@@ -64,29 +65,35 @@ export default function AddParent() {
 
   return (
     <SchoolLayout title="Add Guardian">
-      <div className="max-w-5xl mx-auto space-y-6 px-6 py-6">
+      <div className="max-w-5xl mx-auto space-y-6 px-4 md:px-6 py-4 md:py-6">
         
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Register New Guardian</h1>
-            <p className="text-[#6b7280] mt-1 max-w-2xl text-sm">Onboard a new guardian into the institutional ecosystem using the 2-step decoupled identity architecture.</p>
+            <h1 className="text-2xl font-headline font-extrabold text-on-surface">Register New Guardian</h1>
+            <p className="text-sm text-on-surface-variant mt-1 max-w-2xl font-body">
+              Onboard a new guardian into the institutional ecosystem using the 2-step decoupled identity architecture.
+            </p>
           </div>
-          <button type="button" onClick={() => navigate("/school-admin/parents")} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white hover:bg-gray-50 text-[#0058be] font-semibold rounded transition border border-gray-200 shadow-sm">
+          <button 
+            type="button" 
+            onClick={() => navigate("/school-admin/parents")} 
+            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/20 text-primary font-semibold rounded-md shadow-sm font-body transition-colors"
+          >
             <span className="material-symbols-outlined text-[16px]">arrow_back</span> Directory
           </button>
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 text-red-700 rounded border border-red-200 flex gap-2 shadow-sm items-center">
-             <span className="material-symbols-outlined text-[20px]">error</span>
-             <p className="text-sm font-medium">{error}</p>
+          <div className="p-3 bg-error/10 text-error rounded-md border border-error/20 flex gap-2 shadow-sm items-center font-body">
+            <span className="material-symbols-outlined text-[20px]">error</span>
+            <p className="text-sm font-medium">{error}</p>
           </div>
         )}
 
         {successMsg && (
-          <div className="p-3 bg-green-50 text-green-800 rounded border border-green-200 flex gap-2 shadow-sm items-center">
-             <span className="material-symbols-outlined text-[20px]">check_circle</span>
-             <p className="text-sm font-medium">{successMsg}</p>
+          <div className="p-3 bg-success/10 text-success rounded-md border border-success/20 flex gap-2 shadow-sm items-center font-body">
+            <span className="material-symbols-outlined text-[20px]">check_circle</span>
+            <p className="text-sm font-medium">{successMsg}</p>
           </div>
         )}
 
@@ -96,60 +103,110 @@ export default function AddParent() {
             <div className="lg:col-span-9 space-y-6">
               
               {/* CORE IDENTITY */}
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h3 className="text-base font-bold text-slate-800 flex items-center gap-2 mb-5">
-                   <span className="material-symbols-outlined text-[#0058be] text-[20px]">badge</span> Step 1: Core Identity
+              <div className="bg-surface-container-lowest p-6 rounded-lg shadow-sm border border-outline-variant/10">
+                <h3 className="text-base font-headline font-bold text-on-surface flex items-center gap-2 mb-5">
+                  <span className="material-symbols-outlined text-primary text-[20px]">badge</span> Step 1: Core Identity
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4 mb-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-[#6b7280] tracking-wider uppercase">First Name</label>
-                    <input required value={firstName} onChange={(e) => setFirstName(e.target.value)} className="bg-[#eff4ff] px-3 py-2 text-sm rounded outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all" />
+                    <label className="text-[10px] font-headline font-bold text-on-surface-variant tracking-wider uppercase">First Name</label>
+                    <input 
+                      required 
+                      value={firstName} 
+                      onChange={(e) => setFirstName(e.target.value)} 
+                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
+                    />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-[#6b7280] tracking-wider uppercase">Last Name</label>
-                    <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="bg-[#eff4ff] px-3 py-2 text-sm rounded outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all" />
+                    <label className="text-[10px] font-headline font-bold text-on-surface-variant tracking-wider uppercase">Last Name</label>
+                    <input 
+                      value={lastName} 
+                      onChange={(e) => setLastName(e.target.value)} 
+                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
+                    />
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-[#6b7280] tracking-wider uppercase">Login Email</label>
-                    <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="bg-[#eff4ff] px-3 py-2 text-sm rounded outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all" />
+                    <label className="text-[10px] font-headline font-bold text-on-surface-variant tracking-wider uppercase">Login Email</label>
+                    <input 
+                      type="email" 
+                      required 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)} 
+                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
+                    />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-[#6b7280] tracking-wider uppercase">Temporary Password</label>
-                    <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="bg-[#eff4ff] px-3 py-2 text-sm rounded outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all" />
+                    <label className="text-[10px] font-headline font-bold text-on-surface-variant tracking-wider uppercase">Temporary Password</label>
+                    <input 
+                      type="password" 
+                      required 
+                      value={password} 
+                      onChange={(e) => setPassword(e.target.value)} 
+                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
+                    />
                   </div>
                 </div>
               </div>
 
               {/* PARENT PROFILE */}
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h3 className="text-base font-bold text-slate-800 flex items-center gap-2 mb-5">
-                   <span className="material-symbols-outlined text-[#6b38d4] text-[20px]">family_restroom</span> Step 2: Guardian Details
+              <div className="bg-surface-container-lowest p-6 rounded-lg shadow-sm border border-outline-variant/10">
+                <h3 className="text-base font-headline font-bold text-on-surface flex items-center gap-2 mb-5">
+                  <span className="material-symbols-outlined text-secondary text-[20px]">family_restroom</span> Step 2: Guardian Details
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4 mb-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-[#6b7280] tracking-wider uppercase">Primary Phone</label>
-                    <input required value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="bg-[#eff4ff] px-3 py-2 text-sm rounded outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all" />
+                    <label className="text-[10px] font-headline font-bold text-on-surface-variant tracking-wider uppercase">Primary Phone</label>
+                    <input 
+                      required 
+                      value={phoneNumber} 
+                      onChange={(e) => setPhoneNumber(e.target.value)} 
+                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
+                    />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-[#6b7280] tracking-wider uppercase">Emergency Contact</label>
-                    <input required value={emergencyContact} onChange={(e) => setEmergencyContact(e.target.value)} className="bg-[#eff4ff] px-3 py-2 text-sm rounded outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all" />
+                    <label className="text-[10px] font-headline font-bold text-on-surface-variant tracking-wider uppercase">Emergency Contact</label>
+                    <input 
+                      required 
+                      value={emergencyContact} 
+                      onChange={(e) => setEmergencyContact(e.target.value)} 
+                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
+                    />
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-[#6b7280] tracking-wider uppercase">Occupation</label>
-                    <input value={occupation} onChange={(e) => setOccupation(e.target.value)} className="bg-[#eff4ff] px-3 py-2 text-sm rounded outline-none focus:bg-white focus:ring-2 focus:ring-[#0058be]/10 border border-transparent transition-all" />
+                    <label className="text-[10px] font-headline font-bold text-on-surface-variant tracking-wider uppercase">Occupation</label>
+                    <input 
+                      value={occupation} 
+                      onChange={(e) => setOccupation(e.target.value)} 
+                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
+                    />
                   </div>
                 </div>
               </div>
 
               {/* FOOTER ACTIONS */}
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" disabled={loading} onClick={() => navigate("/school-admin/parents")} className="px-6 py-2 text-sm text-[#6b7280] font-semibold hover:bg-gray-100 rounded transition-colors disabled:opacity-50">Cancel</button>
-                <button type="submit" disabled={loading} className="px-8 py-2 bg-gradient-to-r from-[#0058be] to-[#2170e4] text-white text-sm font-bold rounded shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 min-w-[160px] disabled:opacity-70">
-                  {loading ? <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> : <span className="material-symbols-outlined text-[16px]">save</span>}
+                <button 
+                  type="button" 
+                  disabled={loading} 
+                  onClick={() => navigate("/school-admin/parents")} 
+                  className="px-6 py-2 text-sm text-on-surface-variant font-semibold hover:bg-surface-container-high rounded-md transition-colors disabled:opacity-50 font-body"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="px-8 py-2 bg-primary text-white text-sm font-bold rounded-md shadow-md hover:bg-primary/90 transition flex items-center justify-center gap-2 min-w-[160px] disabled:opacity-70 font-body"
+                >
+                  {loading ? (
+                    <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                  ) : (
+                    <span className="material-symbols-outlined text-[16px]">save</span>
+                  )}
                   {loading ? "Registering..." : "Add Guardian"}
                 </button>
               </div>
@@ -157,12 +214,14 @@ export default function AddParent() {
 
             {/* PROFILE ASSET */}
             <div className="lg:col-span-3">
-              <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm text-center">
-                <div className="w-28 h-28 mx-auto rounded-full bg-[#f8f9ff] flex items-center justify-center overflow-hidden border-4 border-white shadow-sm mb-3">
-                  <span className="material-symbols-outlined text-5xl text-gray-300">add_a_photo</span>
+              <div className="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant/10 shadow-sm text-center">
+                <div className="w-28 h-28 mx-auto rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border-4 border-surface-container-lowest shadow-sm mb-3">
+                  <span className="material-symbols-outlined text-5xl text-outline/50">add_a_photo</span>
                 </div>
-                <h4 className="font-semibold text-slate-800 text-sm">Profile Photo</h4>
-                <p className="text-[11px] text-[#6b7280] mt-1 leading-relaxed">Upload a high-resolution portrait for visual identification across the platform.</p>
+                <h4 className="font-headline font-semibold text-on-surface text-sm">Profile Photo</h4>
+                <p className="text-[11px] text-on-surface-variant mt-1 leading-relaxed font-body">
+                  Upload a high-resolution portrait for visual identification across the platform.
+                </p>
               </div>
             </div>
 

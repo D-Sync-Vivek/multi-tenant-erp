@@ -45,6 +45,8 @@ import MappingDetail from "../pages/schoolAdmin/MappingDetail";
 import EditTeacherAssignment from "../pages/schoolAdmin/EditTeacherAssignment";
 import ClassLevels from "../pages/schoolAdmin/ClassLevels"; // Adjust the folder path if yours is slightly different!
 import CreateClassSection from "../pages/schoolAdmin/CreateClassSection";
+import CreateSubject from '../pages/schoolAdmin/CreateSubject';
+import CreateSection from '../pages/schoolAdmin/CreateSection';
 
 /* ================= STUDENT ================= */
 import StudentDashboard from "../pages/student/Dashboard";
@@ -187,6 +189,8 @@ function AppRoutes() {
         <Route path="/school-admin/teacher-assignment/edit/:id" element={<EditTeacherAssignment />} />
         <Route path="/school-admin/manage-classes" element={<CreateClassSection />} /> 
         <Route path="/school-admin/notifications" element={<Notifications />} />
+        <Route path="/school-admin/create-subject" element={<CreateSubject />} />
+        <Route path="/school-admin/create-section"  element={<CreateSection />} />
         
         {/* Commented out duplicates to prevent routing bugs */}
         {/* <Route path="/school-admin/dashboard" element={<Dashboard />} /> */}

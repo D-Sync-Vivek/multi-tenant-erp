@@ -423,7 +423,9 @@ export default function GradeCard() {
             <div className="relative z-10 flex flex-col h-full justify-between">
               <div>
                 <h3 className="text-base sm:text-lg font-headline font-semibold opacity-90">Academic Performance Summary</h3>
-                <p className="text-2xl sm:text-3xl md:text-4xl font-headline font-extrabold mt-2 tracking-tight">GPA {gpa} / 4.0</p>
+               <p className="text-2xl sm:text-3xl md:text-4xl font-headline font-extrabold mt-2 tracking-tight">
+  GPA {(overallPercentage / 100 * 4).toFixed(1)} / 4.0
+</p>
               </div>
               <div className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8">
                 <button className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 sm:px-6 py-2.5 rounded-md text-sm font-semibold transition-all">View Analytics</button>

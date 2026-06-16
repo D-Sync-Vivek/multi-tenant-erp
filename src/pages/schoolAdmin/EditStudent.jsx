@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from "../../services/schoolAdminApi";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function EditStudent() {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -23,7 +25,6 @@ export default function EditStudent() {
       try {
         const data = await schoolAdminApi.getStudentById(id);
 
-        // Safely extract the nested user data so the form pre-fills correctly
         setFormData({
           first_name: data.first_name || data.user?.first_name || "",
           last_name: data.last_name || data.user?.last_name || "",
@@ -47,9 +48,6 @@ export default function EditStudent() {
     setSaving(true);
     setError(null);
     try {
-      // Send flat fields to bypass Django's strict UUID validation.
-      // Email is intentionally excluded — it lives on the User model and
-      // is shown read-only below (see note near the email field).
       const payload = {
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -74,7 +72,7 @@ export default function EditStudent() {
   if (loading) {
     return (
       <SchoolLayout title="Edit Student">
-        <div className="p-8 flex justify-center items-center h-64 text-[#0058be]">
+        <div className="p-8 flex justify-center items-center h-64 text-primary">
           <span className="material-symbols-outlined animate-spin text-4xl">progress_activity</span>
         </div>
       </SchoolLayout>
@@ -83,14 +81,17 @@ export default function EditStudent() {
 
   return (
     <SchoolLayout title="Edit Student">
-      <form onSubmit={handleSubmit} className="p-8 max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 mt-8">
-        <h1 className="text-2xl font-bold mb-1 text-gray-800">Edit Profile</h1>
-        <p className="text-sm text-gray-500 mb-6">
+      <form 
+        onSubmit={handleSubmit} 
+        className="p-4 md:p-8 max-w-2xl mx-auto bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 mt-8"
+      >
+        <h1 className="text-2xl font-headline font-bold text-on-surface mb-1">Edit Profile</h1>
+        <p className="text-sm text-on-surface-variant mb-6 font-body">
           Update the details below. Changes are saved to the student's profile record.
         </p>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md border border-red-200 flex items-center gap-2 text-sm">
+          <div className="mb-6 p-4 bg-error/10 text-error rounded-md border border-error/20 flex items-center gap-2 text-sm font-body">
             <span className="material-symbols-outlined text-lg">error</span>
             {error}
           </div>
@@ -98,25 +99,25 @@ export default function EditStudent() {
 
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1 uppercase tracking-wider">
+            <label className="block text-[10px] font-headline font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               First Name
             </label>
             <input
               value={formData.first_name}
               onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0058be]/20 focus:border-[#0058be] outline-none transition-all"
+              className="w-full p-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body text-on-surface placeholder:text-outline"
               placeholder="First Name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1 uppercase tracking-wider">
+            <label className="block text-[10px] font-headline font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Last Name
             </label>
             <input
               value={formData.last_name}
               onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0058be]/20 focus:border-[#0058be] outline-none transition-all"
+              className="w-full p-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body text-on-surface placeholder:text-outline"
               placeholder="Last Name"
             />
           </div>
@@ -124,69 +125,69 @@ export default function EditStudent() {
 
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1 uppercase tracking-wider">
+            <label className="block text-[10px] font-headline font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Enrollment Number
             </label>
             <input
               value={formData.enrollment_number}
               onChange={(e) => setFormData({ ...formData, enrollment_number: e.target.value })}
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0058be]/20 focus:border-[#0058be] outline-none transition-all"
+              className="w-full p-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body text-on-surface placeholder:text-outline"
               placeholder="e.g. STU-2024-001"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-1 uppercase tracking-wider">
+            <label className="block text-[10px] font-headline font-bold text-on-surface-variant uppercase tracking-wider mb-1">
               Phone Number
             </label>
             <input
               value={formData.phone_number}
               onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0058be]/20 focus:border-[#0058be] outline-none transition-all"
+              className="w-full p-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body text-on-surface placeholder:text-outline"
               placeholder="+1 (555) 000-0000"
             />
           </div>
         </div>
 
         <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-600 mb-1 uppercase tracking-wider">
+          <label className="block text-[10px] font-headline font-bold text-on-surface-variant uppercase tracking-wider mb-1">
             Email Address
           </label>
           <input
             value={formData.email}
             disabled
-            className="w-full p-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 outline-none cursor-not-allowed"
+            className="w-full p-2.5 border border-outline-variant/10 rounded-lg bg-surface-container-low/50 text-on-surface/60 outline-none cursor-not-allowed font-body"
           />
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-outline mt-1 font-body">
             Email is the account login ID and can't be changed from this form.
           </p>
         </div>
 
         <div className="mb-8">
-          <label className="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wider">
+          <label className="block text-[10px] font-headline font-bold text-on-surface-variant uppercase tracking-wider mb-2">
             Status
           </label>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <button
               type="button"
               onClick={() => setFormData({ ...formData, is_archived: false })}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm border transition-colors ${
-                !formData.is_archived
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm border transition-colors font-body
+                ${!formData.is_archived
+                  ? "bg-success/20 text-success border-success/30"
+                  : "bg-surface-container-low text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-high"
+                }`}
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="w-2 h-2 rounded-full bg-success"></span>
               Active
             </button>
             <button
               type="button"
               onClick={() => setFormData({ ...formData, is_archived: true })}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm border transition-colors ${
-                formData.is_archived
-                  ? "bg-slate-100 text-slate-600 border-slate-300"
-                  : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm border transition-colors font-body
+                ${formData.is_archived
+                  ? "bg-outline/10 text-outline border-outline/30"
+                  : "bg-surface-container-low text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-high"
+                }`}
             >
               <span className="material-symbols-outlined text-[14px]">inventory_2</span>
               Archived
@@ -198,7 +199,7 @@ export default function EditStudent() {
           <button
             type="submit"
             disabled={saving}
-            className="bg-[#0058be] hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-60 flex items-center gap-2"
+            className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-60 flex items-center gap-2 font-body"
           >
             {saving ? (
               <>
@@ -213,7 +214,7 @@ export default function EditStudent() {
             type="button"
             disabled={saving}
             onClick={() => navigate(-1)}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-60"
+            className="bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant px-6 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-60 font-body"
           >
             Cancel
           </button>
