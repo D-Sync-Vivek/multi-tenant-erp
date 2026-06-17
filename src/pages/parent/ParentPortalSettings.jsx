@@ -135,7 +135,7 @@ const ParentPortalSettings = () => {
             <div className="grid grid-cols-2 gap-3 flex-1">
               {/* Full Name */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Full Name</label>
+                <label className="text-2xs font-semibold text-on-surface-variant uppercase tracking-wider">Full Name</label>
                 <input
                   type="text"
                   defaultValue="Alex Harrison"
@@ -145,7 +145,7 @@ const ParentPortalSettings = () => {
 
               {/* Email */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Email Address</label>
+                <label className="text-2xs font-semibold text-on-surface-variant uppercase tracking-wider">Email Address</label>
                 <input
                   type="email"
                   defaultValue="alex.harrison@edu-mail.com"
@@ -155,7 +155,7 @@ const ParentPortalSettings = () => {
 
               {/* Phone with country code */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">
+                <label className="text-2xs font-semibold text-on-surface-variant uppercase tracking-wider">
                   Phone Number
                 </label>
                 <div className="flex gap-1.5">
@@ -176,7 +176,7 @@ const ParentPortalSettings = () => {
                       className="w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-xs text-on-surface focus:ring-2 focus:ring-surface-tint focus:outline-none transition-all"
                     />
                     {/* digit counter */}
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-on-surface-variant pointer-events-none">
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-2xs text-on-surface-variant pointer-events-none">
                       {phone.length}/{COUNTRY_CODES.find(c => c.code === countryCode)?.maxDigits || 10}
                     </span>
                   </div>
@@ -185,7 +185,7 @@ const ParentPortalSettings = () => {
 
               {/* Relationship */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Relationship</label>
+                <label className="text-2xs font-semibold text-on-surface-variant uppercase tracking-wider">Relationship</label>
                 <select className="w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-xs text-on-surface focus:ring-2 focus:ring-surface-tint focus:outline-none transition-all">
                   <option>Mother</option>
                   <option>Father</option>
@@ -217,14 +217,14 @@ const ParentPortalSettings = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Language</label>
+                  <label className="text-2xs font-semibold text-on-surface-variant uppercase tracking-wider">Language</label>
                   <div className="flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container transition-colors">
                     <span className="text-xs font-medium text-on-surface">English (US)</span>
                     <span className="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Timezone</label>
+                  <label className="text-2xs font-semibold text-on-surface-variant uppercase tracking-wider">Timezone</label>
                   <div className="flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container transition-colors">
                     <span className="text-xs font-medium text-on-surface">GMT−05:00 ET</span>
                     <span className="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
@@ -265,7 +265,7 @@ const ParentPortalSettings = () => {
                 <span className="material-symbols-outlined text-amber-600 text-base mt-0.5">auto_awesome</span>
                 <div>
                   <h3 className="text-xs font-bold text-gray-900">AI Configuration</h3>
-                  <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">Customize how AI analyzes your child's performance.</p>
+                  <p className="text-2xs text-gray-500 mt-0.5 leading-relaxed">Customize how AI analyzes your child's performance.</p>
                 </div>
               </div>
               <button className="flex-shrink-0 bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity whitespace-nowrap">
@@ -279,7 +279,7 @@ const ParentPortalSettings = () => {
                 <span className="material-symbols-outlined text-red-500 text-base mt-0.5">warning</span>
                 <div>
                   <h3 className="text-xs font-bold text-red-600">Account Security</h3>
-                  <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">Reset password or sign out of all devices.</p>
+                  <p className="text-2xs text-gray-500 mt-0.5 leading-relaxed">Reset password or sign out of all devices.</p>
                 </div>
               </div>
               <button className="flex-shrink-0 bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 transition-colors whitespace-nowrap">
@@ -308,7 +308,7 @@ const ParentPortalSettings = () => {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-on-surface leading-tight">{label}</p>
-                      <p className="text-[10px] text-on-surface-variant mt-0.5">{desc}</p>
+                      <p className="text-2xs text-on-surface-variant mt-0.5">{desc}</p>
                     </div>
                   </div>
                   <Toggle

@@ -6,7 +6,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   const navClass = ({ isActive }) =>
-    `flex items-center gap-3 px-4 py-3 font-semibold rounded-xl transition-all
+    `flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all
     ${
       isActive
         ? "bg-white text-blue-700 shadow-sm"
@@ -160,4 +160,4 @@ export default function Sidebar() {
 
   );
 
-}
+}

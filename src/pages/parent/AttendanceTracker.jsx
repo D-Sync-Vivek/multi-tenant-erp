@@ -337,7 +337,7 @@ export default function AttendanceTracker() {
                     style={{ width: `${Math.min(overallAttendance, 100)}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-on-surface-variant">{overallAttendance}% of 100%</span>
+                <span className="text-2xs text-on-surface-variant">{overallAttendance}% of 100%</span>
               </div>
             </div>
 
@@ -352,14 +352,14 @@ export default function AttendanceTracker() {
                   <p className="text-2xl font-bold font-headline text-on-surface leading-tight">
                     {minRequirement}<span className="text-sm font-semibold">%</span>
                   </p>
-                  <p className="text-[10px] text-on-surface-variant italic">
+                  <p className="text-2xs text-on-surface-variant italic">
                     {requirementMet
                       ? `${Math.abs(attendanceDifference)}% above limit`
                       : `${Math.abs(attendanceDifference)}% below limit`}
                   </p>
                 </div>
               </div>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded-full self-start whitespace-nowrap flex-shrink-0 ${
+              <span className={`text-2xs font-bold px-2 py-1 rounded-full self-start whitespace-nowrap flex-shrink-0 ${
                 requirementMet ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
               }`}>
                 {requirementMet ? "Met" : "Not Met"}
@@ -369,7 +369,7 @@ export default function AttendanceTracker() {
             {/* Card 3: Monthly Breakdown bar chart */}
             <div className="bg-surface-container-lowest px-4 py-3 rounded-xl shadow-sm border border-outline-variant/10 flex-1">
               <p className="text-xs font-medium text-on-surface-variant mb-0.5">Monthly Breakdown</p>
-              <p className="text-[10px] text-on-surface-variant/60 mb-3">{monthWord} {year}</p>
+              <p className="text-2xs text-on-surface-variant/60 mb-3">{monthWord} {year}</p>
 
               {monthlyDistribution.Present === 0 &&
                monthlyDistribution.Absent === 0 &&
@@ -386,14 +386,14 @@ export default function AttendanceTracker() {
                     const heightPercent = total > 0 ? Math.round((count / total) * 100) : 0;
                     return (
                       <div key={label} className="flex-1 flex flex-col items-center gap-1">
-                        <span className={`text-[10px] font-bold ${textColor}`}>{count}</span>
+                        <span className={`text-2xs font-bold ${textColor}`}>{count}</span>
                         <div className="w-full flex items-end" style={{ height: "44px" }}>
                           <div
                             className={`w-full ${barColor} rounded-t-md transition-all duration-500`}
                             style={{ height: `${heightPercent}%`, minHeight: count > 0 ? "3px" : "0px" }}
                           />
                         </div>
-                        <span className="text-[9px] text-on-surface-variant">{label}</span>
+                        <span className="text-3xs text-on-surface-variant">{label}</span>
                       </div>
                     );
                   })}
@@ -430,7 +430,7 @@ export default function AttendanceTracker() {
             <div className="flex-1">
               <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                 {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
-                  <div key={d} className="text-center text-[9px] sm:text-[10px] font-bold text-on-surface-variant pb-1">{d}</div>
+                  <div key={d} className="text-center text-3xs sm:text-2xs font-bold text-on-surface-variant pb-1">{d}</div>
                 ))}
                 {emptyDays.map((_, idx) => <div key={`b-${idx}`} />)}
                 {days.map((day) => {
@@ -440,7 +440,7 @@ export default function AttendanceTracker() {
                     <div
                       key={day}
                       title={record?.status || ""}
-                      className={`h-8 sm:h-10 rounded-lg flex items-center justify-center text-[11px] sm:text-xs font-semibold border transition-all cursor-default ${
+                      className={`h-8 sm:h-10 rounded-lg flex items-center justify-center text-xs sm:text-xs font-semibold border transition-all cursor-default ${
                         record
                           ? (statusClasses[record.status] ?? "bg-surface-container border-surface-container")
                           : "bg-surface-container-lowest border-surface-container text-on-surface-variant"
@@ -481,7 +481,7 @@ export default function AttendanceTracker() {
               { label: "Subjects",      value: grades.length || "N/A" },
             ].map(({ label, value }) => (
               <div key={label}>
-                <p className="text-[10px] text-on-surface-variant mb-0.5">{label}</p>
+                <p className="text-2xs text-on-surface-variant mb-0.5">{label}</p>
                 <p className="text-xs font-bold font-headline text-on-surface">{value}</p>
               </div>
             ))}
@@ -501,7 +501,7 @@ export default function AttendanceTracker() {
                   {["Date", "Day", "Remarks", "Status"].map((h, i) => (
                     <th
                       key={h}
-                      className={`px-4 py-3 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ${i === 3 ? "text-center" : ""}`}
+                      className={`px-4 py-3 text-3xs sm:text-2xs font-bold uppercase tracking-widest text-on-surface-variant ${i === 3 ? "text-center" : ""}`}
                     >
                       {h}
                     </th>
@@ -528,7 +528,7 @@ export default function AttendanceTracker() {
                         </td>
                         <td className="px-4 py-3 text-xs text-on-surface-variant">{rec.remarks || "—"}</td>
                         <td className="px-4 py-3 text-center">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${badgeCls[rec.status] || "bg-slate-100 text-slate-600"}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider ${badgeCls[rec.status] || "bg-slate-100 text-slate-600"}`}>
                             {rec.status || "—"}
                           </span>
                         </td>
