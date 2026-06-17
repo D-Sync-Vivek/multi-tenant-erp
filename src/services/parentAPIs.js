@@ -87,3 +87,20 @@ export const getSectionById = async (sectionId) => {
   const response = await api.get(`/academics/sections/${sectionId}/`);
   return response.data;
 };
+
+/**
+ * Assignments for a given child, with submission status baked in
+ * (submission_status: "Pending" | "Submitted" | "Graded", plus grade/submitted_at when relevant).
+ * GET /api/v1/operations/assignments/for-student/?student={student_id}
+ */
+export const getAssignmentsForStudent = async (studentId) => {
+  try {
+    const response = await api.get(`/operations/assignments/for-student/?student=${studentId}`);
+    return response.data.results || [];
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return [];
+    }
+    throw error;
+  }
+};

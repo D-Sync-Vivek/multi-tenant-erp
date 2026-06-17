@@ -11,7 +11,7 @@ const getGradeLetter = (pct) => {
 };
 
 const SummaryCards = () => {
-  const { dashboard, attendanceRecords, loading } = useParent();
+  const { dashboard, attendanceRecords, assignments, loading } = useParent();
 
   // ── 1. Attendance % + MoM ────────────────────────────────────────────────
   const { overallAttendance, attendanceMoM } = useMemo(() => {
@@ -60,21 +60,23 @@ const SummaryCards = () => {
     return { avgPercentage: pct, avgGradeLetter: getGradeLetter(pct) };
   }, [dashboard]);
 
-  // ── 3. Pending Assignments ────────────────────────────────────────────────
+  // ── 3. Pending Assignments ───────────────────────────────────────────────
+  // NOTE: assignments live at top-level context (from getAssignmentsForStudent),
+  // NOT inside dashboard.assignments — dashboard only bundles attendance/grades/exams.
   const { pendingCount, hasDueSoon } = useMemo(() => {
-    const assignments = dashboard?.assignments?.results || [];
+    const list = assignments || [];
     const now = new Date();
-    const pending = assignments.filter((a) => {
-      const status = (a.status || a.submission_status || "").toLowerCase();
-      return !["submitted", "graded", "completed"].includes(status);
-    });
+
+    const pending = list.filter((a) => a.submission_status === "Pending");
+
     const dueSoon = pending.some((a) => {
       if (!a.due_date) return false;
       const diff = (new Date(a.due_date) - now) / (1000 * 60 * 60 * 24);
       return diff >= 0 && diff <= 3;
     });
+
     return { pendingCount: pending.length, hasDueSoon: dueSoon };
-  }, [dashboard]);
+  }, [assignments]);
 
   // ── 4. Upcoming Exams ─────────────────────────────────────────────────────
   const { upcomingExamCount, nextExamLabel } = useMemo(() => {
