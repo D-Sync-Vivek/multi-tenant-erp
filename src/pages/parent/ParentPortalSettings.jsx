@@ -1,272 +1,327 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
 import DashboardLayout from "../../components/erp/parent/DashboardLayout";
+
+const Toggle = ({ enabled, onToggle }) => (
+  <button
+    onClick={onToggle}
+    className={`w-9 h-5 rounded-full relative transition-colors duration-200 ${enabled ? "bg-primary" : "bg-outline-variant/40"}`}
+  >
+    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-200 ${enabled ? "right-1" : "left-1"}`} />
+  </button>
+);
+
+const COUNTRY_CODES = [
+  { code: "+1",   iso: "us", name: "US",  maxDigits: 10 },
+  { code: "+44",  iso: "gb", name: "UK",  maxDigits: 10 },
+  { code: "+91",  iso: "in", name: "IN",  maxDigits: 10 },
+  { code: "+92",  iso: "pk", name: "PK",  maxDigits: 10 },
+  { code: "+971", iso: "ae", name: "UAE", maxDigits: 9  },
+  { code: "+966", iso: "sa", name: "SA",  maxDigits: 9  },
+  { code: "+61",  iso: "au", name: "AU",  maxDigits: 9  },
+  { code: "+49",  iso: "de", name: "DE",  maxDigits: 11 },
+  { code: "+33",  iso: "fr", name: "FR",  maxDigits: 9  },
+  { code: "+86",  iso: "cn", name: "CN",  maxDigits: 11 },
+  { code: "+81",  iso: "jp", name: "JP",  maxDigits: 10 },
+  { code: "+55",  iso: "br", name: "BR",  maxDigits: 11 },
+  { code: "+27",  iso: "za", name: "ZA",  maxDigits: 9  },
+  { code: "+234", iso: "ng", name: "NG",  maxDigits: 10 },
+  { code: "+20",  iso: "eg", name: "EG",  maxDigits: 10 },
+  { code: "+62",  iso: "id", name: "ID",  maxDigits: 12 },
+  { code: "+880", iso: "bd", name: "BD",  maxDigits: 10 },
+  { code: "+90",  iso: "tr", name: "TR",  maxDigits: 10 },
+  { code: "+98",  iso: "ir", name: "IR",  maxDigits: 10 },
+  { code: "+7",   iso: "ru", name: "RU",  maxDigits: 10 },
+];
+
+function FlagImg({ iso, className = "" }) {
+  return (
+    <img
+      src={`https://flagcdn.com/w20/${iso}.png`}
+      srcSet={`https://flagcdn.com/w40/${iso}.png 2x`}
+      alt={iso}
+      className={`rounded-sm object-cover flex-shrink-0 ${className}`}
+      style={{ width: "18px", height: "13px" }}
+    />
+  );
+}
+
+/* Custom flag dropdown — opens downward, compact, shows flag */
+function CountryCodePicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const selected = COUNTRY_CODES.find(c => c.code === value) || COUNTRY_CODES[0];
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative flex-shrink-0">
+      {/* Trigger button */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1.5 bg-surface-container-low rounded-lg px-2.5 py-2 text-xs font-medium text-on-surface hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-surface-tint"
+        style={{ minWidth: "82px" }}
+      >
+        <FlagImg iso={selected.iso} />
+        <span>{selected.code}</span>
+        <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: "14px" }}>
+          {open ? "expand_less" : "expand_more"}
+        </span>
+      </button>
+
+      {/* Dropdown panel — opens downward */}
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-50 bg-white rounded-xl shadow-lg border border-outline-variant/20 overflow-hidden"
+          style={{ minWidth: "148px" }}
+        >
+          <div className="overflow-y-auto" style={{ maxHeight: "176px" }}>
+            {COUNTRY_CODES.map(({ code, iso, name }) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => { onChange(code); setOpen(false); }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs hover:bg-surface-container-low transition-colors text-left ${
+                  code === value ? "bg-primary/5 text-primary font-semibold" : "text-on-surface"
+                }`}
+              >
+                <FlagImg iso={iso} />
+                <span className="font-medium">{name}</span>
+                <span className="ml-auto text-on-surface-variant">{code}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const ParentPortalSettings = () => {
-  const navigate = useNavigate();
+  const [notifs, setNotifs] = useState({ email: true, push: true, sms: false });
+  const [theme, setTheme] = useState("light");
+  const [saved, setSaved] = useState(false);
+  const [countryCode, setCountryCode] = useState("+91");
+  const [phone, setPhone] = useState("5550123-4567");
+
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   return (
     <DashboardLayout>
-    <div className="max-w-5xl mx-auto p-8 pb-24">
-      {/* Top Header Area */}
-      <header className="flex justify-between items-center mb-10">
+      <div className="h-full p-4 md:p-5 max-w-7xl mx-auto flex flex-col gap-4">
+
+        {/* Header */}
         <div>
-          <h1 className="text-4xl font-extrabold text-on-surface headline-font tracking-tight">Settings</h1>
-          <p className="text-on-surface-variant font-medium mt-1">Manage your account preferences and application configuration.</p>
+          <h1 className="text-base font-bold font-headline text-on-surface">Settings</h1>
+          <p className="text-xs text-on-surface-variant mt-0.5">Manage your account preferences and configuration.</p>
         </div>
-        {/* <button onClick={() => navigate(-1)} className="flex items-center gap-2 px-5 py-2.5 bg-surface-container-high text-primary font-semibold rounded-md hover:bg-surface-variant transition-colors group">
-          <span className="material-symbols-outlined group-active:scale-90 transition-transform" data-icon="arrow_back">arrow_back</span>
-          <span>Go Back</span>
-        </button> */}
-      </header>
-      
-      {/* Bento Grid Layout for Settings */}
-      <div className="grid grid-cols-12 gap-6">
-        
-        {/* Account Profile Section */}
-        <section className="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-lg p-8 shadow-sm">
-          <div className="flex items-center gap-3 mb-8">
-            <span className="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined" data-icon="person">person</span>
-            <h2 className="text-2xl font-bold headline-font">Account Profile</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-on-surface-variant ml-1">Full Name</label>
-              <input className="w-full bg-surface-container-low border-none rounded-md px-4 py-3 focus:ring-2 focus:ring-surface-tint focus:bg-surface-container-lowest transition-all" type="text" defaultValue="Alex Harrison"/>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-on-surface-variant ml-1">Email Address</label>
-              <input className="w-full bg-surface-container-low border-none rounded-md px-4 py-3 focus:ring-2 focus:ring-surface-tint focus:bg-surface-container-lowest transition-all" type="email" defaultValue="alex.harrison@edu-mail.com"/>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-on-surface-variant ml-1">Phone Number</label>
-              <input className="w-full bg-surface-container-low border-none rounded-md px-4 py-3 focus:ring-2 focus:ring-surface-tint focus:bg-surface-container-lowest transition-all" type="tel" defaultValue="+1 (555) 0123-4567"/>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-on-surface-variant ml-1">Relationship</label>
-              <select className="w-full bg-surface-container-low border-none rounded-md px-4 py-3 focus:ring-2 focus:ring-surface-tint focus:bg-surface-container-lowest transition-all" defaultValue="Legal Guardian">
-                <option>Mother</option>
-                <option>Father</option>
-                <option value="Legal Guardian">Legal Guardian</option>
-              </select>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-outline-variant/15 flex justify-end">
-            <button className="bg-gradient-to-br from-primary to-primary-container text-white px-8 py-3 rounded-md font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95">Save Changes</button>
-          </div>
-        </section>
 
-        {/* Language & Region */}
-        <section className="col-span-12 lg:col-span-4 flex flex-col gap-6">
-          <div className="bg-surface-container-lowest rounded-lg p-6 flex-1 shadow-sm">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="p-2 bg-secondary/10 text-secondary rounded-lg material-symbols-outlined" data-icon="language">language</span>
-              <h2 className="text-xl font-bold headline-font">Language &amp; Region</h2>
+        {/* Main grid */}
+        <div className="grid grid-cols-12 gap-4 flex-1">
+
+          {/* ── Account Profile ── */}
+          <section className="col-span-12 lg:col-span-7 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 p-4 flex flex-col">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="p-1.5 bg-primary/10 text-primary rounded-lg material-symbols-outlined text-base">person</span>
+              <h2 className="text-sm font-bold font-headline text-on-surface">Account Profile</h2>
             </div>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-outline ml-1">System Language</label>
-                <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-md group hover:bg-surface-container transition-colors cursor-pointer">
-                  <span className="font-medium">English (US)</span>
-                  <span className="material-symbols-outlined text-outline text-sm" data-icon="expand_more">expand_more</span>
-                </div>
+
+            <div className="grid grid-cols-2 gap-3 flex-1">
+              {/* Full Name */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Full Name</label>
+                <input
+                  type="text"
+                  defaultValue="Alex Harrison"
+                  className="w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-xs text-on-surface focus:ring-2 focus:ring-surface-tint focus:outline-none transition-all"
+                />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-outline ml-1">Timezone</label>
-                <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-md group hover:bg-surface-container transition-colors cursor-pointer">
-                  <span className="font-medium">(GMT-05:00) Eastern Time</span>
-                  <span className="material-symbols-outlined text-outline text-sm" data-icon="expand_more">expand_more</span>
-                </div>
+
+              {/* Email */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Email Address</label>
+                <input
+                  type="email"
+                  defaultValue="alex.harrison@edu-mail.com"
+                  className="w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-xs text-on-surface focus:ring-2 focus:ring-surface-tint focus:outline-none transition-all"
+                />
               </div>
-            </div>
-          </div>
-          
-{/* App Appearance */}
-{/* App Appearance */}
 
-<div className="bg-[#F8FAFC] rounded-xl p-6 shadow-sm">
-
-<div className="flex items-center gap-3 mb-5">
-
-<span className="p-2 rounded-lg bg-[#F5EFE6] text-[#8B5E3C] material-symbols-outlined">
-palette
-</span>
-
-<h2 className="text-lg font-semibold text-gray-900">
-App Appearance
-</h2>
-
-</div>
-
-
-<div className="grid grid-cols-2 gap-4">
-
-
-{/* LIGHT MODE */}
-
-<button
-className="flex flex-col items-center justify-center gap-2
-p-6 rounded-xl
-border-2 border-blue-600
-bg-blue-50"
->
-
-<span className="material-symbols-outlined text-blue-600 text-3xl">
-light_mode
-</span>
-
-<span className="text-sm font-semibold text-blue-600">
-Light Mode
-</span>
-
-</button>
-
-
-
-{/* DARK MODE */}
-
-<button
-className="flex flex-col items-center justify-center gap-2
-p-6 rounded-xl
-bg-gray-200"
->
-
-<span className="material-symbols-outlined text-gray-700 text-3xl">
-dark_mode
-</span>
-
-<span className="text-sm font-semibold text-gray-700">
-Dark Mode
-</span>
-
-</button>
-
-
-</div>
-
-</div>
-</section>
-
-        {/* Notification Preferences */}
-        <section className="col-span-12 bg-surface-container-lowest rounded-lg p-8 shadow-sm">
-          <div className="flex items-center gap-3 mb-10">
-            <span className="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
-            <h2 className="text-2xl font-bold headline-font">Notification Preferences</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all">
-              <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
-                <span className="material-symbols-outlined text-primary" data-icon="mail">mail</span>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-on-surface leading-tight">Email Summaries</h3>
-                <p className="text-sm text-on-surface-variant mt-1 mb-4">Weekly digests of child progress.</p>
-                <div className="flex gap-3">
-                  <div className="w-10 h-5 bg-primary rounded-full relative cursor-pointer">
-                    <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+              {/* Phone with country code */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">
+                  Phone Number
+                </label>
+                <div className="flex gap-1.5">
+                  <CountryCodePicker value={countryCode} onChange={(c) => { setCountryCode(c); setPhone(""); }} />
+                  <div className="relative flex-1 min-w-0">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={phone}
+                      onChange={(e) => {
+                        const onlyNums = e.target.value.replace(/\D/g, "");
+                        const selected = COUNTRY_CODES.find(c => c.code === countryCode);
+                        const max = selected?.maxDigits || 10;
+                        if (onlyNums.length <= max) setPhone(onlyNums);
+                      }}
+                      placeholder={`${COUNTRY_CODES.find(c => c.code === countryCode)?.maxDigits || 10} digits`}
+                      maxLength={COUNTRY_CODES.find(c => c.code === countryCode)?.maxDigits || 10}
+                      className="w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-xs text-on-surface focus:ring-2 focus:ring-surface-tint focus:outline-none transition-all"
+                    />
+                    {/* digit counter */}
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-on-surface-variant pointer-events-none">
+                      {phone.length}/{COUNTRY_CODES.find(c => c.code === countryCode)?.maxDigits || 10}
+                    </span>
                   </div>
-                  <span className="text-xs font-bold text-primary">ENABLED</span>
                 </div>
+              </div>
+
+              {/* Relationship */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Relationship</label>
+                <select className="w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-xs text-on-surface focus:ring-2 focus:ring-surface-tint focus:outline-none transition-all">
+                  <option>Mother</option>
+                  <option>Father</option>
+                  <option defaultValue>Legal Guardian</option>
+                </select>
               </div>
             </div>
-            <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all">
-              <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
-                <span className="material-symbols-outlined text-primary" data-icon="smartphone">smartphone</span>
+
+            <div className="mt-3 pt-3 border-t border-outline-variant/10 flex justify-end">
+              <button
+                onClick={handleSave}
+                className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-lg text-xs font-semibold hover:opacity-90 transition-all"
+              >
+                <span className="material-symbols-outlined text-sm">{saved ? "check" : "save"}</span>
+                {saved ? "Saved!" : "Save Changes"}
+              </button>
+            </div>
+          </section>
+
+          {/* ── Right column ── */}
+          <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
+
+            {/* Language & Appearance in one card */}
+            <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 p-4 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 bg-secondary/10 text-secondary rounded-lg material-symbols-outlined text-base">language</span>
+                <h2 className="text-sm font-bold font-headline text-on-surface">Language &amp; Appearance</h2>
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-on-surface leading-tight">Push Notifications</h3>
-                <p className="text-sm text-on-surface-variant mt-1 mb-4">Real-time alerts for absences.</p>
-                <div className="flex gap-3">
-                  <div className="w-10 h-5 bg-primary rounded-full relative cursor-pointer">
-                    <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Language</label>
+                  <div className="flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container transition-colors">
+                    <span className="text-xs font-medium text-on-surface">English (US)</span>
+                    <span className="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
                   </div>
-                  <span className="text-xs font-bold text-primary">ENABLED</span>
                 </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Timezone</label>
+                  <div className="flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container transition-colors">
+                    <span className="text-xs font-medium text-on-surface">GMT−05:00 ET</span>
+                    <span className="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Theme toggle */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setTheme("light")}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-lg border text-xs font-semibold transition-all ${
+                    theme === "light"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-transparent bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">light_mode</span>
+                  Light
+                </button>
+                <button
+                  onClick={() => setTheme("dark")}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-lg border text-xs font-semibold transition-all ${
+                    theme === "dark"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-transparent bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">dark_mode</span>
+                  Dark
+                </button>
               </div>
             </div>
-            <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all">
-              <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
-                <span className="material-symbols-outlined text-on-surface-variant" data-icon="sms">sms</span>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-on-surface leading-tight">SMS Alerts</h3>
-                <p className="text-sm text-on-surface-variant mt-1 mb-4">Emergency weather or security info.</p>
-                <div className="flex gap-3">
-                  <div className="w-10 h-5 bg-outline-variant/40 rounded-full relative cursor-pointer">
-                    <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div>
-                  </div>
-                  <span className="text-xs font-bold text-on-surface-variant">DISABLED</span>
+
+            {/* AI Configuration */}
+            <div className="bg-amber-50 rounded-xl p-4 border-l-4 border-amber-500 flex items-center justify-between gap-3">
+              <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-amber-600 text-base mt-0.5">auto_awesome</span>
+                <div>
+                  <h3 className="text-xs font-bold text-gray-900">AI Configuration</h3>
+                  <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">Customize how AI analyzes your child's performance.</p>
                 </div>
               </div>
+              <button className="flex-shrink-0 bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity whitespace-nowrap">
+                Manage →
+              </button>
+            </div>
+
+            {/* Account Security */}
+            <div className="bg-red-50 rounded-xl p-4 flex items-center justify-between gap-3">
+              <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-red-500 text-base mt-0.5">warning</span>
+                <div>
+                  <h3 className="text-xs font-bold text-red-600">Account Security</h3>
+                  <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">Reset password or sign out of all devices.</p>
+                </div>
+              </div>
+              <button className="flex-shrink-0 bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 transition-colors whitespace-nowrap">
+                Sign Out All
+              </button>
             </div>
           </div>
-        </section>
 
-        {/* Danger Zone / AI Insights Tie-in */}
-       {/* AI CONFIGURATION */}
+          {/* ── Notifications ── */}
+          <section className="col-span-12 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="p-1.5 bg-primary/10 text-primary rounded-lg material-symbols-outlined text-base">notifications_active</span>
+              <h2 className="text-sm font-bold font-headline text-on-surface">Notification Preferences</h2>
+            </div>
 
-<section className="col-span-12 lg:col-span-4 bg-[#FFF7ED] rounded-xl p-8 border-l-4 border-[#D97706]">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { key: "email", icon: "mail",       label: "Email Summaries",    desc: "Weekly digests of child progress"        },
+                { key: "push",  icon: "smartphone",  label: "Push Notifications", desc: "Real-time alerts for absences"           },
+                { key: "sms",   icon: "sms",         label: "SMS Alerts",         desc: "Emergency weather or security info"      },
+              ].map(({ key, icon, label, desc }) => (
+                <div key={key} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm flex-shrink-0">
+                      <span className={`material-symbols-outlined text-base ${notifs[key] ? "text-primary" : "text-on-surface-variant"}`}>{icon}</span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-on-surface leading-tight">{label}</p>
+                      <p className="text-[10px] text-on-surface-variant mt-0.5">{desc}</p>
+                    </div>
+                  </div>
+                  <Toggle
+                    enabled={notifs[key]}
+                    onToggle={() => setNotifs(p => ({ ...p, [key]: !p[key] }))}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
 
-<div className="flex items-center gap-3 mb-4">
-
-<span className="material-symbols-outlined text-[#D97706]">
-auto_awesome
-</span>
-
-<h3 className="text-lg font-semibold text-gray-900">
-AI Configuration
-</h3>
-
-</div>
-
-<p className="text-sm text-gray-600 mb-6 leading-relaxed">
-Customize how the intelligence engine analyzes child performance
-and generates recommendations for you.
-</p>
-
-<button className="bg-[#B45309] text-white w-full py-3 rounded-md font-semibold text-sm hover:opacity-90">
-
-Manage AI Models →
-
-</button>
-
-</section>
-
-
-
-{/* ACCOUNT SECURITY */}
-
-<section className="col-span-12 lg:col-span-8 bg-[#FEF2F2] rounded-xl p-8">
-
-<div className="flex items-center gap-3 mb-4">
-
-<span className="material-symbols-outlined text-red-600">
-warning
-</span>
-
-<h3 className="text-lg font-semibold text-red-600">
-Account Security
-</h3>
-
-</div>
-
-<div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-
-<p className="text-sm text-gray-600">
-Resetting your password or changing security keys will sign you out of all devices.
-</p>
-
-<button className="bg-red-500 text-white px-6 py-2.5 rounded-md font-semibold text-sm hover:bg-red-600">
-
-Sign Out All Devices
-
-</button>
-
-</div>
-
-</section>
-
+        </div>
       </div>
-    </div>
     </DashboardLayout>
   );
 };
