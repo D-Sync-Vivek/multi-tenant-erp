@@ -98,15 +98,6 @@ const GradesAssessmentOverview = () => {
             </nav>
             <h1 className="text-4xl font-extrabold text-on-surface tracking-tight leading-tight font-display">Grades & Assessment</h1>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link 
-              to="/teacher/grades/enter"
-              className="px-5 py-2.5 rounded-md bg-gradient-to-br from-primary to-primary-container text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 active:scale-95 outline-none border-none cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-lg">edit_document</span>
-              Enter New Grades
-            </Link>
-          </div>
         </div>
 
         {studentsCountError && (
@@ -120,6 +111,7 @@ const GradesAssessmentOverview = () => {
         )}
 
         {/* Bento Layout: Insights & Filters */}
+        {false && (
         <div className="grid grid-cols-12 gap-6">
           
           {/* AI Insight Card (Asymmetric) */}
@@ -172,6 +164,7 @@ const GradesAssessmentOverview = () => {
             </button>
           </div>
         </div>
+        )}
 
         {/* Table of Exams */}
         <section className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant/10">
