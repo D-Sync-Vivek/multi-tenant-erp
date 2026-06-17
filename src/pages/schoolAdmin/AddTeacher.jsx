@@ -87,12 +87,12 @@ export default function AddTeacher() {
 
         {error && (
           <div className="p-3 bg-error/10 text-error rounded-md border border-error/20 text-sm font-medium flex gap-2 font-body">
-            <span className="material-symbols-outlined text-[20px]">error</span>{error}
+            <span className="material-symbols-outlined text-xl">error</span>{error}
           </div>
         )}
         {successMsg && (
           <div className="p-3 bg-success/10 text-success rounded-md border border-success/20 text-sm font-medium flex gap-2 font-body">
-            <span className="material-symbols-outlined text-[20px]">check_circle</span>{successMsg}
+            <span className="material-symbols-outlined text-xl">check_circle</span>{successMsg}
           </div>
         )}
 
@@ -100,7 +100,7 @@ export default function AddTeacher() {
           {/* Identity Credentials */}
           <div className="bg-surface-container-lowest p-6 rounded-lg shadow-sm border border-outline-variant/10">
             <h3 className="text-base font-headline font-bold text-on-surface flex items-center gap-2 mb-5">
-              <span className="material-symbols-outlined text-primary text-[20px]">badge</span> Identity Credentials
+              <span className="material-symbols-outlined text-primary text-xl">badge</span> Identity Credentials
             </h3>
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col gap-1.5">
@@ -148,7 +148,7 @@ export default function AddTeacher() {
           {/* Professional Details */}
           <div className="bg-surface-container-lowest p-6 rounded-lg shadow-sm border border-outline-variant/10">
             <h3 className="text-base font-headline font-bold text-on-surface flex items-center gap-2 mb-5">
-              <span className="material-symbols-outlined text-secondary text-[20px]">school</span> Professional Details
+              <span className="material-symbols-outlined text-secondary text-xl">school</span> Professional Details
             </h3>
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col gap-1.5">

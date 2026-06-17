@@ -148,7 +148,7 @@ export default function ParentStudentMapping() {
                           <div>
                             <p className="font-semibold text-on-surface group-hover:text-primary transition-colors font-body">{m.parent_name || "Unknown Parent"}</p>
                             {m.is_primary_contact && (
-                              <span className="text-[10px] uppercase font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Primary Contact</span>
+                              <span className="text-2xs uppercase font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Primary Contact</span>
                             )}
                           </div>
                         </div>

@@ -9,7 +9,7 @@ function Skeleton({ className = "" }) {
 function GradeCardSkeleton() {
   return (
     <MainLayout title="Grades & Report Card">
-      <section className="p-4 md:p-8">
+      <section className="p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="md:col-span-2 bg-gray-200 animate-pulse rounded-xl min-h-[180px]" />
           <div className="bg-white rounded-xl p-8 shadow-sm space-y-4">
@@ -25,54 +25,37 @@ function GradeCardSkeleton() {
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-sm">
-          <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <Skeleton className="w-48 h-6" />
-            <div className="flex flex-wrap gap-3">
+            <div className="flex gap-3">
               <Skeleton className="w-32 h-9 rounded-md" />
               <Skeleton className="w-32 h-9 rounded-md" />
               <Skeleton className="w-10 h-9 rounded-md" />
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <div className="min-w-[700px]">
-              <div className="bg-gray-50 px-8 py-4 grid grid-cols-6 gap-4">
-                {["w-20","w-20","w-24","w-16","w-28","w-20"].map((w, i) => (
-                  <Skeleton key={i} className={`${w} h-3`} />
-                ))}
-              </div>
-              {[1,2,3,4,5].map(i => (
-                <div key={i} className="px-8 py-5 grid grid-cols-6 gap-4 border-t border-gray-50 items-center">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
-                    <Skeleton className="w-24 h-4" />
-                  </div>
-                  <Skeleton className="w-20 h-4" />
-                  <Skeleton className="w-16 h-4" />
-                  <Skeleton className="w-10 h-6 rounded-md" />
-                  <Skeleton className="w-full h-3" />
-                  <Skeleton className="w-28 h-3 ml-auto" />
-                </div>
-              ))}
-            </div>
+          <div className="bg-gray-50 px-8 py-4 grid grid-cols-6 gap-4">
+            {["w-20","w-20","w-24","w-16","w-28","w-20"].map((w, i) => (
+              <Skeleton key={i} className={`${w} h-3`} />
+            ))}
           </div>
+          {[1,2,3,4,5].map(i => (
+            <div key={i} className="px-8 py-5 grid grid-cols-6 gap-4 border-t border-gray-50 items-center">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+                <Skeleton className="w-24 h-4" />
+              </div>
+              <Skeleton className="w-20 h-4" />
+              <Skeleton className="w-16 h-4" />
+              <Skeleton className="w-10 h-6 rounded-md" />
+              <Skeleton className="w-full h-3" />
+              <Skeleton className="w-28 h-3 ml-auto" />
+            </div>
+          ))}
           <div className="p-6 border-t border-gray-100">
             <Skeleton className="w-40 h-3" />
           </div>
         </div>
       </section>
-      <footer className="px-4 md:px-9 pb-12">
-        <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100/30 flex flex-col md:flex-row gap-6 items-center">
-          <div className="flex-1 space-y-2">
-            <Skeleton className="w-48 h-5" />
-            <Skeleton className="w-full h-3" />
-            <Skeleton className="w-3/4 h-3" />
-          </div>
-          <div className="flex gap-4">
-            <Skeleton className="w-36 h-11 rounded-lg" />
-            <Skeleton className="w-44 h-11 rounded-lg" />
-          </div>
-        </div>
-      </footer>
     </MainLayout>
   );
 }
@@ -142,182 +125,35 @@ export default function GradeCard() {
         <title>Report Card - ${studentName}</title>
         <meta charset="UTF-8">
         <style>
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #fff;
-            padding: 40px;
-            color: #333;
-          }
-          .report-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 3px solid #3b82f6;
-            padding-bottom: 20px;
-          }
-          .header h1 {
-            font-size: 28px;
-            color: #1e293b;
-            margin-bottom: 5px;
-          }
-          .header h2 {
-            font-size: 20px;
-            color: #64748b;
-            font-weight: normal;
-          }
-          .header p {
-            font-size: 14px;
-            color: #94a3b8;
-            margin-top: 5px;
-          }
-          .student-info {
-            background: #f8fafc;
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-          }
-          .info-item {
-            display: flex;
-            gap: 10px;
-          }
-          .info-label {
-            font-weight: 600;
-            color: #64748b;
-            font-size: 12px;
-          }
-          .info-value {
-            font-weight: 700;
-            color: #1e293b;
-            font-size: 14px;
-          }
-          .summary {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-          }
-          .summary-card {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-          }
-          .summary-card h4 {
-            font-size: 12px;
-            opacity: 0.9;
-            margin-bottom: 8px;
-          }
-          .summary-card .value {
-            font-size: 32px;
-            font-weight: bold;
-          }
-          .summary-card .sub {
-            font-size: 11px;
-            opacity: 0.8;
-            margin-top: 5px;
-          }
-          .grades-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-          }
-          .grades-table th {
-            background: #f1f5f9;
-            padding: 12px;
-            text-align: left;
-            font-size: 12px;
-            font-weight: 600;
-            color: #475569;
-            text-transform: uppercase;
-            border-bottom: 2px solid #e2e8f0;
-          }
-          .grades-table td {
-            padding: 12px;
-            font-size: 13px;
-            border-bottom: 1px solid #e2e8f0;
-          }
-          .grade-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 11px;
-          }
-          .grade-Aplus { background: #dcfce7; color: #166534; }
-          .grade-A { background: #dbeafe; color: #1e40af; }
-          .grade-Bplus { background: #fef3c7; color: #92400e; }
-          .grade-B { background: #ffedd5; color: #9a3412; }
-          .grade-C { background: #fee2e2; color: #991b1b; }
-          .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-            text-align: center;
-            font-size: 11px;
-            color: #94a3b8;
-          }
-          .signature {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-            padding-top: 20px;
-          }
-          .sign-line {
-            text-align: center;
-            width: 200px;
-          }
-          .sign-line .line {
-            border-top: 1px solid #cbd5e1;
-            margin-bottom: 8px;
-          }
-          .print-btn {
-            display: none;
-          }
-          @media print {
-            body {
-              padding: 0;
-            }
-            .print-btn {
-              display: none;
-            }
-          }
-          @media screen and (max-width: 640px) {
-            body {
-              padding: 16px;
-            }
-            .summary {
-              grid-template-columns: 1fr;
-            }
-            .student-info {
-              flex-direction: column;
-            }
-            .grades-table {
-              display: block;
-              overflow-x: auto;
-              white-space: nowrap;
-            }
-            .signature {
-              flex-direction: column;
-              gap: 24px;
-            }
-            .sign-line {
-              width: 100%;
-            }
-          }
+          * { margin:0; padding:0; box-sizing:border-box; }
+          body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:#fff; padding:40px; color:#333; }
+          .report-container { max-width:1200px; margin:0 auto; }
+          .header { text-align:center; margin-bottom:30px; border-bottom:3px solid #3b82f6; padding-bottom:20px; }
+          .header h1 { font-size:28px; color:#1e293b; margin-bottom:5px; }
+          .header h2 { font-size:20px; color:#64748b; font-weight:normal; }
+          .header p  { font-size:14px; color:#94a3b8; margin-top:5px; }
+          .student-info { background:#f8fafc; padding:15px 20px; border-radius:12px; margin-bottom:25px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:15px; }
+          .info-item { display:flex; gap:10px; }
+          .info-label { font-weight:600; color:#64748b; font-size:12px; }
+          .info-value { font-weight:700; color:#1e293b; font-size:14px; }
+          .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:30px; }
+          .summary-card { background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; padding:20px; border-radius:16px; text-align:center; }
+          .summary-card h4 { font-size:12px; opacity:0.9; margin-bottom:8px; }
+          .summary-card .value { font-size:32px; font-weight:bold; }
+          .summary-card .sub { font-size:11px; opacity:0.8; margin-top:5px; }
+          .grades-table { width:100%; border-collapse:collapse; margin-bottom:30px; }
+          .grades-table th { background:#f1f5f9; padding:12px; text-align:left; font-size:12px; font-weight:600; color:#475569; text-transform:uppercase; border-bottom:2px solid #e2e8f0; }
+          .grades-table td { padding:12px; font-size:13px; border-bottom:1px solid #e2e8f0; }
+          .grade-badge { display:inline-block; padding:4px 12px; border-radius:20px; font-weight:bold; font-size:11px; }
+          .grade-Aplus { background:#dcfce7; color:#166534; }
+          .grade-A     { background:#dbeafe; color:#1e40af; }
+          .grade-Bplus { background:#fef3c7; color:#92400e; }
+          .grade-B     { background:#ffedd5; color:#9a3412; }
+          .grade-C     { background:#fee2e2; color:#991b1b; }
+          .footer { margin-top:30px; padding-top:20px; border-top:1px solid #e2e8f0; text-align:center; font-size:11px; color:#94a3b8; }
+          .signature { display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; }
+          .sign-line { text-align:center; width:200px; }
+          .sign-line .line { border-top:1px solid #cbd5e1; margin-bottom:8px; }
         </style>
       </head>
       <body>
@@ -416,22 +252,24 @@ export default function GradeCard() {
 
   return (
     <MainLayout title="Grades & Report Card">
-      <section className="p-4 md:p-8">
+      <section className="p-8">
         {/* Top cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="md:col-span-2 primary-gradient rounded-xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg">
+          <div className="md:col-span-2 primary-gradient rounded-xl p-8 text-white relative overflow-hidden shadow-lg">
             <div className="relative z-10 flex flex-col h-full justify-between">
               <div>
-                <h3 className="text-base sm:text-lg font-headline font-semibold opacity-90">Academic Performance Summary</h3>
-               <p className="text-2xl sm:text-3xl md:text-4xl font-headline font-extrabold mt-2 tracking-tight">
-  GPA {(overallPercentage / 100 * 4).toFixed(1)} / 4.0
-</p>
+                <h3 className="text-lg font-headline font-semibold opacity-90">Academic Performance Summary</h3>
+                {/* ── PERCENTAGE instead of GPA ── */}
+                <p className="text-5xl font-headline font-extrabold mt-2 tracking-tight">{overallPercentage}%</p>
+                <p className="text-sm opacity-75 mt-1">Overall Percentage</p>
               </div>
-              <div className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8">
-                <button className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 sm:px-6 py-2.5 rounded-md text-sm font-semibold transition-all">View Analytics</button>
-                <button 
+              <div className="flex gap-4 mt-8">
+                <button className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-6 py-2.5 rounded-md text-sm font-semibold transition-all">
+                  View Analytics
+                </button>
+                <button
                   onClick={downloadCSVReport}
-                  className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 sm:px-6 py-2.5 rounded-md text-sm font-semibold transition-all flex items-center gap-2"
+                  className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-6 py-2.5 rounded-md text-sm font-semibold transition-all flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-lg">table_chart</span>
                   Export CSV
@@ -441,10 +279,10 @@ export default function GradeCard() {
             <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
           </div>
 
-          <div className="bg-surface-container-lowest rounded-xl p-6 sm:p-8 flex flex-col justify-between shadow-sm relative overflow-hidden">
+          <div className="bg-surface-container-lowest rounded-xl p-8 flex flex-col justify-between shadow-sm relative overflow-hidden">
             <div>
               <span className="text-xs font-bold text-secondary tracking-widest uppercase">Term Progress</span>
-              <h4 className="text-xl sm:text-2xl font-headline font-bold text-on-surface mt-2">{latestExam ? latestExam.name : "No Exams Yet"}</h4>
+              <h4 className="text-2xl font-headline font-bold text-on-surface mt-2">{latestExam ? latestExam.name : "No Exams Yet"}</h4>
               <p className="text-sm text-on-surface-variant">Completed on {latestExam ? new Date(latestExam.end_date).toLocaleDateString() : "--"}</p>
             </div>
             <div className="mt-4">
@@ -467,27 +305,49 @@ export default function GradeCard() {
 
         {/* Table */}
         <div className="bg-surface-container-lowest rounded-xl shadow-sm">
-          <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h3 className="text-lg sm:text-xl font-headline font-bold text-on-surface">Subject-wise Breakdown</h3>
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}
-                className="bg-surface-container-low border-none rounded-md text-sm py-2 px-4 focus:ring-2 focus:ring-surface-tint flex-1 min-w-[140px] sm:flex-initial">
+          <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h3 className="text-xl font-headline font-bold text-on-surface">Subject-wise Breakdown</h3>
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className="w-full sm:w-48 bg-surface-container-low border-none rounded-md text-sm py-2 px-4 focus:ring-2 focus:ring-surface-tint"
+              >
                 <option value="all">All Subjects</option>
-                {subjects.map((sub) => <option key={sub.id} value={sub.id}>{sub.name}</option>)}
+                {subjects.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                     {sub.name}
+                  </option>
+                ))}
               </select>
-              <select value={selectedExam} onChange={(e) => setSelectedExam(e.target.value)}
-                className="bg-surface-container-low border-none rounded-md text-sm py-2 px-4 focus:ring-2 focus:ring-surface-container-lowest flex-1 min-w-[120px] sm:flex-initial">
+
+              <select
+                 value={selectedExam}
+                 onChange={(e) => setSelectedExam(e.target.value)}
+                 className="w-full sm:w-48 bg-surface-container-low border-none rounded-md text-sm py-2 px-4 focus:ring-2 focus:ring-surface-container-lowest"
+              >
                 <option value="all">All Exams</option>
-                {exams.map((exam) => <option key={exam.id} value={exam.id}>{exam.name}</option>)}
+                {exams.map((exam) => (
+                  <option key={exam.id} value={exam.id}>
+                    {exam.name}
+                  </option>
+                ))}
               </select>
-              <button className="w-10 h-10 flex items-center justify-center rounded-md bg-surface-container-low hover:bg-surface-container-high transition-colors flex-shrink-0">
-                <span className="material-symbols-outlined text-on-surface-variant">filter_list</span>
+
+              <button
+                className="h-10 sm:w-10 w-full flex items-center justify-center rounded-md bg-surface-container-low hover:bg-surface-container-high transition-colors"
+              >
+                <span className="material-symbols-outlined text-on-surface-variant">
+                   filter_list
+                </span>
               </button>
+
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] text-left border-collapse">
+            <table className="w-full text-left border-collapse">
               <thead className="bg-surface-container-low/50">
                 <tr>
                   <th className="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Subject</th>
@@ -531,7 +391,9 @@ export default function GradeCard() {
                         &quot;{grade.remarks || "No remarks provided."}&quot;
                       </td>
                       <td className="px-6 py-6 text-right">
-                        <button className="text-blue-700 hover:text-blue-900 font-semibold text-sm hover:underline transition-all whitespace-nowrap">View detailed feedback</button>
+                        <button className="text-blue-700 hover:text-blue-900 font-semibold text-sm hover:underline transition-all">
+                          View detailed feedback
+                        </button>
                       </td>
                     </tr>
                   );
@@ -547,12 +409,14 @@ export default function GradeCard() {
             </table>
           </div>
 
-          <div className="p-4 md:p-6 bg-surface-container-low/20 border-t border-surface-container flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between rounded-b-xl">
-            <p className="text-xs font-medium text-on-surface-variant italic">Showing {filteredGrades.length} subjects graded.</p>
-            <button 
+          <div className="p-6 bg-surface-container-low/20 border-t border-surface-container flex justify-between items-center rounded-b-xl">
+            <p className="text-xs font-medium text-on-surface-variant italic">
+              Showing {filteredGrades.length} subjects graded.
+            </p>
+            <button
               onClick={downloadReportCard}
               disabled={downloading}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg shadow-md hover:opacity-90 transition-all disabled:opacity-50 w-full sm:w-auto"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg shadow-md hover:opacity-90 transition-all disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-base">picture_as_pdf</span>
               {downloading ? 'Preparing PDF...' : 'Download PDF Report'}

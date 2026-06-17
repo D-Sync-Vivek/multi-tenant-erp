@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 import { generateLessonPlan, saveAIContent, getSavedAIContentById, updateSavedAIContent } from '../../services/api';
 import ToolActionButtons from '../../components/erp/global/ToolActionButtons';
 import AIResultEditor from '../../components/erp/global/AIResultEditor';
+import AIWorkspacePreviewSkeleton from '../../components/erp/global/AIWorkspacePreviewSkeleton';
 const MATHEMATICS_CHAPTERS = {
   '9': [
     '1 - NUMBER SYSTEMS',
@@ -369,7 +370,9 @@ const AIToolWorkspaceLessonPlan = () => {
               
               <div className="p-6 md:p-8 flex-1 overflow-y-auto" ref={previewRef}>
                 <div className="max-w-2xl mx-auto space-y-8">
-                  {isEditing && result ? (
+                  {loading ? (
+                    <AIWorkspacePreviewSkeleton />
+                  ) : isEditing && result ? (
                     <AIResultEditor data={result} onChange={(newData) => { setResult(newData); setIsDirty(true); }} />
                   ) : result ? (
                     <>
@@ -444,7 +447,7 @@ const AIToolWorkspaceLessonPlan = () => {
                     <div className="space-y-4 pt-1">
                       {currentActivities.map((act, aIdx) => (
                         <div key={aIdx} className="flex gap-4 items-start font-body">
-                          <div className="bg-primary text-white text-[11px] font-bold font-display px-2 py-1.5 rounded-lg shadow-sm whitespace-nowrap min-w-[70px] text-center">
+                          <div className="bg-primary text-white text-xs font-bold font-display px-2 py-1.5 rounded-lg shadow-sm whitespace-nowrap min-w-[70px] text-center">
                             {act.duration}
                           </div>
                           <div className="p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm flex-1 space-y-1.5">
@@ -476,7 +479,7 @@ const AIToolWorkspaceLessonPlan = () => {
                     <div className="space-y-3 font-body pt-1">
                       {currentAssessments.map((as, asIdx) => (
                         <div key={asIdx} className="p-4 border-l-4 border-emerald-500 bg-emerald-50/20 rounded-r-lg space-y-1 shadow-sm">
-                          <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded uppercase font-display tracking-wider">
+                          <span className="text-2xs font-extrabold text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded uppercase font-display tracking-wider">
                             {as.assessment_type}
                           </span>
                           <p className="text-on-surface-variant leading-relaxed text-xs sm:text-sm pt-1">{as.description}</p>
@@ -558,7 +561,7 @@ const AIToolWorkspaceLessonPlan = () => {
                         <div className="space-y-4 pt-1">
                           {currentActivities.map((act, aIdx) => (
                             <div key={aIdx} className="flex gap-4 items-start font-body">
-                              <div className="bg-primary text-white text-[11px] font-bold font-display px-2 py-1.5 rounded-lg shadow-sm whitespace-nowrap min-w-[70px] text-center">
+                              <div className="bg-primary text-white text-xs font-bold font-display px-2 py-1.5 rounded-lg shadow-sm whitespace-nowrap min-w-[70px] text-center">
                                 {act.duration}
                               </div>
                               <div className="p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm flex-1 space-y-1.5">
@@ -590,7 +593,7 @@ const AIToolWorkspaceLessonPlan = () => {
                         <div className="space-y-3 font-body pt-1">
                           {currentAssessments.map((as, asIdx) => (
                             <div key={asIdx} className="p-4 border-l-4 border-emerald-500 bg-emerald-50/20 rounded-r-lg space-y-1 shadow-sm">
-                              <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded uppercase font-display tracking-wider">
+                              <span className="text-2xs font-extrabold text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded uppercase font-display tracking-wider">
                                 {as.assessment_type}
                               </span>
                               <p className="text-on-surface-variant leading-relaxed text-xs sm:text-sm pt-1">{as.description}</p>
@@ -604,7 +607,7 @@ const AIToolWorkspaceLessonPlan = () => {
               </div>
 
               {/* NEW ACTION BAR COMPONENT */}
-              {result && (
+              {result && !loading && (
                 <div className="px-6 pb-6 bg-surface-container-lowest">
                   <ToolActionButtons 
                     onSave={handleSave}

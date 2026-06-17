@@ -105,10 +105,9 @@ function ProfileSkeleton() {
                     <Skeleton className="w-48 h-5" />
                   </div>
                 </div>
-               </div>
+              </div>
             </div>
           </section>
-          ))}
         </div>
       </div>
     </MainLayout>
@@ -147,8 +146,8 @@ export default function Profile() {
       <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8 md:mb-12">
           {/* Left Card - Profile Info */}
-          <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-5 sm:p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 shadow-sm">
-            <div className="relative group flex-shrink-0">
+          <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-5 sm:p-6 md:p-8 flex flex-col lg:flex-row items-center lg:items-start gap-6 lg:gap-8 shadow-sm overflow-hidden">
+            <div className="relative group flex-shrink-0 mx-auto lg:mx-0">
               <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-50 shadow-xl overflow-hidden">
                 {student.profile_picture ? (
                   <img src={student.profile_picture} alt="Profile" className="w-full h-full object-cover" />
@@ -167,34 +166,38 @@ export default function Profile() {
                 </span>
               </button>
             </div>
-            <div className="flex-1 text-center md:text-left w-full min-w-0">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 mb-4">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-headline text-on-surface break-words">
-                  {student.first_name} {student?.last_name}
-                </h1>
-                <span
-                  className={`px-4 py-1.5 text-xs font-bold rounded-full self-center md:self-auto whitespace-nowrap ${
-                    student.is_archived 
-                      ? "bg-red-100 text-red-700" 
-                      : "bg-surface-container-highest text-primary"
-                  }`}
-                >
-                  {student?.is_archived ? "ARCHIVED" : "ACTIVE STUDENT"}
-                </span>
-              </div>
-              <p className="text-on-surface-variant font-medium text-base sm:text-lg mb-4 sm:mb-6">
-                Enrolled via {enroll ? enroll.academic_year_name : "N/A"}
-              </p>
-              <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                <button className="bg-primary text-white px-6 sm:px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-sm hover:opacity-90 transition-all">
-                  <span className="material-symbols-outlined" data-icon="edit">
-                    edit
-                  </span>
-                  Edit Profile
-                </button>
-              </div>
-            </div>
-          </div>
+            <div className="flex-1 w-full min-w-0 flex flex-col items-center lg:items-start">
+
+  <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-headline text-on-surface text-center lg:text-left break-words leading-tight">
+    {student.first_name} {student?.last_name}
+  </h1>
+
+  <span
+    className={`mt-3 inline-flex items-center justify-center px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap ${
+      student.is_archived
+        ? "bg-red-100 text-red-700"
+        : "bg-surface-container-highest text-primary"
+    }`}
+  >
+    {student?.is_archived ? "ARCHIVED" : "ACTIVE STUDENT"}
+  </span>
+
+  <p className="text-on-surface-variant font-medium text-base sm:text-lg mb-4 sm:mb-6 mt-4 text-center lg:text-left">
+    Enrolled via {enroll ? enroll.academic_year_name : "N/A"}
+  </p>
+
+  <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+    <button className="bg-primary text-white px-6 sm:px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-sm hover:opacity-90 transition-all">
+      <span className="material-symbols-outlined">
+        edit
+      </span>
+      Edit Profile
+    </button>
+  </div>
+
+</div>
+</div>
+          
 
           {/* Right Stats Cards */}
           <div className="md:col-span-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-6">

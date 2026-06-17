@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ParentProvider } from '../context/ParentProvider';
 
 /* COMMON */
 import Landing from "../pages/Landing";
@@ -368,14 +369,15 @@ function AppRoutes() {
         <Route path="/teacher/notifications" element={<TeacherNotificationsHub />} />
 
         {/* ================= PARENT ================= */}
-        <Route path="/parent" element={<ParentDashboard />} />
-        <Route path="/parent/child-overview" element={<ChildOverview />} />
-        <Route path="/parent/attendance" element={<AttendanceTracker />} />
-        <Route path="/parent/assignments" element={<AssignmentsOverview />} />
-        <Route path="/parent/grades" element={<GradesAssessmentHub />} />
-        <Route path="/parent/ai-insights" element={<AllInsightsRecommendations />} />
-        <Route path="/parent/notifications" element={<NotificationsHub />} />
-        <Route path="/parent/settings" element={<ParentPortalSettings />} />
+        {/* ================= PARENT ================= */}
+<Route path="/parent" element={<ParentProvider><ParentDashboard /></ParentProvider>} />
+<Route path="/parent/child-overview" element={<ParentProvider><ChildOverview /></ParentProvider>} />
+<Route path="/parent/attendance" element={<ParentProvider><AttendanceTracker /></ParentProvider>} />
+<Route path="/parent/assignments" element={<ParentProvider><AssignmentsOverview /></ParentProvider>} />
+<Route path="/parent/grades" element={<ParentProvider><GradesAssessmentHub /></ParentProvider>} />
+<Route path="/parent/ai-insights" element={<ParentProvider><AllInsightsRecommendations /></ParentProvider>} />
+<Route path="/parent/notifications" element={<ParentProvider><NotificationsHub /></ParentProvider>} />
+<Route path="/parent/settings" element={<ParentProvider><ParentPortalSettings /></ParentProvider>} />
       </Routes>
     </BrowserRouter>
   );

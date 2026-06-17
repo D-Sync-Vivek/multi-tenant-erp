@@ -105,7 +105,7 @@ export default function TeacherAssignment() {
             onClick={() => navigate("/school-admin/teacher-assignment/create")}
             className="flex items-center gap-1.5 px-4 py-2 text-sm bg-primary text-white font-semibold rounded-md shadow-sm hover:bg-primary/90 transition-all font-body"
           >
-            <span className="material-symbols-outlined text-[18px]">add</span> Assign Teacher
+            <span className="material-symbols-outlined text-lg">add</span> Assign Teacher
           </button>
         </div>
 
@@ -117,7 +117,7 @@ export default function TeacherAssignment() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="lg:col-span-2 bg-surface-container-lowest p-5 rounded-lg border-l-4 border-primary shadow-sm">
-            <p className="text-[10px] font-headline font-bold text-primary uppercase tracking-wider">Allocation Overview</p>
+            <p className="text-2xs font-headline font-bold text-primary uppercase tracking-wider">Allocation Overview</p>
             <div className="flex items-end gap-3 mt-2">
               <h3 className="text-3xl font-headline font-bold text-on-surface">{totalCount}</h3>
               <p className="text-xs text-on-surface-variant pb-1 font-body">Active Assignments</p>
@@ -197,7 +197,7 @@ export default function TeacherAssignment() {
                           </div>
                           <div>
                             <p className="font-semibold text-on-surface font-body">{a.teacher_name || "Unknown Teacher"}</p>
-                            <p className="text-[10px] text-outline font-mono mt-0.5">EMP: {a.teacher_employee_id || "N/A"}</p>
+                            <p className="text-2xs text-outline font-mono mt-0.5">EMP: {a.teacher_employee_id || "N/A"}</p>
                           </div>
                         </div>
                       </td>
@@ -244,6 +244,7 @@ export default function TeacherAssignment() {
                   ))
                 )}
               </tbody>
+              
             </table>
           </div>
 

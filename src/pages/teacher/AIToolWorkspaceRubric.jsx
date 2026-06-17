@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MainLayout from "../../components/erp/teacher/MainLayout";
 import { generateRubric, saveAIContent, getSavedAIContentById, updateSavedAIContent } from '../../services/api';
 import ToolActionButtons from '../../components/erp/global/ToolActionButtons';
 import AIResultEditor from '../../components/erp/global/AIResultEditor';
+import AIWorkspacePreviewSkeleton from '../../components/erp/global/AIWorkspacePreviewSkeleton';
 const MATHEMATICS_CHAPTERS = {
   '9': [
     '1 - NUMBER SYSTEMS',
@@ -338,7 +339,9 @@ const AIToolWorkspaceRubric = () => {
               
               <div className="p-6 md:p-8 flex-1 overflow-y-auto bg-neutral-50/50" ref={previewRef}>
                 <div className="max-w-3xl mx-auto space-y-6">
-                  {isEditing && result ? (
+                  {loading ? (
+                    <AIWorkspacePreviewSkeleton />
+                  ) : isEditing && result ? (
                     <AIResultEditor data={result} onChange={(newData) => { setResult(newData); setIsDirty(true); }} />
                   ) : result ? (
                     <>
@@ -369,7 +372,7 @@ const AIToolWorkspaceRubric = () => {
                           <tr key={i} className="hover:bg-slate-50 transition-colors">
                             <td className="px-4 py-5 font-bold text-on-surface align-top space-y-2">
                               <p className="font-display text-sm">{c.criterion_name}</p>
-                              <span className="inline-block bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold font-display uppercase tracking-tight">
+                              <span className="inline-block bg-primary/10 text-primary px-2 py-0.5 rounded text-2xs font-bold font-display uppercase tracking-tight">
                                 Weight: {c.weight}%
                               </span>
                             </td>
@@ -412,7 +415,7 @@ const AIToolWorkspaceRubric = () => {
                               <tr key={i} className="hover:bg-slate-50 transition-colors">
                                 <td className="px-4 py-5 font-bold text-on-surface align-top space-y-2">
                                   <p className="font-display text-sm">{c.criterion_name}</p>
-                                  <span className="inline-block bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold font-display uppercase tracking-tight">
+                                  <span className="inline-block bg-primary/10 text-primary px-2 py-0.5 rounded text-2xs font-bold font-display uppercase tracking-tight">
                                     Weight: {c.weight}%
                                   </span>
                                 </td>
@@ -431,7 +434,7 @@ const AIToolWorkspaceRubric = () => {
               </div>
 
               {/* NEW ACTION BAR COMPONENT */}
-              {result && (
+              {result && !loading && (
                 <div className="px-6 pb-6 bg-surface-container-lowest">
                   <ToolActionButtons 
                     onSave={handleSave}
