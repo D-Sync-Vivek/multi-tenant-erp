@@ -10,7 +10,12 @@ const Navbar = () => {
   const parentLastName = parentData && parentData.last_name;
 
   return (
-    <header className="w-full sticky top-0 z-40 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl flex justify-between items-center px-6 h-16 no-border tonal-transition bg-slate-100/50 dark:bg-slate-900/50">
+    <header className="w-full sticky top-0 z-40
+                       bg-white/80 dark:bg-slate-900/80
+                       backdrop-blur-xl
+                       border-b border-slate-200 dark:border-slate-700/50
+                       flex justify-between items-center px-6 h-16
+                       transition-colors duration-300">
       <div className="flex items-center gap-4">
         <span className="material-symbols-outlined text-on-surface-variant md:hidden cursor-pointer">
           menu

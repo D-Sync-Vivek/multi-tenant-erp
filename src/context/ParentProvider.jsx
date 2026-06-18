@@ -7,6 +7,7 @@ import {
   getAcademicYear,
   getStudentAttendanceRecords,
   getStudentGrades,
+  getAssignmentsForStudent,
 } from "../services/parentAPIs";
 
 const ParentContext = createContext();
@@ -20,7 +21,8 @@ export const ParentProvider = ({ children }) => {
     enrollment: null,
     academic: { years: [], subs: [] },
     attendanceRecords: [],
-    grades: [],               // flat grades array for GradesAssessmentHub
+    grades: [],                // flat grades array for GradesAssessmentHub
+    assignments: [],           // assignments + submission status for AssignmentsOverview
     children: [],
   });
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,7 @@ export const ParentProvider = ({ children }) => {
 
   const loadForStudent = useCallback(async (studentId, mappingRecord) => {
     try {
-      const [profile, dashboard, enrollment, academic, attendanceRecords, grades] =
+      const [profile, dashboard, enrollment, academic, attendanceRecords, grades, assignments] =
         await Promise.all([
           getStudentProfile(studentId),
           getParentDashboardData(studentId),
@@ -36,6 +38,7 @@ export const ParentProvider = ({ children }) => {
           getAcademicYear(),
           getStudentAttendanceRecords(studentId),
           getStudentGrades(studentId),
+          getAssignmentsForStudent(studentId),
         ]);
 
       setContextData((prev) => ({
@@ -48,6 +51,7 @@ export const ParentProvider = ({ children }) => {
         academic,
         attendanceRecords,
         grades,
+        assignments,
       }));
     } catch (err) {
       console.error("Failed to load student data for parent", err);
@@ -99,9 +103,16 @@ export const ParentProvider = ({ children }) => {
     [contextData.student]
   );
 
+  // Refresh assignments (e.g. after a child switch or manual reload)
+  const refreshAssignments = useCallback(async () => {
+    if (!contextData.student) return;
+    const assignments = await getAssignmentsForStudent(contextData.student);
+    setContextData((prev) => ({ ...prev, assignments }));
+  }, [contextData.student]);
+
   return (
     <ParentContext.Provider
-      value={{ ...contextData, loading, error, switchChild, refreshGrades }}
+      value={{ ...contextData, loading, error, switchChild, refreshGrades, refreshAssignments }}
     >
       {children}
     </ParentContext.Provider>

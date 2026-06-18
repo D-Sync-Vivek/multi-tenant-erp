@@ -1,15 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
+// src/pages/parent/ParentPortalSettings.jsx
+
+import React, { useState, useRef, useEffect } from "react";
 import DashboardLayout from "../../components/erp/parent/DashboardLayout";
 
+// ─── Toggle switch ────────────────────────────────────────────────────────────
 const Toggle = ({ enabled, onToggle }) => (
   <button
     onClick={onToggle}
-    className={`w-9 h-5 rounded-full relative transition-colors duration-200 ${enabled ? "bg-primary" : "bg-outline-variant/40"}`}
+    className={`w-9 h-5 rounded-full relative transition-colors duration-200
+      ${enabled ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600"}`}
   >
-    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-200 ${enabled ? "right-1" : "left-1"}`} />
+    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-all duration-200
+      ${enabled ? "right-1" : "left-1"}`}
+    />
   </button>
 );
 
+// ─── Country codes ────────────────────────────────────────────────────────────
 const COUNTRY_CODES = [
   { code: "+1",   iso: "us", name: "US",  maxDigits: 10 },
   { code: "+44",  iso: "gb", name: "UK",  maxDigits: 10 },
@@ -33,49 +40,54 @@ const COUNTRY_CODES = [
   { code: "+7",   iso: "ru", name: "RU",  maxDigits: 10 },
 ];
 
-function FlagImg({ iso, className = "" }) {
+function FlagImg({ iso }) {
   return (
     <img
       src={`https://flagcdn.com/w20/${iso}.png`}
       srcSet={`https://flagcdn.com/w40/${iso}.png 2x`}
       alt={iso}
-      className={`rounded-sm object-cover flex-shrink-0 ${className}`}
+      className="rounded-sm object-cover flex-shrink-0"
       style={{ width: "18px", height: "13px" }}
     />
   );
 }
 
-/* Custom flag dropdown — opens downward, compact, shows flag */
 function CountryCodePicker({ value, onChange }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const selected = COUNTRY_CODES.find(c => c.code === value) || COUNTRY_CODES[0];
+  const selected = COUNTRY_CODES.find((c) => c.code === value) || COUNTRY_CODES[0];
 
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   return (
     <div ref={ref} className="relative flex-shrink-0">
-      {/* Trigger button */}
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 bg-surface-container-low rounded-lg px-2.5 py-2 text-xs font-medium text-on-surface hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-surface-tint"
+        onClick={() => setOpen((o) => !o)}
         style={{ minWidth: "82px" }}
+        className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700
+                   rounded-lg px-2.5 py-2 text-xs font-medium
+                   text-slate-800 dark:text-white
+                   hover:bg-slate-200 dark:hover:bg-slate-600
+                   transition-colors focus:outline-none"
       >
         <FlagImg iso={selected.iso} />
         <span>{selected.code}</span>
-        <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: "14px" }}>
+        <span className="material-symbols-outlined text-slate-400 dark:text-slate-300" style={{ fontSize: "14px" }}>
           {open ? "expand_less" : "expand_more"}
         </span>
       </button>
 
-      {/* Dropdown panel — opens downward */}
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 bg-white rounded-xl shadow-lg border border-outline-variant/20 overflow-hidden"
+        <div
+          className="absolute left-0 top-full mt-1 z-50 bg-white dark:bg-slate-800
+                     rounded-xl shadow-xl border border-slate-200 dark:border-slate-600 overflow-hidden"
           style={{ minWidth: "148px" }}
         >
           <div className="overflow-y-auto" style={{ maxHeight: "176px" }}>
@@ -84,13 +96,16 @@ function CountryCodePicker({ value, onChange }) {
                 key={code}
                 type="button"
                 onClick={() => { onChange(code); setOpen(false); }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs hover:bg-surface-container-low transition-colors text-left ${
-                  code === value ? "bg-primary/5 text-primary font-semibold" : "text-on-surface"
-                }`}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs
+                  hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-left
+                  ${code === value
+                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-semibold"
+                    : "text-slate-800 dark:text-white"
+                  }`}
               >
                 <FlagImg iso={iso} />
                 <span className="font-medium">{name}</span>
-                <span className="ml-auto text-on-surface-variant">{code}</span>
+                <span className="ml-auto text-slate-400 dark:text-slate-300">{code}</span>
               </button>
             ))}
           </div>
@@ -100,17 +115,39 @@ function CountryCodePicker({ value, onChange }) {
   );
 }
 
+// ─── Main Settings Page ───────────────────────────────────────────────────────
 const ParentPortalSettings = () => {
-  const [notifs, setNotifs] = useState({ email: true, push: true, sms: false });
-  const [theme, setTheme] = useState("light");
-  const [saved, setSaved] = useState(false);
+
+  const [isDark, setIsDark] = useState(
+    () => localStorage.getItem("parent_theme") === "dark"
+  );
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("parent_theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("parent_theme", "light");
+    }
+  }, [isDark]);
+
+  const [notifs, setNotifs]           = useState({ email: true, push: true, sms: false });
+  const [saved, setSaved]             = useState(false);
   const [countryCode, setCountryCode] = useState("+91");
-  const [phone, setPhone] = useState("5550123-4567");
+  const [phone, setPhone]             = useState("5550123456");
 
   const handleSave = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
+
+  const inputCls =
+    "w-full rounded-lg px-3 py-2 text-xs border-none outline-none " +
+    "bg-slate-100 dark:bg-slate-700 " +
+    "text-slate-800 dark:text-white " +
+    "placeholder:text-slate-400 dark:placeholder:text-slate-400 " +
+    "focus:ring-2 focus:ring-blue-500 transition-all";
 
   return (
     <DashboardLayout>
@@ -118,46 +155,38 @@ const ParentPortalSettings = () => {
 
         {/* Header */}
         <div>
-          <h1 className="text-base font-bold font-headline text-on-surface">Settings</h1>
-          <p className="text-xs text-on-surface-variant mt-0.5">Manage your account preferences and configuration.</p>
+          <h1 className="text-base font-bold font-headline text-slate-800 dark:text-white">
+            Settings
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
+            Manage your account preferences and configuration.
+          </p>
         </div>
 
-        {/* Main grid */}
         <div className="grid grid-cols-12 gap-4 flex-1">
 
           {/* ── Account Profile ── */}
-          <section className="col-span-12 lg:col-span-7 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 p-4 flex flex-col">
+          <section className="col-span-12 lg:col-span-7
+                              bg-white dark:bg-slate-800
+                              rounded-xl shadow-sm border border-slate-200 dark:border-slate-700
+                              p-4 flex flex-col transition-colors duration-300">
+
             <div className="flex items-center gap-2 mb-3">
-              <span className="p-1.5 bg-primary/10 text-primary rounded-lg material-symbols-outlined text-base">person</span>
-              <h2 className="text-sm font-bold font-headline text-on-surface">Account Profile</h2>
+              <span className="p-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 rounded-lg material-symbols-outlined text-base">person</span>
+              <h2 className="text-sm font-bold font-headline text-slate-800 dark:text-white">Account Profile</h2>
             </div>
 
             <div className="grid grid-cols-2 gap-3 flex-1">
-              {/* Full Name */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Full Name</label>
-                <input
-                  type="text"
-                  defaultValue="Alex Harrison"
-                  className="w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-xs text-on-surface focus:ring-2 focus:ring-surface-tint focus:outline-none transition-all"
-                />
+                <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">Full Name</label>
+                <input type="text" defaultValue="Alex Harrison" className={inputCls} />
               </div>
-
-              {/* Email */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Email Address</label>
-                <input
-                  type="email"
-                  defaultValue="alex.harrison@edu-mail.com"
-                  className="w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-xs text-on-surface focus:ring-2 focus:ring-surface-tint focus:outline-none transition-all"
-                />
+                <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">Email Address</label>
+                <input type="email" defaultValue="alex.harrison@edu-mail.com" className={inputCls} />
               </div>
-
-              {/* Phone with country code */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">
-                  Phone Number
-                </label>
+                <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">Phone Number</label>
                 <div className="flex gap-1.5">
                   <CountryCodePicker value={countryCode} onChange={(c) => { setCountryCode(c); setPhone(""); }} />
                   <div className="relative flex-1 min-w-0">
@@ -167,37 +196,32 @@ const ParentPortalSettings = () => {
                       value={phone}
                       onChange={(e) => {
                         const onlyNums = e.target.value.replace(/\D/g, "");
-                        const selected = COUNTRY_CODES.find(c => c.code === countryCode);
-                        const max = selected?.maxDigits || 10;
-                        if (onlyNums.length <= max) setPhone(onlyNums);
+                        const sel = COUNTRY_CODES.find((c) => c.code === countryCode);
+                        if (onlyNums.length <= (sel?.maxDigits || 10)) setPhone(onlyNums);
                       }}
-                      placeholder={`${COUNTRY_CODES.find(c => c.code === countryCode)?.maxDigits || 10} digits`}
-                      maxLength={COUNTRY_CODES.find(c => c.code === countryCode)?.maxDigits || 10}
-                      className="w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-xs text-on-surface focus:ring-2 focus:ring-surface-tint focus:outline-none transition-all"
+                      placeholder="Phone number"
+                      className={inputCls}
                     />
-                    {/* digit counter */}
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-on-surface-variant pointer-events-none">
-                      {phone.length}/{COUNTRY_CODES.find(c => c.code === countryCode)?.maxDigits || 10}
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 dark:text-slate-300 pointer-events-none">
+                      {phone.length}/{COUNTRY_CODES.find((c) => c.code === countryCode)?.maxDigits || 10}
                     </span>
                   </div>
                 </div>
               </div>
-
-              {/* Relationship */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Relationship</label>
-                <select className="w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-xs text-on-surface focus:ring-2 focus:ring-surface-tint focus:outline-none transition-all">
+                <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">Relationship</label>
+                <select className={inputCls}>
                   <option>Mother</option>
                   <option>Father</option>
-                  <option defaultValue>Legal Guardian</option>
+                  <option>Legal Guardian</option>
                 </select>
               </div>
             </div>
 
-            <div className="mt-3 pt-3 border-t border-outline-variant/10 flex justify-end">
+            <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-end">
               <button
                 onClick={handleSave}
-                className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-lg text-xs font-semibold hover:opacity-90 transition-all"
+                className="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition-all"
               >
                 <span className="material-symbols-outlined text-sm">{saved ? "check" : "save"}</span>
                 {saved ? "Saved!" : "Save Changes"}
@@ -208,50 +232,58 @@ const ParentPortalSettings = () => {
           {/* ── Right column ── */}
           <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
 
-            {/* Language & Appearance in one card */}
-            <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 p-4 flex flex-col gap-3">
+            {/* Language & Appearance */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm
+                            border border-slate-200 dark:border-slate-700
+                            p-4 flex flex-col gap-3 transition-colors duration-300">
+
               <div className="flex items-center gap-2">
-                <span className="p-1.5 bg-secondary/10 text-secondary rounded-lg material-symbols-outlined text-base">language</span>
-                <h2 className="text-sm font-bold font-headline text-on-surface">Language &amp; Appearance</h2>
+                <span className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded-lg material-symbols-outlined text-base">language</span>
+                <h2 className="text-sm font-bold font-headline text-slate-800 dark:text-white">Language &amp; Appearance</h2>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Language</label>
-                  <div className="flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container transition-colors">
-                    <span className="text-xs font-medium text-on-surface">English (US)</span>
-                    <span className="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
+                  <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">Language</label>
+                  <div className="flex items-center justify-between px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    <span className="text-xs font-medium text-slate-800 dark:text-white">English (US)</span>
+                    <span className="material-symbols-outlined text-slate-400 dark:text-slate-300 text-sm">expand_more</span>
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">Timezone</label>
-                  <div className="flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container transition-colors">
-                    <span className="text-xs font-medium text-on-surface">GMT−05:00 ET</span>
-                    <span className="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
+                  <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">Timezone</label>
+                  <div className="flex items-center justify-between px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    <span className="text-xs font-medium text-slate-800 dark:text-white">GMT−05:00 ET</span>
+                    <span className="material-symbols-outlined text-slate-400 dark:text-slate-300 text-sm">expand_more</span>
                   </div>
                 </div>
               </div>
 
-              {/* Theme toggle */}
+              {/* ── LIGHT / DARK BUTTONS ── */}
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => setTheme("light")}
-                  className={`flex items-center justify-center gap-2 py-2 rounded-lg border text-xs font-semibold transition-all ${
-                    theme === "light"
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-transparent bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
-                  }`}
+                  type="button"
+                  onClick={() => setIsDark(false)}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-lg
+                              border text-xs font-semibold transition-all duration-200
+                              ${!isDark
+                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300"
+                                : "border-transparent bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                              }`}
                 >
                   <span className="material-symbols-outlined text-base">light_mode</span>
                   Light
                 </button>
+
                 <button
-                  onClick={() => setTheme("dark")}
-                  className={`flex items-center justify-center gap-2 py-2 rounded-lg border text-xs font-semibold transition-all ${
-                    theme === "dark"
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-transparent bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
-                  }`}
+                  type="button"
+                  onClick={() => setIsDark(true)}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-lg
+                              border text-xs font-semibold transition-all duration-200
+                              ${isDark
+                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300"
+                                : "border-transparent bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                              }`}
                 >
                   <span className="material-symbols-outlined text-base">dark_mode</span>
                   Dark
@@ -260,12 +292,14 @@ const ParentPortalSettings = () => {
             </div>
 
             {/* AI Configuration */}
-            <div className="bg-amber-50 rounded-xl p-4 border-l-4 border-amber-500 flex items-center justify-between gap-3">
+            <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-4
+                            border-l-4 border-amber-500 flex items-center justify-between gap-3
+                            transition-colors duration-300">
               <div className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-amber-600 text-base mt-0.5">auto_awesome</span>
+                <span className="material-symbols-outlined text-amber-600 dark:text-amber-300 text-base mt-0.5">auto_awesome</span>
                 <div>
-                  <h3 className="text-xs font-bold text-gray-900">AI Configuration</h3>
-                  <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">Customize how AI analyzes your child's performance.</p>
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-white">AI Configuration</h3>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-300 mt-0.5 leading-relaxed">Customize how AI analyzes your child's performance.</p>
                 </div>
               </div>
               <button className="flex-shrink-0 bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity whitespace-nowrap">
@@ -274,12 +308,14 @@ const ParentPortalSettings = () => {
             </div>
 
             {/* Account Security */}
-            <div className="bg-red-50 rounded-xl p-4 flex items-center justify-between gap-3">
+            <div className="bg-red-50 dark:bg-red-950/20 rounded-xl p-4
+                            flex items-center justify-between gap-3
+                            transition-colors duration-300">
               <div className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-red-500 text-base mt-0.5">warning</span>
+                <span className="material-symbols-outlined text-red-500 dark:text-red-300 text-base mt-0.5">warning</span>
                 <div>
-                  <h3 className="text-xs font-bold text-red-600">Account Security</h3>
-                  <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">Reset password or sign out of all devices.</p>
+                  <h3 className="text-xs font-bold text-red-600 dark:text-red-300">Account Security</h3>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-300 mt-0.5 leading-relaxed">Reset password or sign out of all devices.</p>
                 </div>
               </div>
               <button className="flex-shrink-0 bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 transition-colors whitespace-nowrap">
@@ -289,32 +325,33 @@ const ParentPortalSettings = () => {
           </div>
 
           {/* ── Notifications ── */}
-          <section className="col-span-12 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 p-4">
+          <section className="col-span-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm
+                              border border-slate-200 dark:border-slate-700
+                              p-4 transition-colors duration-300">
             <div className="flex items-center gap-2 mb-3">
-              <span className="p-1.5 bg-primary/10 text-primary rounded-lg material-symbols-outlined text-base">notifications_active</span>
-              <h2 className="text-sm font-bold font-headline text-on-surface">Notification Preferences</h2>
+              <span className="p-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 rounded-lg material-symbols-outlined text-base">notifications_active</span>
+              <h2 className="text-sm font-bold font-headline text-slate-800 dark:text-white">Notification Preferences</h2>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
-                { key: "email", icon: "mail",       label: "Email Summaries",    desc: "Weekly digests of child progress"        },
-                { key: "push",  icon: "smartphone",  label: "Push Notifications", desc: "Real-time alerts for absences"           },
-                { key: "sms",   icon: "sms",         label: "SMS Alerts",         desc: "Emergency weather or security info"      },
+                { key: "email", icon: "mail",      label: "Email Summaries",    desc: "Weekly digests of child progress"   },
+                { key: "push",  icon: "smartphone", label: "Push Notifications", desc: "Real-time alerts for absences"      },
+                { key: "sms",   icon: "sms",        label: "SMS Alerts",         desc: "Emergency weather or security info" },
               ].map(({ key, icon, label, desc }) => (
-                <div key={key} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+                <div key={key}
+                  className="flex items-center justify-between gap-3 p-3 rounded-xl
+                             bg-slate-50 dark:bg-slate-700/50
+                             hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm flex-shrink-0">
-                      <span className={`material-symbols-outlined text-base ${notifs[key] ? "text-primary" : "text-on-surface-variant"}`}>{icon}</span>
+                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-600 flex items-center justify-center shadow-sm flex-shrink-0">
+                      <span className={`material-symbols-outlined text-base ${notifs[key] ? "text-blue-600 dark:text-blue-300" : "text-slate-400 dark:text-slate-300"}`}>{icon}</span>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-on-surface leading-tight">{label}</p>
-                      <p className="text-[10px] text-on-surface-variant mt-0.5">{desc}</p>
+                      <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight">{label}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-300 mt-0.5">{desc}</p>
                     </div>
                   </div>
-                  <Toggle
-                    enabled={notifs[key]}
-                    onToggle={() => setNotifs(p => ({ ...p, [key]: !p[key] }))}
-                  />
+                  <Toggle enabled={notifs[key]} onToggle={() => setNotifs((p) => ({ ...p, [key]: !p[key] }))} />
                 </div>
               ))}
             </div>
