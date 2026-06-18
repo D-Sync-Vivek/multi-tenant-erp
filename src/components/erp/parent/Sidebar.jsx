@@ -5,6 +5,11 @@ export default function Sidebar() {
 
   const navigate = useNavigate();
 
+  const userData = JSON.parse(localStorage.getItem('user_data'))
+  const parentData = userData?.identity;
+  const parentFirstName = parentData && parentData.first_name;
+  const parentLastName = parentData && parentData.last_name;
+
   const navClass = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-3 font-semibold rounded-xl transition-all
     ${
@@ -47,7 +52,7 @@ export default function Sidebar() {
         <div>
 
           <p className="font-bold text-sm">
-            Alexander Pierce
+            {parentFirstName[0].toUpperCase() + parentFirstName.slice(1)} {parentLastName[0].toUpperCase() + parentLastName.slice(1)}
           </p>
 
           <p className="text-xs text-slate-500">
@@ -160,4 +165,4 @@ export default function Sidebar() {
 
   );
 
-}
+}
