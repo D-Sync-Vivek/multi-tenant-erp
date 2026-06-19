@@ -104,3 +104,15 @@ export const getAssignmentsForStudent = async (studentId) => {
     throw error;
   }
 };
+
+export const parentData = async (parentId) => {
+  try {
+    const response = await api.get(`/profiles/parents/${parentId}`);
+    return response.data || [];
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return [];
+    }
+    throw error;
+  }
+};
