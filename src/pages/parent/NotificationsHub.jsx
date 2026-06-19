@@ -222,7 +222,7 @@ function NotifCard({ notif, studentName, isUnread, onRead, onDismiss }) {
         <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-0.5 mb-0.5">
           <h3 className="text-xs font-bold text-on-surface leading-tight break-words min-w-0">{notif.title}</h3>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-2xs text-on-surface-variant uppercase font-medium whitespace-nowrap">{notif.time}</span>
+            <span className="text-[10px] text-on-surface-variant uppercase font-medium whitespace-nowrap">{notif.time}</span>
             {isUnread && <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />}
           </div>
         </div>
@@ -263,14 +263,14 @@ export default function NotificationsHub() {
   const [allLoaded, setAllLoaded]     = useState(false);
 
   const markAllRead = () => {
-    const allIds = [...STATIC_NOTIFS, ...olderLoaded].map(n => n.id);
+    const allIds = [...STATIC_NOTIFS, ...olderLoaded].map((n) => n.id);
     setReadIds(new Set(allIds));
   };
 
-  const markRead = (id) => setReadIds(prev => new Set([...prev, id]));
+  const markRead = (id) => setReadIds((prev) => new Set([...prev, id]));
 
   const dismiss = (id) => {
-    setDismissed(prev => new Set([...prev, id]));
+    setDismissed((prev) => new Set([...prev, id]));
     markRead(id);
   };
 
@@ -278,12 +278,12 @@ export default function NotificationsHub() {
     if (loadingMore || allLoaded) return;
     setLoadingMore(true);
     // Simulate network delay
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise((r) => setTimeout(r, 800));
     const nextPage = olderPage + 1;
     const start = olderPage * PAGE_SIZE;
     const end   = nextPage  * PAGE_SIZE;
     const batch = OLDER_NOTIFS.slice(start, end);
-    setOlderLoaded(prev => [...prev, ...batch]);
+    setOlderLoaded((prev) => [...prev, ...batch]);
     setOlderPage(nextPage);
     if (end >= OLDER_NOTIFS.length) setAllLoaded(true);
     setLoadingMore(false);
@@ -292,18 +292,18 @@ export default function NotificationsHub() {
   const allNotifs = useMemo(() => [...STATIC_NOTIFS, ...olderLoaded], [olderLoaded]);
 
   const visible = useMemo(() => {
-    return allNotifs.filter(n => {
+    return allNotifs.filter((n) => {
       if (dismissed.has(n.id)) return false;
       if (activeTab === "all") return true;
       return n.category === activeTab;
     });
   }, [activeTab, dismissed, allNotifs]);
 
-  const unreadCount = allNotifs.filter(n => n.unread && !readIds.has(n.id) && !dismissed.has(n.id)).length;
+  const unreadCount = allNotifs.filter((n) => n.unread && !readIds.has(n.id) && !dismissed.has(n.id)).length;
 
   // how many older notifs still remain to load (for current tab)
-  const remainingOlder = OLDER_NOTIFS.slice(olderPage * PAGE_SIZE).filter(n =>
-    activeTab === "all" || n.category === activeTab
+  const remainingOlder = OLDER_NOTIFS.slice(olderPage * PAGE_SIZE).filter(
+    (n) => activeTab === "all" || n.category === activeTab
   ).length;
 
   return (
@@ -313,15 +313,15 @@ export default function NotificationsHub() {
         {/* ── Header ── */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
           <div className="min-w-0">
-            <h1 className="text-base font-bold font-headline text-on-surface">Notifications</h1>
-            <p className="text-xs text-on-surface-variant mt-0.5 break-words">
+            <h1 className="text-base font-bold font-headline text-on-surface dark:text-white">Notifications</h1>
+            <p className="text-xs text-on-surface-variant dark:text-slate-400 mt-0.5 break-words">
               Stay updated with {studentName}&apos;s latest academic progress and school alerts.
             </p>
           </div>
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="flex items-center justify-center gap-1.5 text-xs font-semibold text-primary bg-primary/5 hover:bg-primary/10 px-3 py-2 rounded-lg transition-colors flex-shrink-0 w-full sm:w-auto"
+              className="flex items-center justify-center gap-1.5 text-xs font-semibold text-primary bg-primary/5 dark:bg-blue-900/20 hover:bg-primary/10 dark:hover:bg-blue-900/30 px-3 py-2 rounded-lg transition-colors flex-shrink-0 w-full sm:w-auto"
             >
               <span className="material-symbols-outlined text-base">done_all</span>
               Mark all as read
@@ -332,11 +332,14 @@ export default function NotificationsHub() {
         {/* ── Filter tabs ── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
           {/* Scrolls horizontally instead of overflowing the page on narrow screens */}
-          <div className="flex bg-surface-container-low p-1 rounded-xl gap-1 overflow-x-auto min-w-0 max-w-full">
+          <div className="flex bg-surface-container-low dark:bg-slate-700 p-1 rounded-xl gap-1 overflow-x-auto min-w-0 max-w-full">
             {TABS.map(({ key, label }) => {
-              const count = allNotifs.filter(n =>
-                n.unread && !readIds.has(n.id) && !dismissed.has(n.id) &&
-                (key === "all" || n.category === key)
+              const count = allNotifs.filter(
+                (n) =>
+                  n.unread &&
+                  !readIds.has(n.id) &&
+                  !dismissed.has(n.id) &&
+                  (key === "all" || n.category === key)
               ).length;
               return (
                 <button
@@ -344,13 +347,13 @@ export default function NotificationsHub() {
                   onClick={() => setActiveTab(key)}
                   className={`relative flex-shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     activeTab === key
-                      ? "bg-white shadow-sm text-primary"
-                      : "text-on-surface-variant hover:text-on-surface"
+                      ? "bg-white dark:bg-slate-600 shadow-sm text-primary dark:text-blue-300"
+                      : "text-on-surface-variant dark:text-slate-400 hover:text-on-surface dark:hover:text-white"
                   }`}
                 >
                   {label}
                   {count > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-3xs font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                       {count}
                     </span>
                   )}
@@ -358,14 +361,16 @@ export default function NotificationsHub() {
               );
             })}
           </div>
-          <span className="text-xs text-on-surface-variant flex-shrink-0">{visible.length} notification{visible.length !== 1 ? "s" : ""}</span>
+          <span className="text-xs text-on-surface-variant dark:text-slate-400 flex-shrink-0">
+            {visible.length} notification{visible.length !== 1 ? "s" : ""}
+          </span>
         </div>
 
         {/* ── Notification list ── */}
         {visible.length === 0 ? (
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 py-16 px-4 flex flex-col items-center justify-center gap-3 text-center">
-            <span className="material-symbols-outlined text-4xl text-on-surface-variant">notifications_off</span>
-            <p className="text-sm text-on-surface-variant">No notifications in this category</p>
+          <div className="bg-surface-container-lowest dark:bg-slate-800/60 rounded-xl border border-outline-variant/10 dark:border-slate-700/40 py-16 px-4 flex flex-col items-center justify-center gap-3 text-center">
+            <span className="material-symbols-outlined text-4xl text-on-surface-variant dark:text-slate-500">notifications_off</span>
+            <p className="text-sm text-on-surface-variant dark:text-slate-400">No notifications in this category</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -385,7 +390,7 @@ export default function NotificationsHub() {
         {/* ── Load more ── */}
         <div className="flex justify-center pt-2 pb-4 px-2">
           {allLoaded || remainingOlder === 0 ? (
-            <p className="text-xs text-on-surface-variant flex items-center gap-1.5 text-center">
+            <p className="text-xs text-on-surface-variant dark:text-slate-400 flex items-center gap-1.5 text-center">
               <span className="material-symbols-outlined text-sm">check</span>
               You&apos;re all caught up
             </p>
@@ -393,13 +398,13 @@ export default function NotificationsHub() {
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="flex items-center gap-1.5 text-xs font-semibold text-on-surface-variant bg-surface-container-low hover:bg-surface-container px-4 sm:px-5 py-2 rounded-lg transition-colors disabled:opacity-60 text-center"
+              className="flex items-center gap-1.5 text-xs font-semibold text-on-surface-variant dark:text-slate-400 bg-surface-container-low dark:bg-slate-700 hover:bg-surface-container dark:hover:bg-slate-600 px-4 sm:px-5 py-2 rounded-lg transition-colors disabled:opacity-60 text-center"
             >
               {loadingMore ? (
                 <>
                   <svg className="animate-spin w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
                   Loading…
                 </>

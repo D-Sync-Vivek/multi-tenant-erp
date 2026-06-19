@@ -60,17 +60,108 @@ function GradeCardSkeleton() {
   );
 }
 
+/* ─── Exam name shortener ───────────────────────────────────────────────── */
+// Maps common long exam names to short codes for table display.
+// Falls back to the original name if no pattern matches.
+function shortenExamName(name = "") {
+  const n = name.toLowerCase();
+  if (n.includes("mid") && n.includes("term")) return "MT Exam";
+  if (n.includes("final")) return "Final Exam";
+  if (n.includes("unit") && n.includes("test")) return "Unit Test";
+  if (n.includes("quarter")) return "Quarterly";
+  if (n.includes("half") && n.includes("yearly")) return "Half Yearly";
+  if (n.includes("annual")) return "Annual Exam";
+  if (n.includes("pre") && n.includes("board")) return "Pre-Board";
+  return name;
+}
+
+/* ─── Detailed Feedback Modal ───────────────────────────────────────────── */
+function FeedbackModal({ grade, gradeDetails, iconDetails, onClose }) {
+  const pct = ((parseFloat(grade.marks_obtained) / parseFloat(grade.max_marks)) * 100).toFixed(1);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconDetails.bg}`}>
+              <span className="material-symbols-outlined">{iconDetails.icon}</span>
+            </div>
+            <div>
+              <h2 className="text-sm font-bold font-headline text-on-surface">{grade.subject_name}</h2>
+              <p className="text-xs text-on-surface-variant">{shortenExamName(grade.exam_name)}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant transition-colors"
+          >
+            <span className="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <div className="px-6 py-5 space-y-5">
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="bg-surface-container-low rounded-xl py-3">
+              <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Marks</p>
+              <p className="text-lg font-bold text-on-surface mt-1">
+                {grade.marks_obtained}<span className="text-xs text-on-surface-variant">/{grade.max_marks}</span>
+              </p>
+            </div>
+            <div className="bg-surface-container-low rounded-xl py-3">
+              <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Percentage</p>
+              <p className="text-lg font-bold text-primary mt-1">{pct}%</p>
+            </div>
+            <div className="bg-surface-container-low rounded-xl py-3">
+              <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Grade</p>
+              <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-md font-bold text-xs uppercase tracking-widest ${gradeDetails.color}`}>
+                {gradeDetails.letter}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Teacher Remarks</p>
+            <p className="text-sm text-on-surface italic leading-relaxed bg-surface-container-low/60 rounded-xl p-4">
+              &quot;{grade.remarks || "No remarks provided for this assessment."}&quot;
+            </p>
+          </div>
+        </div>
+
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-all"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GradeCard() {
   const { dashboard, academic, profile, loading } = useStudent();
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedExam, setSelectedExam] = useState("all");
   const [downloading, setDownloading] = useState(false);
+  const [feedbackGrade, setFeedbackGrade] = useState(null);
 
   if (loading) return <GradeCardSkeleton />;
 
   const grades = dashboard?.grades?.results || [];
   const exams = dashboard?.exams?.results || [];
-  const subjects = academic?.subs || [];
+  // De-duplicate by name — backend's /academics/subjects/ can return multiple rows
+  // for the same subject (e.g. one per section), which would otherwise show
+  // "English", "English" twice in the filter dropdown.
+  const rawSubjects = academic?.subs || [];
+  const subjects = Array.from(
+    new Map(rawSubjects.map((s) => [s.name, s])).values()
+  );
 
   // ── Calculate overall percentage directly from marks ──
   let overallPercentage = 0;
@@ -104,7 +195,7 @@ export default function GradeCard() {
   };
 
   const filteredGrades = grades.filter((grade) => {
-    const matchesSubject = selectedSubject === "all" || grade.subject === selectedSubject;
+    const matchesSubject = selectedSubject === "all" || grade.subject_name === selectedSubject;
     const matchesExam    = selectedExam    === "all" || grade.exam    === selectedExam;
     return matchesSubject && matchesExam;
   });
@@ -282,7 +373,7 @@ export default function GradeCard() {
           <div className="bg-surface-container-lowest rounded-xl p-8 flex flex-col justify-between shadow-sm relative overflow-hidden">
             <div>
               <span className="text-xs font-bold text-secondary tracking-widest uppercase">Term Progress</span>
-              <h4 className="text-2xl font-headline font-bold text-on-surface mt-2">{latestExam ? latestExam.name : "No Exams Yet"}</h4>
+              <h4 className="text-2xl font-headline font-bold text-on-surface mt-2">{latestExam ? shortenExamName(latestExam.name) : "No Exams Yet"}</h4>
               <p className="text-sm text-on-surface-variant">Completed on {latestExam ? new Date(latestExam.end_date).toLocaleDateString() : "--"}</p>
             </div>
             <div className="mt-4">
@@ -316,7 +407,7 @@ export default function GradeCard() {
               >
                 <option value="all">All Subjects</option>
                 {subjects.map((sub) => (
-                  <option key={sub.id} value={sub.id}>
+                  <option key={sub.id} value={sub.name}>
                      {sub.name}
                   </option>
                 ))}
@@ -330,7 +421,7 @@ export default function GradeCard() {
                 <option value="all">All Exams</option>
                 {exams.map((exam) => (
                   <option key={exam.id} value={exam.id}>
-                    {exam.name}
+                    {shortenExamName(exam.name)}
                   </option>
                 ))}
               </select>
@@ -374,7 +465,7 @@ export default function GradeCard() {
                           <span className="font-bold text-on-surface">{grade.subject_name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-6 text-sm text-on-surface-variant font-medium">{grade.exam_name}</td>
+                      <td className="px-6 py-6 text-sm text-on-surface-variant font-medium">{shortenExamName(grade.exam_name)}</td>
                       <td className="px-6 py-6">
                         <span className="text-sm font-bold text-on-surface">{grade.marks_obtained} / {grade.max_marks}</span>
                       </td>
@@ -391,7 +482,10 @@ export default function GradeCard() {
                         &quot;{grade.remarks || "No remarks provided."}&quot;
                       </td>
                       <td className="px-6 py-6 text-right">
-                        <button className="text-blue-700 hover:text-blue-900 font-semibold text-sm hover:underline transition-all">
+                        <button
+                          onClick={() => setFeedbackGrade({ grade, gradeDetails, iconDetails })}
+                          className="text-blue-700 hover:text-blue-900 font-semibold text-sm hover:underline transition-all"
+                        >
                           View detailed feedback
                         </button>
                       </td>
@@ -424,6 +518,16 @@ export default function GradeCard() {
           </div>
         </div>
       </section>
+
+      {/* ── Detailed Feedback Modal ── */}
+      {feedbackGrade && (
+        <FeedbackModal
+          grade={feedbackGrade.grade}
+          gradeDetails={feedbackGrade.gradeDetails}
+          iconDetails={feedbackGrade.iconDetails}
+          onClose={() => setFeedbackGrade(null)}
+        />
+      )}
     </MainLayout>
   );
 }

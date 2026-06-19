@@ -1,22 +1,16 @@
-// src/pages/parent/ParentPortalSettings.jsx
-
 import React, { useState, useRef, useEffect } from "react";
 import DashboardLayout from "../../components/erp/parent/DashboardLayout";
 
-// ─── Toggle switch ────────────────────────────────────────────────────────────
 const Toggle = ({ enabled, onToggle }) => (
   <button
     onClick={onToggle}
     className={`w-9 h-5 rounded-full relative transition-colors duration-200 flex-shrink-0
       ${enabled ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600"}`}
   >
-    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-all duration-200
-      ${enabled ? "right-1" : "left-1"}`}
-    />
+    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-200 ${enabled ? "right-1" : "left-1"}`} />
   </button>
 );
 
-// ─── Country codes ────────────────────────────────────────────────────────────
 const COUNTRY_CODES = [
   { code: "+1",   iso: "us", name: "US",  maxDigits: 10 },
   { code: "+44",  iso: "gb", name: "UK",  maxDigits: 10 },
@@ -40,18 +34,19 @@ const COUNTRY_CODES = [
   { code: "+7",   iso: "ru", name: "RU",  maxDigits: 10 },
 ];
 
-function FlagImg({ iso }) {
+function FlagImg({ iso, className = "" }) {
   return (
     <img
       src={`https://flagcdn.com/w20/${iso}.png`}
       srcSet={`https://flagcdn.com/w40/${iso}.png 2x`}
       alt={iso}
-      className="rounded-sm object-cover flex-shrink-0"
+      className={`rounded-sm object-cover flex-shrink-0 ${className}`}
       style={{ width: "18px", height: "13px" }}
     />
   );
 }
 
+/* Custom flag dropdown — opens downward, compact, shows flag */
 function CountryCodePicker({ value, onChange }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -67,6 +62,7 @@ function CountryCodePicker({ value, onChange }) {
 
   return (
     <div ref={ref} className="relative flex-shrink-0">
+      {/* Trigger button */}
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -80,6 +76,7 @@ function CountryCodePicker({ value, onChange }) {
         </span>
       </button>
 
+      {/* Dropdown panel — opens downward */}
       {open && (
         <div
           className="absolute left-0 top-full mt-1 z-50 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-600 overflow-hidden"
@@ -99,7 +96,7 @@ function CountryCodePicker({ value, onChange }) {
               >
                 <FlagImg iso={iso} />
                 <span className="font-medium">{name}</span>
-                <span className="ml-auto text-slate-400 dark:text-slate-300">{code}</span>
+                <span className="ml-auto text-slate-400 dark:text-slate-400">{code}</span>
               </button>
             ))}
           </div>
@@ -109,9 +106,9 @@ function CountryCodePicker({ value, onChange }) {
   );
 }
 
-// ─── Main Settings Page ───────────────────────────────────────────────────────
 const ParentPortalSettings = () => {
 
+  // ── Dark mode — real, working: localStorage + <html> class ──────────────
   const [isDark, setIsDark] = useState(
     () => typeof localStorage !== "undefined" && localStorage.getItem("parent_theme") === "dark"
   );
@@ -167,18 +164,29 @@ const ParentPortalSettings = () => {
 
             {/* 2-col on sm+, 1-col on mobile */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+
+              {/* Full Name */}
               <div className="space-y-1">
                 <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">Full Name</label>
                 <input type="text" defaultValue="Alex Harrison" className={inputCls} />
               </div>
+
+              {/* Email */}
               <div className="space-y-1">
                 <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">Email Address</label>
                 <input type="email" defaultValue="alex.harrison@edu-mail.com" className={inputCls} />
               </div>
+
+              {/* Phone with country code */}
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">Phone Number</label>
+                <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">
+                  Phone Number
+                </label>
                 <div className="flex gap-1.5">
-                  <CountryCodePicker value={countryCode} onChange={(c) => { setCountryCode(c); setPhone(""); }} />
+                  <CountryCodePicker
+                    value={countryCode}
+                    onChange={(c) => { setCountryCode(c); setPhone(""); }}
+                  />
                   <div className="relative flex-1 min-w-0">
                     <input
                       type="text"
@@ -186,8 +194,9 @@ const ParentPortalSettings = () => {
                       value={phone}
                       onChange={(e) => {
                         const onlyNums = e.target.value.replace(/\D/g, "");
-                        const sel = COUNTRY_CODES.find((c) => c.code === countryCode);
-                        if (onlyNums.length <= (sel?.maxDigits || 10)) setPhone(onlyNums);
+                        const selected = COUNTRY_CODES.find((c) => c.code === countryCode);
+                        const max = selected?.maxDigits || 10;
+                        if (onlyNums.length <= max) setPhone(onlyNums);
                       }}
                       placeholder="Phone number"
                       className={`${inputCls} pr-10`}
@@ -198,6 +207,8 @@ const ParentPortalSettings = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Relationship */}
               <div className="space-y-1">
                 <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-300 uppercase tracking-wider">Relationship</label>
                 <select className={inputCls}>
@@ -246,7 +257,7 @@ const ParentPortalSettings = () => {
                 </div>
               </div>
 
-              {/* Light / Dark buttons */}
+              {/* Light / Dark buttons — real, working toggle */}
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -316,9 +327,9 @@ const ParentPortalSettings = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
               {[
-                { key: "email", icon: "mail",       label: "Email Summaries",    desc: "Weekly digests of child progress"   },
-                { key: "push",  icon: "smartphone",  label: "Push Notifications", desc: "Real-time alerts for absences"      },
-                { key: "sms",   icon: "sms",         label: "SMS Alerts",         desc: "Emergency weather or security info" },
+                { key: "email", icon: "mail",      label: "Email Summaries",    desc: "Weekly digests of child progress"   },
+                { key: "push",  icon: "smartphone", label: "Push Notifications", desc: "Real-time alerts for absences"      },
+                { key: "sms",   icon: "sms",        label: "SMS Alerts",         desc: "Emergency weather or security info" },
               ].map(({ key, icon, label, desc }) => (
                 <div
                   key={key}
@@ -335,7 +346,10 @@ const ParentPortalSettings = () => {
                       <p className="text-[10px] text-slate-500 dark:text-slate-300 mt-0.5 truncate">{desc}</p>
                     </div>
                   </div>
-                  <Toggle enabled={notifs[key]} onToggle={() => setNotifs((p) => ({ ...p, [key]: !p[key] }))} />
+                  <Toggle
+                    enabled={notifs[key]}
+                    onToggle={() => setNotifs((p) => ({ ...p, [key]: !p[key] }))}
+                  />
                 </div>
               ))}
             </div>

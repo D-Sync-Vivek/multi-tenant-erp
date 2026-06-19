@@ -4,7 +4,7 @@ import { useParent } from "../../context/ParentProvider";
 
 /* ─── Skeleton ─────────────────────────────────────────────────────────── */
 function Skeleton({ className = "" }) {
-  return <div className={`animate-pulse bg-gray-200 dark:bg-slate-700 rounded-md ${className}`} />;
+  return <div className={`animate-pulse bg-gray-200 rounded-md ${className}`} />;
 }
 
 function AttendanceSkeleton() {
@@ -206,6 +206,7 @@ export default function AttendanceTracker() {
   const year      = currentDate.getFullYear();
   const month     = currentDate.getMonth();
   const monthWord = currentDate.toLocaleString("en-US", { month: "long" });
+  const monthLabel = currentDate.toLocaleString("en-US", { month: "long", year: "numeric" });
 
   const attendanceMap = useMemo(() => {
     if (!Array.isArray(attendanceRecords)) return {};
@@ -243,15 +244,15 @@ export default function AttendanceTracker() {
   const grades = dashboard?.grades?.results || [];
 
   const statusClasses = {
-    Present: "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700",
-    Absent:  "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-700",
-    Late:    "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700",
+    Present: "bg-green-100 text-green-700 border-green-200",
+    Absent:  "bg-red-100 text-red-700 border-red-200",
+    Late:    "bg-yellow-100 text-yellow-700 border-yellow-200",
   };
 
   const badgeCls = {
-    Present: "bg-green-50 dark:bg-green-900/40 text-green-700 dark:text-green-300",
-    Absent:  "bg-red-50 dark:bg-red-900/40 text-red-700 dark:text-red-300",
-    Late:    "bg-yellow-50 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300",
+    Present: "bg-green-50 text-green-700",
+    Absent:  "bg-red-50 text-red-700",
+    Late:    "bg-yellow-50 text-yellow-700",
   };
 
   const handleExport = () => {
@@ -498,8 +499,6 @@ export default function AttendanceTracker() {
             <h2 className="text-sm font-bold font-headline text-on-surface dark:text-white">Attendance Log</h2>
             <span className="text-xs text-on-surface-variant dark:text-slate-400 flex-shrink-0">{sortedRecords.length} records</span>
           </div>
-
-        
 
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[520px]">

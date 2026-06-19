@@ -78,6 +78,7 @@ export default function AssignmentsOverview() {
   const [subjectFilter, setSubjectFilter] = useState("All Subjects");
   const [statusFilter,  setStatusFilter]  = useState("All Status");
 
+  // ── All hooks run unconditionally, on every render, before any early return ──
   const list = assignments || [];
 
   const subjectOptions = useMemo(
