@@ -1,9 +1,94 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from "../../services/schoolAdminApi";
-import { useTheme } from "../../context/ThemeContext";
 
+// ── Skeleton shimmer ──
+if (typeof document !== "undefined" && !document.getElementById("skeleton-shimmer-style")) {
+  const s = document.createElement("style");
+  s.id = "skeleton-shimmer-style";
+  s.textContent = `@keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`;
+  document.head.appendChild(s);
+}
+const SHIMMER = {
+  background: "linear-gradient(90deg,color-mix(in srgb,var(--color-outline-variant) 16%,var(--color-surface-container-lowest)) 25%,color-mix(in srgb,var(--color-outline-variant) 28%,var(--color-surface-container-lowest)) 50%,color-mix(in srgb,var(--color-outline-variant) 16%,var(--color-surface-container-lowest)) 75%)",
+  backgroundSize: "200% 100%",
+  animation: "skeleton-shimmer 1.4s ease infinite",
+};
+function Sk({ w, h, r = 6, style = {} }) {
+  return <div style={{ width: w, height: h, borderRadius: r, flexShrink: 0, ...SHIMMER, ...style }} />;
+}
+
+// ── Full‑page Skeleton ──
+function ClassLevelsSkeleton() {
+  return (
+    <SchoolLayout title="Class Framework Directory">
+      <div className="flex flex-col gap-4 px-4 md:px-8 pt-4 pb-12 max-w-7xl">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+          <div>
+            <Sk w={280} h={32} />
+            <Sk w={420} h={16} style={{ marginTop: 6 }} />
+          </div>
+          <Sk w={140} h={36} r={8} />
+        </div>
+
+        {/* Search Bar */}
+        <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="relative w-full sm:w-80">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+            <Sk w="100%" h={40} r={8} style={{ marginLeft: 0 }} />
+          </div>
+          <Sk w={120} h={16} r={4} />
+        </div>
+
+        {/* Table */}
+        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-container-high/50 border-b border-outline-variant/10">
+                  {[40, 100, 80, 100, 60, 60].map((w, i) => (
+                    <th key={i} className="py-4 px-4">
+                      <Sk w={w} h={12} r={4} />
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/10">
+                {Array.from({ length: 6 }).map((_, rowIdx) => (
+                  <tr key={rowIdx}>
+                    <td className="py-4 px-4"><Sk w={20} h={20} r={4} /></td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <Sk w={36} h={36} r={8} />
+                        <div>
+                          <Sk w={140} h={16} />
+                          <Sk w={80} h={10} style={{ marginTop: 4 }} />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4"><Sk w={80} h={14} /></td>
+                    <td className="py-4 px-4"><Sk w={90} h={20} r={999} /></td>
+                    <td className="py-4 px-4"><Sk w={60} h={20} r={999} /></td>
+                    <td className="py-4 px-4 text-right"><Sk w={32} h={32} r={999} style={{ marginLeft: "auto" }} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </SchoolLayout>
+  );
+}
+
+// ── Main Component ──
 export default function ClassLevels() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const fromQuickAdd = location.state?.fromQuickAdd || false;
+
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -120,6 +205,12 @@ export default function ClassLevels() {
     );
   });
 
+  // ── Skeleton ──
+  if (loading) {
+    return <ClassLevelsSkeleton />;
+  }
+
+  // ── Render ──
   return (
     <SchoolLayout title="Class Framework Directory">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
@@ -132,6 +223,15 @@ export default function ClassLevels() {
             structures.
           </p>
         </div>
+        {fromQuickAdd && (
+          <button
+            onClick={() => navigate("/school-admin")}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/20 text-primary font-semibold rounded-md shadow-sm font-body transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            Back to Dashboard
+          </button>
+        )}
       </div>
 
       <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10 shadow-xs mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -215,15 +315,13 @@ export default function ClassLevels() {
                     <React.Fragment key={cls.id}>
                       <tr
                         onClick={() => toggleClassRow(cls.id)}
-                        className={`transition-colors cursor-pointer group ${
-                          isExpanded ? "bg-primary/5" : "hover:bg-surface-container-high/30"
-                        }`}
+                        className={`transition-colors cursor-pointer group ${isExpanded ? "bg-primary/5" : "hover:bg-surface-container-high/30"
+                          }`}
                       >
                         <td className="py-4 px-4 text-center">
                           <span
-                            className={`material-symbols-outlined text-outline transition-transform duration-300 ${
-                              isExpanded ? "rotate-180" : ""
-                            }`}
+                            className={`material-symbols-outlined text-outline transition-transform duration-300 ${isExpanded ? "rotate-180" : ""
+                              }`}
                           >
                             expand_more
                           </span>
@@ -231,11 +329,10 @@ export default function ClassLevels() {
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-3">
                             <div
-                              className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                                isExpanded
-                                  ? "bg-primary text-white"
-                                  : "bg-primary/10 text-primary border border-primary/20"
-                              }`}
+                              className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isExpanded
+                                ? "bg-primary text-white"
+                                : "bg-primary/10 text-primary border border-primary/20"
+                                }`}
                             >
                               <span className="material-symbols-outlined text-base">meeting_room</span>
                             </div>
@@ -263,11 +360,10 @@ export default function ClassLevels() {
 
                         <td className="py-4 px-4">
                           <span
-                            className={`inline-block px-2.5 py-0.5 rounded-full text-2xs font-black uppercase font-body ${
-                              cls.status === "Active" || cls.is_active === true
-                                ? "bg-success/10 text-success border border-success/20"
-                                : "bg-surface-container-high text-on-surface-variant border border-outline-variant/20"
-                            }`}
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-2xs font-black uppercase font-body ${cls.status === "Active" || cls.is_active === true
+                              ? "bg-success/10 text-success border border-success/20"
+                              : "bg-surface-container-high text-on-surface-variant border border-outline-variant/20"
+                              }`}
                           >
                             {cls.status || (cls.is_active ? "Active" : "Archived")}
                           </span>
@@ -350,7 +446,7 @@ export default function ClassLevels() {
           </table>
         </div>
       </div>
-      
+
     </SchoolLayout>
   );
 }

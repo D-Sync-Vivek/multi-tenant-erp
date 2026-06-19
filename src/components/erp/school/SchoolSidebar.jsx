@@ -5,16 +5,6 @@ export default function SchoolSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  /* reusable menu styling with semantic classes + dark mode */
-  const getClass = (route) => `
-    flex items-center gap-3 px-4 py-3 mx-2 rounded-lg cursor-pointer transition-all duration-200
-    ${currentPath === route
-      ? "bg-white text-primary font-semibold shadow-sm dark:bg-surface-container-high dark:text-primary"
-      : "text-on-surface-variant hover:bg-surface-container-low dark:text-on-surface-variant dark:hover:bg-surface-container-low"
-    }
-  `;
-
-  /* sidebar menu config */
   const menu = [
     { name: "Dashboard", icon: "dashboard", path: "/school-admin" },
     { name: "Academic Years", icon: "calendar_today", path: "/school-admin/academic-years" },
@@ -24,47 +14,79 @@ export default function SchoolSidebar() {
     { name: "Parents", icon: "group", path: "/school-admin/parents" },
     { name: "Parent-Student Mapping", icon: "diversity_1", path: "/school-admin/mapping" },
     { name: "Teacher Assignment", icon: "assignment_ind", path: "/school-admin/teacher-assignment" },
-    { name: "Settings", icon: "settings", path: "/school-admin/settings" }
+    { name: "Settings", icon: "settings", path: "/school-admin/settings" },
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_data');
-    navigate('/');
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_data");
+    navigate("/");
   };
 
   return (
-    <aside className="h-screen w-64 fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant/10 flex flex-col py-6">
-      {/* logo */}
-      <div className="px-6 mb-10">
-        <h1 className="text-xl font-headline font-bold text-primary tracking-tight">
+    <aside className="h-screen w-56 fixed left-0 top-0 flex flex-col"
+      style={{
+        background: "linear-gradient(180deg, var(--color-surface-container-lowest) 0%, var(--color-surface-container-low) 100%)",
+        borderRight: "1px solid color-mix(in srgb, var(--color-outline-variant) 15%, transparent)",
+      }}>
+
+      {/* ── Brand ── */}
+      <div className="px-4 pt-4 pb-3 flex items-center gap-2.5">
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center shadow-sm"
+          style={{ background: "var(--color-primary)" }}>
+          <span className="material-symbols-outlined text-white text-sm font-bold">auto_stories</span>
+        </div>
+        <span className="text-sm font-headline font-black tracking-tight"
+          style={{ color: "var(--color-primary)" }}>
           Academic Architect
-        </h1>
+        </span>
       </div>
 
-      {/* navigation */}
-      <nav className="space-y-1 flex-1">
-        {menu.map((item) => (
-          <div
-            key={item.path}
-            onClick={() => navigate(item.path)}
-            className={getClass(item.path)}
-          >
-            <span className="material-symbols-outlined">{item.icon}</span>
-            {item.name}
-          </div>
-        ))}
+      {/* ── Divider ── */}
+      <div className="mx-4 mb-2 h-px" style={{ background: "color-mix(in srgb, var(--color-outline-variant) 20%, transparent)" }} />
+
+      {/* ── Nav ── */}
+      <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
+        {menu.map((item) => {
+          const active = currentPath === item.path;
+          return (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all duration-150 group"
+              style={active ? {
+                background: "color-mix(in srgb, var(--color-primary) 12%, transparent)",
+                color: "var(--color-primary)",
+              } : {
+                color: "var(--color-on-surface-variant)",
+              }}
+              onMouseEnter={e => { if (!active) e.currentTarget.style.background = "color-mix(in srgb, var(--color-primary) 6%, transparent)"; }}
+              onMouseLeave={e => { if (!active) e.currentTarget.style.background = ""; }}
+            >
+              <span className="material-symbols-outlined text-[18px] shrink-0" style={active ? { color: "var(--color-primary)" } : {}}>
+                {item.icon}
+              </span>
+              <span className="text-xs font-semibold truncate">{item.name}</span>
+              {active && (
+                <span className="ml-auto w-1 h-4 rounded-full shrink-0" style={{ background: "var(--color-primary)" }} />
+              )}
+            </button>
+          );
+        })}
       </nav>
 
-      {/* Logout */}
-      <div className="px-2 pb-2">
+      {/* ── Logout ── */}
+      <div className="px-2 pb-3 pt-2" style={{ borderTop: "1px solid color-mix(in srgb, var(--color-outline-variant) 15%, transparent)" }}>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg cursor-pointer transition-all duration-200 text-error hover:text-error/90 hover:bg-error/10 w-full text-left font-semibold text-sm"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-150 text-left"
+          style={{ color: "var(--color-error)" }}
+          onMouseEnter={e => { e.currentTarget.style.background = "color-mix(in srgb, var(--color-error) 8%, transparent)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = ""; }}
         >
-          <span className="material-symbols-outlined">logout</span>
-          Log Out
+          <span className="material-symbols-outlined text-[18px]">logout</span>
+          <span className="text-xs font-semibold">Log Out</span>
         </button>
       </div>
     </aside>

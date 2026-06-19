@@ -1,5 +1,3 @@
-// src/pages/erp/parent/ParentDashboard.jsx
-
 import DashboardLayout from "../../components/erp/parent/DashboardLayout";
 import StudentHeader from "../../components/erp/parent/StudentHeader";
 import SummaryCards from "../../components/erp/parent/SummaryCards";
@@ -9,22 +7,28 @@ import AllInsights from "../../components/erp/parent/AllInsights";
 const ParentDashboard = () => {
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 lg:space-y-8">
+      <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
 
         <StudentHeader />
+
         <SummaryCards />
 
         {/*
-          grid-rows-[380px] fixes the row height at 380px for ALL viewport
-          widths — sidebar open or closed, narrow or wide.
-          Both children use h-full so they fill this exact height.
-          Result: perfectly equal cards at all times.
+          Performance + AI insights row.
+          Key fix: switches to 2-column ONLY above 1400px width (an explicit
+          arbitrary breakpoint, not the theme's 2xl token — this avoids any
+          risk of 2xl being redefined lower in tailwind.config.js).
+          1400px sits safely above iPad Pro landscape (1366px), Nest Hub Max
+          (1280px), and Nest Hub (1024px) — so all of them stay in the
+          single-column stacked view (AI Insight Alert below Performance
+          Trend), exactly like iPad Air/Mini, and only true desktop widths
+          go side-by-side.
         */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-[380px] gap-4 sm:gap-6 lg:gap-8">
-          <div className="lg:col-span-2 min-w-0 lg:h-full">
+        <section className="grid grid-cols-1 min-[1400px]:grid-cols-3 gap-4 sm:gap-6">
+          <div className="min-[1400px]:col-span-2 min-h-[320px] sm:min-h-[380px]">
             <PerformanceChart />
           </div>
-          <div className="min-w-0 lg:h-full">
+          <div className="min-[1400px]:col-span-1 min-h-[320px] sm:min-h-[380px]">
             <AllInsights />
           </div>
         </section>

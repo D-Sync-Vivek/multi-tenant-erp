@@ -1,9 +1,110 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import api from "../../services/axiosClient";
-import { useTheme } from "../../context/ThemeContext";
 
+// ── Skeleton shimmer ──
+if (typeof document !== "undefined" && !document.getElementById("skeleton-style")) {
+  const s = document.createElement("style");
+  s.id = "skeleton-style";
+  s.textContent = `@keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`;
+  document.head.appendChild(s);
+}
+const SHIMMER = {
+  background: "linear-gradient(90deg,color-mix(in srgb,var(--color-outline-variant) 16%,var(--color-surface-container-lowest)) 25%,color-mix(in srgb,var(--color-outline-variant) 28%,var(--color-surface-container-lowest)) 50%,color-mix(in srgb,var(--color-outline-variant) 16%,var(--color-surface-container-lowest)) 75%)",
+  backgroundSize: "200% 100%",
+  animation: "skeleton-shimmer 1.4s ease infinite",
+};
+function Sk({ w, h, r = 6, style = {} }) {
+  return <div style={{ width: w, height: h, borderRadius: r, flexShrink: 0, ...SHIMMER, ...style }} />;
+}
+
+// ── Full‑page Skeleton ──
+function AddParentSkeleton() {
+  return (
+    <SchoolLayout title="Add Guardian">
+      <div className="max-w-4xl px-4 md:px-8 pt-4 pb-12 space-y-6">
+        {/* Top Bar */}
+        <div className="flex flex-wrap justify-between items-center gap-3">
+          <Sk w={140} h={20} />
+          <div className="flex gap-2">
+            <Sk w={80} h={36} r={8} />
+            <Sk w={120} h={36} r={8} />
+          </div>
+        </div>
+
+        {/* Identity Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-5">
+            <Sk w={64} h={64} r={16} />
+            <div className="flex-1 space-y-3">
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <Sk w={80} h={12} />
+                  <Sk w="100%" h={42} r={6} />
+                </div>
+                <div className="flex-1">
+                  <Sk w={80} h={12} />
+                  <Sk w="100%" h={42} r={6} />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <Sk w={80} h={12} />
+                  <Sk w="100%" h={42} r={6} />
+                </div>
+                <div className="flex-1">
+                  <Sk w={80} h={12} />
+                  <Sk w="100%" h={42} r={6} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Guardian Details SectionCard */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+            <Sk w={16} h={16} r={999} />
+            <Sk w={120} h={16} />
+          </div>
+          <div className="p-6 grid md:grid-cols-2 gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className={i === 2 ? "md:col-span-2" : ""}>
+                <Sk w={80} h={12} />
+                <Sk w="100%" h={42} r={6} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </SchoolLayout>
+  );
+}
+
+// ── Style tokens ──
+const labelClass =
+  "text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 block";
+const editFieldClass =
+  "w-full text-sm font-bold text-slate-800 bg-white border border-[#0058be]/30 focus:ring-2 focus:ring-[#0058be]/10 outline-none px-4 py-2 rounded-md";
+
+// ── SectionCard ──
+function SectionCard({ title, icon, children }) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+        <span className="w-1 h-5 rounded-full bg-blue-400 shrink-0" />
+        <span className="material-symbols-outlined text-[18px] text-gray-400">
+          {icon}
+        </span>
+        <h2 className="text-sm font-bold text-gray-800">{title}</h2>
+      </div>
+      <div className="p-6 grid md:grid-cols-2 gap-6">{children}</div>
+    </div>
+  );
+}
+
+// ── Main Component ──
 export default function AddParent() {
   const navigate = useNavigate();
 
@@ -11,48 +112,63 @@ export default function AddParent() {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  
   const [phoneNumber, setPhoneNumber] = useState("");
   const [emergencyContact, setEmergencyContact] = useState("");
   const [occupation, setOccupation] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true); // ← new
+  const [toast, setToast] = useState(null);
   const [error, setError] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(null);
+
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Simulate page load to show skeleton
+  useEffect(() => {
+    const timer = setTimeout(() => setPageLoading(false), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSave = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccessMsg(null);
 
     try {
-      const userPayload = { email, password, first_name: firstName, last_name: lastName };
-      const userResponse = await api.post(`/users/`, userPayload);
+      const userResponse = await api.post(`/users/`, {
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      });
       const userData = userResponse.data;
 
       if (userData.id) {
-        const profilePayload = {
+        await api.post(`/profiles/parents/`, {
           user: userData.id,
           phone_number: phoneNumber,
           emergency_contact_number: emergencyContact,
-          occupation: occupation,
-        };
-        await api.post(`/profiles/parents/`, profilePayload);
+          occupation,
+        });
       }
 
-      setSuccessMsg("Guardian successfully onboarded!");
-      setTimeout(() => navigate("/school-admin/parents"), 1500);
-
+      showToast("Guardian onboarded successfully!");
+      setTimeout(() => navigate("/school-admin/parents"), 1000);
     } catch (err) {
       console.error(err);
-      if (err.response && err.response.data) {
+      if (err.response?.data) {
         const data = err.response.data;
-        if (typeof data === 'string' && data.includes('<!DOCTYPE')) {
-          setError("Server crashed (500 Internal Error). Please check your Django terminal for the exact python traceback.");
+        if (typeof data === "string" && data.includes("<!DOCTYPE")) {
+          setError("Server crashed (500). Please check your Django terminal.");
         } else {
-          let errorMsg = Object.entries(data).map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`).join(" | ");
-          setError(errorMsg);
+          setError(
+            Object.entries(data)
+              .map(([f, v]) => `${f}: ${Array.isArray(v) ? v.join(" ") : v}`)
+              .join(" | ")
+          );
         }
       } else {
         setError(err.message);
@@ -63,171 +179,173 @@ export default function AddParent() {
     }
   };
 
+  const initials =
+    firstName && lastName
+      ? `${firstName[0]}${lastName[0]}`.toUpperCase()
+      : firstName
+        ? firstName.slice(0, 2).toUpperCase()
+        : "GD";
+
+  // ── Skeleton ──
+  if (pageLoading) {
+    return <AddParentSkeleton />;
+  }
+
   return (
     <SchoolLayout title="Add Guardian">
-      <div className="max-w-5xl mx-auto space-y-6 px-4 md:px-6 py-4 md:py-6">
-        
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div>
-            <h1 className="text-2xl font-headline font-extrabold text-on-surface">Register New Guardian</h1>
-            <p className="text-sm text-on-surface-variant mt-1 max-w-2xl font-body">
-              Onboard a new guardian into the institutional ecosystem using the 2-step decoupled identity architecture.
-            </p>
+      <form onSubmit={handleSave}>
+        <div className="max-w-4xl px-4 md:px-8 pt-4 pb-12 space-y-6">
+
+          {/* Toast */}
+          {toast && (
+            <div
+              className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 transition-all duration-300 ${toast.type === "success"
+                ? "bg-green-600 text-white"
+                : "bg-red-600 text-white"
+                }`}
+            >
+              <span className="material-symbols-outlined text-base">
+                {toast.type === "success" ? "check_circle" : "error"}
+              </span>
+              {toast.msg}
+            </div>
+          )}
+
+          {/* ── Top Bar ── */}
+          <div className="flex flex-wrap justify-between items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/school-admin/parents")}
+              className="flex items-center gap-1.5 text-[#0058be] text-sm font-semibold hover:underline"
+            >
+              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+              Back to Directory
+            </button>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => navigate("/school-admin/parents")}
+                className="px-4 py-2 text-sm text-gray-500 font-bold hover:bg-gray-100 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-[#0058be] text-white text-sm font-bold rounded-md shadow-sm disabled:opacity-70"
+              >
+                {loading && (
+                  <span className="material-symbols-outlined animate-spin text-[16px]">
+                    progress_activity
+                  </span>
+                )}
+                {loading ? "Saving..." : "Add Guardian"}
+              </button>
+            </div>
           </div>
-          <button 
-            type="button" 
-            onClick={() => navigate("/school-admin/parents")} 
-            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/20 text-primary font-semibold rounded-md shadow-sm font-body transition-colors"
-          >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span> Directory
-          </button>
+
+          {/* Error banner */}
+          {error && (
+            <div className="p-3 bg-red-50 text-red-600 rounded-md border border-red-200 text-sm font-medium flex gap-2">
+              <span className="material-symbols-outlined text-xl shrink-0">error</span>
+              {error}
+            </div>
+          )}
+
+          {/* ── Identity Card ── */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 shrink-0 rounded-2xl bg-[#e5eeff] text-[#0058be] flex items-center justify-center font-bold text-xl border border-blue-100">
+                {initials}
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <p className={labelClass}>First Name</p>
+                    <input
+                      required
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="e.g. Rajesh"
+                      className={editFieldClass}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className={labelClass}>Last Name</p>
+                    <input
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="e.g. Sharma"
+                      className={editFieldClass}
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <p className={labelClass}>Login Email</p>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="guardian@email.com"
+                      className={`${editFieldClass} font-mono text-xs`}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className={labelClass}>Temporary Password</p>
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className={editFieldClass}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Guardian Details SectionCard ── */}
+          <SectionCard title="Guardian Details" icon="family_restroom">
+            <div>
+              <p className={labelClass}>Primary Phone</p>
+              <input
+                required
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+91 98765 43210"
+                className={editFieldClass}
+              />
+            </div>
+
+            <div>
+              <p className={labelClass}>Emergency Contact</p>
+              <input
+                required
+                value={emergencyContact}
+                onChange={(e) => setEmergencyContact(e.target.value)}
+                placeholder="+91 91234 56789"
+                className={editFieldClass}
+              />
+            </div>
+
+            <div>
+              <p className={labelClass}>Occupation</p>
+              <input
+                value={occupation}
+                onChange={(e) => setOccupation(e.target.value)}
+                placeholder="e.g. Engineer, Teacher"
+                className={editFieldClass}
+              />
+            </div>
+          </SectionCard>
+
         </div>
-
-        {error && (
-          <div className="p-3 bg-error/10 text-error rounded-md border border-error/20 flex gap-2 shadow-sm items-center font-body">
-            <span className="material-symbols-outlined text-xl">error</span>
-            <p className="text-sm font-medium">{error}</p>
-          </div>
-        )}
-
-        {successMsg && (
-          <div className="p-3 bg-success/10 text-success rounded-md border border-success/20 flex gap-2 shadow-sm items-center font-body">
-            <span className="material-symbols-outlined text-xl">check_circle</span>
-            <p className="text-sm font-medium">{successMsg}</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSave}>
-          <div className="grid lg:grid-cols-12 gap-6">
-            
-            <div className="lg:col-span-9 space-y-6">
-              
-              {/* CORE IDENTITY */}
-              <div className="bg-surface-container-lowest p-6 rounded-lg shadow-sm border border-outline-variant/10">
-                <h3 className="text-base font-headline font-bold text-on-surface flex items-center gap-2 mb-5">
-                  <span className="material-symbols-outlined text-primary text-xl">badge</span> Step 1: Core Identity
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4 mb-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-2xs font-headline font-bold text-on-surface-variant tracking-wider uppercase">First Name</label>
-                    <input 
-                      required 
-                      value={firstName} 
-                      onChange={(e) => setFirstName(e.target.value)} 
-                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-2xs font-headline font-bold text-on-surface-variant tracking-wider uppercase">Last Name</label>
-                    <input 
-                      value={lastName} 
-                      onChange={(e) => setLastName(e.target.value)} 
-                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
-                    />
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-2xs font-headline font-bold text-on-surface-variant tracking-wider uppercase">Login Email</label>
-                    <input 
-                      type="email" 
-                      required 
-                      value={email} 
-                      onChange={(e) => setEmail(e.target.value)} 
-                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-2xs font-headline font-bold text-on-surface-variant tracking-wider uppercase">Temporary Password</label>
-                    <input 
-                      type="password" 
-                      required 
-                      value={password} 
-                      onChange={(e) => setPassword(e.target.value)} 
-                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* PARENT PROFILE */}
-              <div className="bg-surface-container-lowest p-6 rounded-lg shadow-sm border border-outline-variant/10">
-                <h3 className="text-base font-headline font-bold text-on-surface flex items-center gap-2 mb-5">
-                  <span className="material-symbols-outlined text-secondary text-xl">family_restroom</span> Step 2: Guardian Details
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4 mb-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-2xs font-headline font-bold text-on-surface-variant tracking-wider uppercase">Primary Phone</label>
-                    <input 
-                      required 
-                      value={phoneNumber} 
-                      onChange={(e) => setPhoneNumber(e.target.value)} 
-                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-2xs font-headline font-bold text-on-surface-variant tracking-wider uppercase">Emergency Contact</label>
-                    <input 
-                      required 
-                      value={emergencyContact} 
-                      onChange={(e) => setEmergencyContact(e.target.value)} 
-                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
-                    />
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-2xs font-headline font-bold text-on-surface-variant tracking-wider uppercase">Occupation</label>
-                    <input 
-                      value={occupation} 
-                      onChange={(e) => setOccupation(e.target.value)} 
-                      className="bg-surface-container-low px-3 py-2 text-sm rounded-md outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/40 transition-all font-body text-on-surface placeholder:text-outline" 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* FOOTER ACTIONS */}
-              <div className="flex justify-end gap-3 pt-2">
-                <button 
-                  type="button" 
-                  disabled={loading} 
-                  onClick={() => navigate("/school-admin/parents")} 
-                  className="px-6 py-2 text-sm text-on-surface-variant font-semibold hover:bg-surface-container-high rounded-md transition-colors disabled:opacity-50 font-body"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={loading} 
-                  className="px-8 py-2 bg-primary text-white text-sm font-bold rounded-md shadow-md hover:bg-primary/90 transition flex items-center justify-center gap-2 min-w-[160px] disabled:opacity-70 font-body"
-                >
-                  {loading ? (
-                    <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                  ) : (
-                    <span className="material-symbols-outlined text-[16px]">save</span>
-                  )}
-                  {loading ? "Registering..." : "Add Guardian"}
-                </button>
-              </div>
-            </div>
-
-            {/* PROFILE ASSET */}
-            <div className="lg:col-span-3">
-              <div className="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant/10 shadow-sm text-center">
-                <div className="w-28 h-28 mx-auto rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border-4 border-surface-container-lowest shadow-sm mb-3">
-                  <span className="material-symbols-outlined text-5xl text-outline/50">add_a_photo</span>
-                </div>
-                <h4 className="font-headline font-semibold text-on-surface text-sm">Profile Photo</h4>
-                <p className="text-xs text-on-surface-variant mt-1 leading-relaxed font-body">
-                  Upload a high-resolution portrait for visual identification across the platform.
-                </p>
-              </div>
-            </div>
-
-          </div>
-        </form>
-      </div>
+      </form>
     </SchoolLayout>
   );
 }

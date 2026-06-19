@@ -189,15 +189,15 @@ function AppRoutes() {
         <Route path="/school-admin/teachers/:id" element={<TeacherDetails />} />
         <Route path="/school-admin/mapping/:id" element={<MappingDetail />} />
         <Route path="/school-admin/teacher-assignment/edit/:id" element={<EditTeacherAssignment />} />
-        <Route path="/school-admin/manage-classes" element={<CreateClassSection />} /> 
+        <Route path="/school-admin/manage-classes" element={<CreateClassSection />} />
         <Route path="/school-admin/notifications" element={<SchoolAdminNotifications />} />
         <Route path="/school-admin/create-subject" element={<CreateSubject />} />
-        <Route path="/school-admin/create-section"  element={<CreateSection />} />
-        
+        <Route path="/school-admin/create-section" element={<CreateSection />} />
+
         {/* Commented out duplicates to prevent routing bugs */}
         {/* <Route path="/school-admin/dashboard" element={<Dashboard />} /> */}
         {/* <Route path="/school-admin/students" element={<Students />} /> */}
-        
+
         <Route path="/school-admin/class-levels" element={<ClassLevels />} />
 
         {/* ================= STUDENT ================= */}
@@ -370,14 +370,14 @@ function AppRoutes() {
 
         {/* ================= PARENT ================= */}
         {/* ================= PARENT ================= */}
-<Route path="/parent" element={<ParentProvider><ParentDashboard /></ParentProvider>} />
-<Route path="/parent/child-overview" element={<ParentProvider><ChildOverview /></ParentProvider>} />
-<Route path="/parent/attendance" element={<ParentProvider><AttendanceTracker /></ParentProvider>} />
-<Route path="/parent/assignments" element={<ParentProvider><AssignmentsOverview /></ParentProvider>} />
-<Route path="/parent/grades" element={<ParentProvider><GradesAssessmentHub /></ParentProvider>} />
-<Route path="/parent/ai-insights" element={<ParentProvider><AllInsightsRecommendations /></ParentProvider>} />
-<Route path="/parent/notifications" element={<ParentProvider><NotificationsHub /></ParentProvider>} />
-<Route path="/parent/settings" element={<ParentProvider><ParentPortalSettings /></ParentProvider>} />
+        <Route path="/parent" element={<ParentProvider><ParentDashboard /></ParentProvider>} />
+        <Route path="/parent/child-overview" element={<ParentProvider><ChildOverview /></ParentProvider>} />
+        <Route path="/parent/attendance" element={<ParentProvider><AttendanceTracker /></ParentProvider>} />
+        <Route path="/parent/assignments" element={<ParentProvider><AssignmentsOverview /></ParentProvider>} />
+        <Route path="/parent/grades" element={<ParentProvider><GradesAssessmentHub /></ParentProvider>} />
+        <Route path="/parent/ai-insights" element={<ParentProvider><AllInsightsRecommendations /></ParentProvider>} />
+        <Route path="/parent/notifications" element={<ParentProvider><NotificationsHub /></ParentProvider>} />
+        <Route path="/parent/settings" element={<ParentProvider><ParentPortalSettings /></ParentProvider>} />
       </Routes>
     </BrowserRouter>
   );

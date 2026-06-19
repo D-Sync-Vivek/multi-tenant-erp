@@ -1,354 +1,312 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
-import { schoolAdminApi } from "../../services/schoolAdminApi";
 import api from "../../services/axiosClient";
 
-const inputClass = "w-full p-2.5 bg-surface-container-low border border-outline-variant/20 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body text-on-surface placeholder:text-outline text-sm";
-const labelClass = "block text-[10px] font-headline font-bold text-on-surface-variant uppercase tracking-wider mb-1.5";
-
-function FormField({ label, children }) {
+// ─────────────────────────────────────────────
+// Skeleton Loader
+// ─────────────────────────────────────────────
+function Skeleton({ className = "", style = {} }) {
   return (
-    <div>
-      <label className={labelClass}>{label}</label>
-      {children}
-    </div>
+    <div
+      className={`rounded-md ${className}`}
+      style={{
+        background: "linear-gradient(90deg, color-mix(in srgb, var(--color-outline-variant) 16%, var(--color-surface-container-lowest)) 25%, color-mix(in srgb, var(--color-outline-variant) 28%, var(--color-surface-container-lowest)) 50%, color-mix(in srgb, var(--color-outline-variant) 16%, var(--color-surface-container-lowest)) 75%)",
+        backgroundSize: "200% 100%",
+        animation: "skeleton-shimmer 1.4s ease infinite",
+        ...style,
+      }}
+    />
   );
 }
 
-function SectionCard({ title, color = "bg-primary", icon, children }) {
-  return (
-    <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 overflow-hidden">
-      <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-2">
-        <span className={`w-1 h-5 ${color} rounded-full`}></span>
-        <span className="material-symbols-outlined text-[18px] text-on-surface-variant">{icon}</span>
-        <h2 className="text-sm font-headline font-bold text-on-surface">{title}</h2>
-      </div>
-      <div className="p-5 grid md:grid-cols-2 gap-4">{children}</div>
-    </div>
-  );
-}
-
-export default function EditStudent() {
-  const { id }       = useParams();
-  const navigate     = useNavigate();
-  const location     = useLocation(); // ← needed to pass refresh state back
-
-  const [formData, setFormData] = useState({
-    first_name:        "",
-    last_name:         "",
-    email:             "",
-    enrollment_number: "",
-    phone_number:      "",
-    date_of_birth:     "",
-    blood_group:       "",
-    address:           "",
-    is_archived:       false,
-  });
-
-  const [enrollmentId,    setEnrollmentId]    = useState(null);
-  const [selectedYear,    setSelectedYear]    = useState("");
-  const [selectedClass,   setSelectedClass]   = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
-
-  const [academicYears, setAcademicYears] = useState([]);
-  const [classLevels,   setClassLevels]   = useState([]);
-  const [sections,      setSections]      = useState([]);
+// ─────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────
+export default function StudentDetail() {
+  const navigate = useNavigate();
+  const { id } = useParams();
 
   const [loading, setLoading] = useState(true);
-  const [saving,  setSaving]  = useState(false);
-  const [error,   setError]   = useState(null);
+  const [student, setStudent] = useState(null);
+  const [error, setError] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    const loadAll = async () => {
+    const fetchStudent = async () => {
       try {
-        const [studentData, enrollmentRes, yearsRes, classRes] = await Promise.all([
-          schoolAdminApi.getStudentById(id),
-          api.get(`academics/enrollments/?student=${id}`),
-          api.get(`academics/academic-years/`),
-          api.get(`academics/class-levels/`),
-        ]);
-
-        setFormData({
-          first_name:        studentData.first_name        || "",
-          last_name:         studentData.last_name         || "",
-          email:             studentData.email             || "",
-          enrollment_number: studentData.enrollment_number || "",
-          phone_number:      studentData.phone_number      || "",
-          date_of_birth:     studentData.date_of_birth     || "",
-          blood_group:       studentData.blood_group       || "",
-          address:           studentData.address           || "",
-          is_archived:       !!studentData.is_archived,
-        });
-
-        setAcademicYears(yearsRes.data?.results || yearsRes.data || []);
-        setClassLevels(classRes.data?.results   || classRes.data || []);
-
-        const results = enrollmentRes.data?.results || enrollmentRes.data || [];
-        if (results.length > 0) {
-          const enr = results[0];
-          setEnrollmentId(enr.id);
-          setSelectedYear(enr.academic_year  || "");
-          setSelectedClass(enr.class_level   || "");
-          setSelectedSection(enr.section     || "");
-        }
-
+        const response = await api.get(`/profiles/students/${id}/`);
+        setStudent(response.data);
       } catch (err) {
-        console.error("Load error:", err);
-        setError("Failed to load student data.");
+        console.error("Fetch error:", err);
+        setError("Failed to load student details.");
       } finally {
         setLoading(false);
       }
     };
-    loadAll();
+    fetchStudent();
   }, [id]);
 
-  // Reload sections whenever class changes
-  useEffect(() => {
-    if (!selectedClass) { setSections([]); return; }
-    api.get(`academics/sections/?class_level=${selectedClass}`)
-      .then(res => setSections(res.data?.results || res.data || []))
-      .catch(() => setSections([]));
-  }, [selectedClass]);
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
-  const set = (field) => (e) =>
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
-
+  const handleDelete = async () => {
+    setDeleting(true);
     try {
-      // 1. PATCH profile — serializer's update() writes user fields too
-      await schoolAdminApi.updateStudent(id, {
-        first_name:        formData.first_name,
-        last_name:         formData.last_name,
-        email:             formData.email,
-        enrollment_number: formData.enrollment_number,
-        phone_number:      formData.phone_number,
-        date_of_birth:     formData.date_of_birth || null,
-        blood_group:       formData.blood_group   || null,
-        address:           formData.address       || null,
-        is_archived:       formData.is_archived,
-      });
-
-      // 2. PATCH or POST enrollment
-      if (selectedClass && selectedYear) {
-        const enrollmentPayload = {
-          student:       id,
-          academic_year: selectedYear,
-          class_level:   selectedClass,
-          section:       selectedSection || null,
-        };
-        if (enrollmentId) {
-          await api.patch(`academics/enrollments/${enrollmentId}/`, enrollmentPayload);
-        } else {
-          await api.post(`academics/enrollments/`, enrollmentPayload);
-        }
-      }
-
-      // 3. Navigate back to detail page with refresh signal
-      navigate(`/school-admin/students/${id}`, { state: { refresh: Date.now() } });
-
+      await api.delete(`/profiles/students/${id}/`);
+      showToast("Student deleted successfully!", "success");
+      setTimeout(() => navigate("/school-admin/students"), 1000);
     } catch (err) {
-      console.error("Save error:", err);
-      const data = err.response?.data;
-      if (data && typeof data === "object") {
-        setError(
-          Object.entries(data)
-            .map(([f, msgs]) => `${f}: ${Array.isArray(msgs) ? msgs.join(" ") : msgs}`)
-            .join(" | ")
-        );
-      } else {
-        setError("Failed to save changes. Check console.");
-      }
-      window.scrollTo(0, 0);
+      console.error("Delete error:", err);
+      showToast("Failed to delete student.", "error");
+      setShowDeleteModal(false);
     } finally {
-      setSaving(false);
+      setDeleting(false);
     }
   };
 
+  const getInitials = (first, last, email) => {
+    if (first && last) return `${first[0]}${last[0]}`.toUpperCase();
+    if (first) return first.substring(0, 2).toUpperCase();
+    if (email) return email.substring(0, 2).toUpperCase();
+    return "ST";
+  };
+
+  // ── Skeleton Loading ──
   if (loading) {
     return (
-      <SchoolLayout title="Edit Student">
-        <div className="flex justify-center items-center min-h-[50vh] text-primary">
-          <span className="material-symbols-outlined animate-spin text-4xl">progress_activity</span>
+      <SchoolLayout>
+        <div className="max-w-4xl mx-auto px-4 md:px-8 pt-4 pb-12">
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center gap-4">
+              <Skeleton style={{ width: 40, height: 40, borderRadius: 999 }} />
+              <div className="flex-1">
+                <Skeleton style={{ width: 200, height: 24 }} />
+                <Skeleton style={{ width: 150, height: 14, marginTop: 4 }} />
+              </div>
+              <div className="flex gap-3">
+                <Skeleton style={{ width: 80, height: 36, borderRadius: 8 }} />
+                <Skeleton style={{ width: 80, height: 36, borderRadius: 8 }} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/10">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="py-3 border-b border-outline-variant/10 last:border-0">
+                    <Skeleton style={{ width: 100, height: 12 }} />
+                    <Skeleton style={{ width: 150, height: 16, marginTop: 4 }} />
+                  </div>
+                ))}
+              </div>
+              <div className="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/10">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="py-3 border-b border-outline-variant/10 last:border-0">
+                    <Skeleton style={{ width: 100, height: 12 }} />
+                    <Skeleton style={{ width: 120, height: 16, marginTop: 4 }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </SchoolLayout>
     );
   }
 
-  return (
-    <SchoolLayout title="Edit Student">
-      <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 space-y-6">
-
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div>
-            <h1 className="text-2xl font-headline font-extrabold text-on-surface">Edit Student Profile</h1>
-            <p className="text-sm text-on-surface-variant mt-1 font-body">
-              All changes are saved immediately to the student record.
-            </p>
+  if (error || !student) {
+    return (
+      <SchoolLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <span className="material-symbols-outlined text-5xl text-error mb-4">error</span>
+            <p className="text-on-surface-variant">{error || "Student not found."}</p>
+            <button
+              onClick={() => navigate("/school-admin/students")}
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold"
+            >
+              Back to Directory
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/20 text-primary font-semibold rounded-md font-body transition-colors"
-          >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span> Back
-          </button>
         </div>
+      </SchoolLayout>
+    );
+  }
 
-        {error && (
-          <div className="p-3 bg-error/10 text-error rounded-md border border-error/20 text-sm flex gap-2 font-body">
-            <span className="material-symbols-outlined text-[20px]">error</span>{error}
+  const { first_name, last_name, email, enrollment_number, date_of_birth, phone_number, blood_group, address, is_archived } = student;
+
+  return (
+    <SchoolLayout>
+      <div className="max-w-4xl mx-auto px-4 md:px-8 pt-4 pb-12">
+
+        {/* Toast */}
+        {toast && (
+          <div className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 transition-all duration-300 ${toast.type === "success"
+              ? "bg-success text-white"
+              : toast.type === "error"
+                ? "bg-error text-white"
+                : "bg-surface-container-high text-on-surface"
+            }`}>
+            <span className="material-symbols-outlined text-base">
+              {toast.type === "success" ? "check_circle" : toast.type === "error" ? "error" : "info"}
+            </span>
+            {toast.msg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-
-          {/* Core Identity */}
-          <SectionCard title="Core Identity" color="bg-primary" icon="badge">
-            <FormField label="First Name">
-              <input value={formData.first_name} onChange={set("first_name")} className={inputClass} placeholder="First Name" />
-            </FormField>
-            <FormField label="Last Name">
-              <input value={formData.last_name} onChange={set("last_name")} className={inputClass} placeholder="Last Name" />
-            </FormField>
-            <FormField label="Email Address">
-              <input
-                type="email"
-                value={formData.email}
-                onChange={set("email")}
-                className={inputClass}
-                placeholder="email@example.com"
-              />
-              <p className="text-[10px] text-outline mt-1 font-body">Changing email updates the login credential.</p>
-            </FormField>
-            <FormField label="Status">
-              <div className="flex gap-2 mt-1">
+        {/* ── Delete Confirmation Modal ── */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-surface-container-lowest rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-outline-variant/10 animate-in zoom-in-95 duration-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-error text-2xl">warning</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-headline font-bold text-on-surface">Delete Student</h3>
+                  <p className="text-sm text-on-surface-variant">This action cannot be undone.</p>
+                </div>
+              </div>
+              <p className="text-sm text-on-surface-variant mb-6">
+                Are you sure you want to delete <span className="font-bold text-on-surface">
+                  {first_name} {last_name}
+                </span>?
+                All associated data will be permanently removed.
+              </p>
+              <div className="flex justify-end gap-3">
                 <button
-                  type="button"
-                  onClick={() => setFormData(p => ({ ...p, is_archived: false }))}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm border transition-colors font-body ${
-                    !formData.is_archived
-                      ? "bg-success/20 text-success border-success/30"
-                      : "bg-surface-container-low text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-high"
-                  }`}
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 rounded-lg text-sm font-bold border border-outline-variant/10 text-on-surface hover:bg-surface-container-high transition-colors"
                 >
-                  <span className="w-2 h-2 rounded-full bg-success"></span> Active
+                  Cancel
                 </button>
                 <button
-                  type="button"
-                  onClick={() => setFormData(p => ({ ...p, is_archived: true }))}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm border transition-colors font-body ${
-                    formData.is_archived
-                      ? "bg-outline/10 text-outline border-outline/30"
-                      : "bg-surface-container-low text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-high"
-                  }`}
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-lg text-sm font-bold bg-error text-white hover:bg-error/90 transition-colors flex items-center gap-2 disabled:opacity-70"
                 >
-                  <span className="material-symbols-outlined text-[14px]">inventory_2</span> Archived
+                  {deleting ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Student"
+                  )}
                 </button>
               </div>
-            </FormField>
-          </SectionCard>
-
-          {/* Academic Profile */}
-          <SectionCard title="Academic Profile" color="bg-secondary" icon="assignment_ind">
-            <FormField label="Enrollment Number">
-              <input value={formData.enrollment_number} onChange={set("enrollment_number")} className={inputClass} placeholder="e.g. STU-2024-001" />
-            </FormField>
-            <FormField label="Phone Number">
-              <input value={formData.phone_number} onChange={set("phone_number")} className={inputClass} placeholder="+91 98765 43210" />
-            </FormField>
-            <FormField label="Date of Birth">
-              <input type="date" value={formData.date_of_birth} onChange={set("date_of_birth")} className={inputClass} />
-            </FormField>
-            <FormField label="Blood Group">
-              <select value={formData.blood_group} onChange={set("blood_group")} className={inputClass}>
-                <option value="">Select Group</option>
-                <option value="A+">A+</option><option value="A-">A-</option>
-                <option value="B+">B+</option><option value="B-">B-</option>
-                <option value="AB+">AB+</option><option value="AB-">AB-</option>
-                <option value="O+">O+</option><option value="O-">O-</option>
-              </select>
-            </FormField>
-            <div className="md:col-span-2">
-              <FormField label="Residential Address">
-                <textarea
-                  rows="2"
-                  value={formData.address}
-                  onChange={set("address")}
-                  className={`${inputClass} resize-none`}
-                  placeholder="Street, City, State"
-                />
-              </FormField>
             </div>
-          </SectionCard>
+          </div>
+        )}
 
-          {/* Class Enrollment */}
-          <SectionCard title="Class Enrollment" color="bg-tertiary" icon="school">
-            <FormField label="Academic Year">
-              <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} className={inputClass}>
-                <option value="">Select Year</option>
-                {academicYears.map(y => (
-                  <option key={y.id} value={y.id}>{y.name}</option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Class Level">
-              <select
-                value={selectedClass}
-                onChange={e => { setSelectedClass(e.target.value); setSelectedSection(""); }}
-                className={inputClass}
-              >
-                <option value="">Select Class</option>
-                {classLevels.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Section">
-              <select
-                value={selectedSection}
-                onChange={e => setSelectedSection(e.target.value)}
-                className={inputClass}
-                disabled={!selectedClass}
-              >
-                <option value="">
-                  {selectedClass ? (sections.length ? "Select Section" : "No sections") : "Pick class first"}
-                </option>
-                {sections.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </FormField>
-          </SectionCard>
-
-          {/* Footer */}
-          <div className="flex gap-3 justify-end pt-2">
+        {/* ── Header ── */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="flex items-center gap-3">
             <button
-              type="button"
-              disabled={saving}
-              onClick={() => navigate(-1)}
-              className="px-6 py-2.5 text-sm text-on-surface-variant font-semibold hover:bg-surface-container-high rounded-md transition-colors disabled:opacity-50 font-body"
+              onClick={() => navigate("/school-admin/students")}
+              className="p-2 hover:bg-surface-container-high rounded-lg transition-colors"
             >
-              Cancel
+              <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
+            </button>
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm border border-outline-variant/20">
+                  {getInitials(first_name, last_name, email)}
+                </div>
+                <div>
+                  <h1 className="text-2xl font-headline font-extrabold text-on-surface">
+                    {first_name} {last_name}
+                  </h1>
+                  <p className="text-sm text-on-surface-variant">{email}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="px-4 py-2 text-error font-bold text-sm rounded-lg bg-error/10 hover:bg-error/20 transition-colors flex items-center gap-1.5"
+            >
+              <span className="material-symbols-outlined text-base">delete</span>
+              Delete
             </button>
             <button
-              type="submit"
-              disabled={saving}
-              className="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-md shadow hover:bg-primary/90 transition flex items-center gap-2 disabled:opacity-70 font-body"
+              onClick={() => navigate(`/school-admin/students/edit/${id}`)}
+              className="px-4 py-2 bg-primary text-white font-bold text-sm rounded-lg shadow-md hover:bg-primary/90 transition-all flex items-center gap-1.5"
             >
-              {saving ? (
-                <><span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> Saving...</>
-              ) : (
-                <><span className="material-symbols-outlined text-[16px]">save</span> Save Changes</>
-              )}
+              <span className="material-symbols-outlined text-base">edit</span>
+              Edit
             </button>
           </div>
+        </div>
 
-        </form>
+        {/* ── Content ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Academic Profile */}
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-6">
+            <h3 className="text-sm font-headline font-bold text-on-surface mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">badge</span>
+              Academic Profile
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-2xs font-bold uppercase tracking-wider text-on-surface-variant">Enrollment Number</p>
+                <p className="font-mono text-sm font-semibold text-on-surface mt-0.5">{enrollment_number || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-2xs font-bold uppercase tracking-wider text-on-surface-variant">Date of Birth</p>
+                <p className="text-sm text-on-surface mt-0.5">{date_of_birth || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-2xs font-bold uppercase tracking-wider text-on-surface-variant">Phone Number</p>
+                <p className="text-sm text-on-surface mt-0.5">{phone_number || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-2xs font-bold uppercase tracking-wider text-on-surface-variant">Blood Group</p>
+                <p className="text-sm text-on-surface mt-0.5">{blood_group || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-2xs font-bold uppercase tracking-wider text-on-surface-variant">Residential Address</p>
+                <p className="text-sm text-on-surface mt-0.5">{address || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-2xs font-bold uppercase tracking-wider text-on-surface-variant">Status</p>
+                <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full mt-1 ${is_archived
+                    ? "bg-outline-variant/20 text-outline"
+                    : "bg-success/20 text-success"
+                  }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${is_archived ? "bg-outline" : "bg-success animate-pulse"}`} />
+                  {is_archived ? "Archived" : "Active"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Class Enrollment */}
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-6">
+            <h3 className="text-sm font-headline font-bold text-on-surface mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-secondary">class</span>
+              Class Enrollment
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-2xs font-bold uppercase tracking-wider text-on-surface-variant">Academic Year</p>
+                <p className="text-sm text-on-surface mt-0.5">{student.academic_year_name || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-2xs font-bold uppercase tracking-wider text-on-surface-variant">Class Level</p>
+                <p className="text-sm text-on-surface mt-0.5">{student.class_level_name || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-2xs font-bold uppercase tracking-wider text-on-surface-variant">Section</p>
+                <p className="text-sm text-on-surface mt-0.5">{student.section_name || "N/A"}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </SchoolLayout>
   );

@@ -3,6 +3,70 @@ import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/axiosClient";
 
+// ── Skeleton shimmer ──
+if (typeof document !== "undefined" && !document.getElementById("skeleton-shimmer-style")) {
+  const s = document.createElement("style");
+  s.id = "skeleton-shimmer-style";
+  s.textContent = `@keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`;
+  document.head.appendChild(s);
+}
+const SHIMMER = {
+  background: "linear-gradient(90deg,color-mix(in srgb,var(--color-outline-variant) 16%,var(--color-surface-container-lowest)) 25%,color-mix(in srgb,var(--color-outline-variant) 28%,var(--color-surface-container-lowest)) 50%,color-mix(in srgb,var(--color-outline-variant) 16%,var(--color-surface-container-lowest)) 75%)",
+  backgroundSize: "200% 100%",
+  animation: "skeleton-shimmer 1.4s ease infinite",
+};
+function Sk({ w, h, r = 6, style = {} }) {
+  return <div style={{ width: w, height: h, borderRadius: r, flexShrink: 0, ...SHIMMER, ...style }} />;
+}
+
+// ── Full‑page Skeleton ──
+function CreateSectionSkeleton() {
+  return (
+    <SchoolLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 md:py-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-surface-container-lowest rounded-lg shadow-sm border border-outline-variant/10 p-6 sm:p-8">
+            {/* Header */}
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Sk w={28} h={28} r={8} />
+                <div>
+                  <Sk w={160} h={24} />
+                  <Sk w={220} h={16} style={{ marginTop: 4 }} />
+                </div>
+              </div>
+              <Sk w={80} h={32} r={6} />
+            </div>
+
+            {/* Form fields */}
+            <div className="space-y-5">
+              {/* Parent Class Level */}
+              <div>
+                <Sk w={140} h={12} r={4} style={{ marginBottom: 6 }} />
+                <Sk w="100%" h={44} r={8} />
+              </div>
+
+              {/* Section Identifier */}
+              <div>
+                <Sk w={140} h={12} r={4} style={{ marginBottom: 6 }} />
+                <Sk w="100%" h={44} r={8} />
+                <Sk w={300} h={12} r={4} style={{ marginTop: 8 }} />
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-2">
+                <Sk w={80} h={40} r={8} />
+                <Sk w={140} h={40} r={8} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </SchoolLayout>
+  );
+}
+
+// ── Main Component ──
 export default function CreateSection() {
   const navigate = useNavigate();
 
@@ -55,13 +119,19 @@ export default function CreateSection() {
       console.error("Error creating section:", err);
       setError(
         err?.response?.data?.detail ||
-          "Failed to create section. Please try again."
+        "Failed to create section. Please try again."
       );
     } finally {
       setSubmitting(false);
     }
   };
 
+  // ── Skeleton ──
+  if (loadingLevels) {
+    return <CreateSectionSkeleton />;
+  }
+
+  // ── Render ──
   return (
     <SchoolLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 md:py-6">

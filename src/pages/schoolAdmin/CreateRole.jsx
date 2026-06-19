@@ -2,8 +2,27 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import api from "../../services/axiosClient";
-import { useTheme } from "../../context/ThemeContext";
 
+// ─────────────────────────────────────────────
+// Skeleton Loader
+// ─────────────────────────────────────────────
+function Skeleton({ className = "", style = {} }) {
+  return (
+    <div
+      className={`rounded-md ${className}`}
+      style={{
+        background: "linear-gradient(90deg, color-mix(in srgb, var(--color-outline-variant) 16%, var(--color-surface-container-lowest)) 25%, color-mix(in srgb, var(--color-outline-variant) 28%, var(--color-surface-container-lowest)) 50%, color-mix(in srgb, var(--color-outline-variant) 16%, var(--color-surface-container-lowest)) 75%)",
+        backgroundSize: "200% 100%",
+        animation: "skeleton-shimmer 1.4s ease infinite",
+        ...style,
+      }}
+    />
+  );
+}
+
+// ─────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────
 export default function CreateRole() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -19,7 +38,17 @@ export default function CreateRole() {
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
+  // ── Toast helper ──
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // ── Load data ──
   useEffect(() => {
     const initData = async () => {
       try {
@@ -54,6 +83,7 @@ export default function CreateRole() {
     initData();
   }, [id, isEditMode]);
 
+  // ── Permissions toggles ──
   const togglePermission = (permId) => {
     setSelectedPermissions((prev) =>
       prev.includes(permId)
@@ -71,6 +101,7 @@ export default function CreateRole() {
     }
   };
 
+  // ── Submit ──
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -85,8 +116,8 @@ export default function CreateRole() {
         await api.post(`accounts/roles/`, payload);
       }
 
-      alert(`Role ${isEditMode ? "updated" : "created"} successfully!`);
-      navigate("/school-admin/roles");
+      showToast(`Role ${isEditMode ? "updated" : "created"} successfully!`);
+      setTimeout(() => navigate("/school-admin/roles"), 1000);
     } catch (err) {
       if (err.response && err.response.data) {
         const data = err.response.data;
@@ -104,24 +135,23 @@ export default function CreateRole() {
     }
   };
 
+  // ── Delete handler ──
   const handleDelete = async () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this role? Users assigned to it will lose these permissions."
-      )
-    )
-      return;
-    setLoading(true);
+    setIsDeleting(true);
     try {
       await api.delete(`accounts/roles/${id}/`);
-      alert("Role deleted successfully.");
-      navigate("/school-admin/roles");
+      showToast("Role deleted successfully.", "success");
+      setTimeout(() => navigate("/school-admin/roles"), 1000);
     } catch (err) {
-      setError(err.message || "Failed to delete role.");
-      setLoading(false);
+      console.error(err);
+      showToast(err.message || "Failed to delete role.", "error");
+      setShowDeleteModal(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
+  // ── Helper for module icon/color ──
   const getModuleAesthetics = (moduleName) => {
     const name = moduleName.toLowerCase();
     if (name.includes("user")) return { icon: "group", color: "var(--color-primary)" };
@@ -135,22 +165,126 @@ export default function CreateRole() {
     return { icon: "settings", color: "var(--color-outline)" };
   };
 
+  // ── Skeleton Loading ──
   if (initialLoad) {
     return (
       <SchoolLayout title="Roles & Permissions">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-primary font-semibold flex items-center gap-2 font-body">
-            <span className="material-symbols-outlined animate-spin">progress_activity</span>
-            Loading RBAC Definitions...
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-8">
+          <div className="flex flex-col gap-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <Skeleton style={{ width: 240, height: 28 }} />
+                <Skeleton style={{ width: 320, height: 16, marginTop: 4 }} />
+              </div>
+              <Skeleton style={{ width: 90, height: 36, borderRadius: 8 }} />
+            </div>
+            <div className="grid lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant/10">
+                  <div className="space-y-4">
+                    <Skeleton style={{ width: "100%", height: 42 }} />
+                    <Skeleton style={{ width: "100%", height: 80 }} />
+                  </div>
+                </div>
+                <div className="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant/10">
+                  <Skeleton style={{ width: "100%", height: 32 }} />
+                  <div className="mt-4 space-y-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="border border-outline-variant/10 rounded-md overflow-hidden">
+                        <div className="bg-surface-container-high/50 px-4 py-2.5">
+                          <Skeleton style={{ width: 180, height: 20 }} />
+                        </div>
+                        <div className="p-3 grid md:grid-cols-2 gap-2">
+                          {Array.from({ length: 4 }).map((_, j) => (
+                            <Skeleton key={j} style={{ width: "100%", height: 32, borderRadius: 6 }} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="lg:sticky lg:top-6 self-start">
+                <div className="bg-surface-container-high/50 p-6 rounded-lg border border-primary/10">
+                  <div className="space-y-3">
+                    <Skeleton style={{ width: 100, height: 20 }} />
+                    <Skeleton style={{ width: "100%", height: 28 }} />
+                    <Skeleton style={{ width: "100%", height: 28 }} />
+                    <Skeleton style={{ width: "100%", height: 42 }} />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </SchoolLayout>
     );
   }
 
+  // ── Main Render ──
   return (
     <SchoolLayout title="Roles & Permissions">
       <div className="px-4 sm:px-6 md:px-8 py-6 md:py-8 max-w-6xl mx-auto">
+
+        {/* Toast Notification */}
+        {toast && (
+          <div className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 transition-all duration-300 ${toast.type === "success"
+              ? "bg-green-600 text-white"
+              : toast.type === "error"
+                ? "bg-red-600 text-white"
+                : "bg-gray-100 text-gray-800"
+            }`}>
+            <span className="material-symbols-outlined text-base">
+              {toast.type === "success" ? "check_circle" : toast.type === "error" ? "error" : "info"}
+            </span>
+            {toast.msg}
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-surface-container-lowest rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-outline-variant/10 animate-in zoom-in-95 duration-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-error text-2xl">warning</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-headline font-bold text-on-surface">Delete Role</h3>
+                  <p className="text-sm text-on-surface-variant">This action cannot be undone.</p>
+                </div>
+              </div>
+              <p className="text-sm text-on-surface-variant mb-6">
+                Are you sure you want to delete <span className="font-bold text-on-surface">{name}</span>?
+                Users assigned to this role will lose these permissions.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 rounded-lg text-sm font-bold border border-outline-variant/10 text-on-surface hover:bg-surface-container-high transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="px-4 py-2 rounded-lg text-sm font-bold bg-error text-white hover:bg-error/90 transition-colors flex items-center gap-2 disabled:opacity-70"
+                >
+                  {isDeleting ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Role"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-headline font-extrabold text-on-surface">
@@ -169,6 +303,7 @@ export default function CreateRole() {
           </button>
         </div>
 
+        {/* Error */}
         {error && (
           <div className="mb-6 p-3 bg-error/10 text-error rounded-md border border-error/20 text-sm font-medium flex gap-2 font-body">
             <span className="material-symbols-outlined text-xl">error</span>
@@ -265,11 +400,10 @@ export default function CreateRole() {
                             {perms.map((p) => (
                               <label
                                 key={p.id}
-                                className={`flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors border ${
-                                  selectedPermissions.includes(p.id)
+                                className={`flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors border ${selectedPermissions.includes(p.id)
                                     ? "bg-primary/5 border-primary/20"
                                     : "border-transparent hover:bg-surface-container-high"
-                                }`}
+                                  }`}
                               >
                                 <div className="mt-0.5">
                                   <input
@@ -299,7 +433,7 @@ export default function CreateRole() {
             </form>
           </div>
 
-          {/* RIGHT Panel (Action Summary Only) */}
+          {/* RIGHT Panel (Action Summary) */}
           <div className="lg:sticky lg:top-6 self-start">
             <div className="bg-surface-container-high/50 p-6 rounded-lg border border-primary/10 shadow-sm">
               <h4 className="font-headline font-bold mb-4 text-on-surface text-sm">
@@ -335,13 +469,11 @@ export default function CreateRole() {
                   {isEditMode && (
                     <button
                       type="button"
-                      onClick={handleDelete}
+                      onClick={() => setShowDeleteModal(true)}
                       disabled={loading}
                       className="w-full py-2 bg-surface-container-lowest border border-error/20 text-error rounded-md font-bold hover:bg-error/10 transition-colors flex items-center justify-center gap-1.5 text-sm font-body"
                     >
-                      <span className="material-symbols-outlined text-[16px]">
-                        delete_forever
-                      </span>
+                      <span className="material-symbols-outlined text-[16px]">delete_forever</span>
                       Delete Role
                     </button>
                   )}

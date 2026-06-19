@@ -2,8 +2,96 @@ import React, { useState, useEffect } from "react";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/axiosClient";
-import { useTheme } from "../../context/ThemeContext";
 
+// ── Skeleton shimmer ──
+if (typeof document !== "undefined" && !document.getElementById("skeleton-shimmer-style")) {
+  const s = document.createElement("style");
+  s.id = "skeleton-shimmer-style";
+  s.textContent = `@keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`;
+  document.head.appendChild(s);
+}
+const SHIMMER = {
+  background: "linear-gradient(90deg,color-mix(in srgb,var(--color-outline-variant) 16%,var(--color-surface-container-lowest)) 25%,color-mix(in srgb,var(--color-outline-variant) 28%,var(--color-surface-container-lowest)) 50%,color-mix(in srgb,var(--color-outline-variant) 16%,var(--color-surface-container-lowest)) 75%)",
+  backgroundSize: "200% 100%",
+  animation: "skeleton-shimmer 1.4s ease infinite",
+};
+function Sk({ w, h, r = 6, style = {} }) {
+  return <div style={{ width: w, height: h, borderRadius: r, flexShrink: 0, ...SHIMMER, ...style }} />;
+}
+
+// ── Full‑page Skeleton ──
+function AssignTeacherSkeleton() {
+  return (
+    <SchoolLayout title="Teacher Assignment">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 md:py-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <Sk w={240} h={32} />
+            <Sk w={340} h={16} style={{ marginTop: 4 }} />
+          </div>
+          <Sk w={100} h={36} r={8} />
+        </div>
+
+        <div className="bg-surface-container-lowest p-6 rounded-lg shadow-sm border border-outline-variant/10">
+          <h2 className="text-lg font-headline font-bold text-on-surface mb-5 flex items-center gap-2 border-b border-outline-variant/10 pb-3">
+            <Sk w={24} h={24} r={4} />
+            <Sk w={160} h={20} />
+          </h2>
+
+          <form className="space-y-5">
+            {/* Select Educator */}
+            <div>
+              <Sk w={120} h={12} r={4} style={{ marginBottom: 6 }} />
+              <Sk w="100%" h={44} r={8} />
+            </div>
+
+            {/* Two column grid */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Sk w={110} h={12} r={4} style={{ marginBottom: 6 }} />
+                <Sk w="100%" h={44} r={8} />
+              </div>
+              <div>
+                <Sk w={110} h={12} r={4} style={{ marginBottom: 6 }} />
+                <Sk w="100%" h={44} r={8} />
+              </div>
+            </div>
+
+            {/* Two column grid */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Sk w={100} h={12} r={4} style={{ marginBottom: 6 }} />
+                <Sk w="100%" h={44} r={8} />
+              </div>
+              <div>
+                <Sk w={100} h={12} r={4} style={{ marginBottom: 6 }} />
+                <Sk w="100%" h={44} r={8} />
+              </div>
+            </div>
+
+            {/* Class Teacher toggle */}
+            <div className="pt-3 border-t border-outline-variant/10">
+              <div className="flex items-center justify-between p-3 bg-tertiary/10 border border-tertiary/20 rounded-lg">
+                <div>
+                  <Sk w={160} h={16} />
+                </div>
+                <Sk w={20} h={20} r={4} />
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-outline-variant/10">
+              <Sk w={100} h={40} r={8} />
+              <Sk w={160} h={40} r={8} />
+            </div>
+          </form>
+        </div>
+      </div>
+    </SchoolLayout>
+  );
+}
+
+// ── Main Component ──
 export default function AssignTeacher() {
   const navigate = useNavigate();
 
@@ -101,6 +189,12 @@ export default function AssignTeacher() {
     setError(null);
   };
 
+  // ── Skeleton ──
+  if (initialLoading) {
+    return <AssignTeacherSkeleton />;
+  }
+
+  // ── Render ──
   return (
     <SchoolLayout title="Teacher Assignment">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 md:py-8">

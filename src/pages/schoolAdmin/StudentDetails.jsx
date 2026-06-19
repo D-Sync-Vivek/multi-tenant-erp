@@ -4,6 +4,26 @@ import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from "../../services/schoolAdminApi";
 import api from "../../services/axiosClient";
 
+// ─────────────────────────────────────────────
+// Skeleton Loader (shimmer)
+// ─────────────────────────────────────────────
+function Skeleton({ className = "", style = {} }) {
+  return (
+    <div
+      className={`rounded-md ${className}`}
+      style={{
+        background: "linear-gradient(90deg, color-mix(in srgb, var(--color-outline-variant) 16%, var(--color-surface-container-lowest)) 25%, color-mix(in srgb, var(--color-outline-variant) 28%, var(--color-surface-container-lowest)) 50%, color-mix(in srgb, var(--color-outline-variant) 16%, var(--color-surface-container-lowest)) 75%)",
+        backgroundSize: "200% 100%",
+        animation: "skeleton-shimmer 1.4s ease infinite",
+        ...style,
+      }}
+    />
+  );
+}
+
+// ─────────────────────────────────────────────
+// Helpers (unchanged)
+// ─────────────────────────────────────────────
 const labelClass = "text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 block";
 const viewFieldClass = "text-sm font-bold text-slate-800 bg-[#f8f9ff] px-4 py-2.5 rounded-md border border-gray-100";
 const editFieldClass = "w-full text-sm font-bold text-slate-800 bg-white border border-[#0058be]/30 focus:ring-2 focus:ring-[#0058be]/10 outline-none px-4 py-2 rounded-md";
@@ -30,6 +50,9 @@ function Field({ label, viewValue, isEditing, children }) {
   );
 }
 
+// ─────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────
 export default function StudentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -43,6 +66,9 @@ export default function StudentDetails() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const [formData, setFormData] = useState({
     first_name: "", last_name: "", email: "",
@@ -59,6 +85,13 @@ export default function StudentDetails() {
   const [classLevels, setClassLevels] = useState([]);
   const [sections, setSections] = useState([]);
 
+  // ── Toast helper ──
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // ── Fetch all data ──
   const fetchAll = async () => {
     try {
       setLoading(true);
@@ -106,7 +139,7 @@ export default function StudentDetails() {
 
   useEffect(() => { fetchAll(); }, [id, location.state?.refresh]);
 
-  // Reload sections when class changes in edit mode
+  // ── Fetch sections on class change ──
   useEffect(() => {
     if (!selectedClass) { setSections([]); return; }
     api.get(`academics/sections/?class_level=${selectedClass}`)
@@ -114,10 +147,10 @@ export default function StudentDetails() {
       .catch(() => setSections([]));
   }, [selectedClass]);
 
+  // ── Save handler ──
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // 1. PATCH student profile (serializer writes user fields too)
       await schoolAdminApi.updateStudent(id, {
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -130,7 +163,6 @@ export default function StudentDetails() {
         is_archived: formData.is_archived,
       });
 
-      // 2. PATCH or POST enrollment
       if (selectedClass && selectedYear) {
         const enrollmentPayload = {
           student: id,
@@ -145,43 +177,117 @@ export default function StudentDetails() {
         }
       }
 
-      // 3. Re-fetch to sync UI
       await fetchAll();
       setIsEditing(false);
+      showToast("Student updated successfully!");
     } catch (err) {
       console.error("Save error:", err);
       const data = err.response?.data;
       if (data && typeof data === "object") {
-        alert("Failed to save: " + Object.entries(data).map(([f, v]) => `${f}: ${Array.isArray(v) ? v.join(" ") : v}`).join(" | "));
+        showToast(
+          "Failed to save: " + Object.entries(data).map(([f, v]) => `${f}: ${Array.isArray(v) ? v.join(" ") : v}`).join(" | "),
+          "error"
+        );
       } else {
-        alert("Failed to save changes. Please check your connection.");
+        showToast("Failed to save changes. Please check your connection.", "error");
       }
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (loading) return (
-    <SchoolLayout title="Student Details">
-      <div className="flex justify-center items-center h-[50vh] text-blue-600">
-        <span className="material-symbols-outlined animate-spin text-4xl">progress_activity</span>
-      </div>
-    </SchoolLayout>
-  );
+  // ── Delete handler ──
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await api.delete(`/profiles/students/${id}/`);
+      showToast("Student deleted successfully!", "success");
+      setTimeout(() => navigate("/school-admin/students"), 1000);
+    } catch (err) {
+      console.error("Delete error:", err);
+      showToast("Failed to delete student. Please try again.", "error");
+      setShowDeleteModal(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
-  if (error || !student) return (
-    <SchoolLayout title="Student Details">
-      <div className="p-6 text-red-500">{error || "Student not found."}</div>
-    </SchoolLayout>
-  );
+  // ── Loading state ──
+  if (loading) {
+    return (
+      <SchoolLayout title="Student Details">
+        <div className="max-w-4xl px-4 md:px-8 pt-4 pb-12">
+          <div className="flex flex-col gap-6">
+            {/* Top bar skeleton */}
+            <div className="flex justify-between items-center">
+              <Skeleton style={{ width: 140, height: 20 }} />
+              <div className="flex gap-3">
+                <Skeleton style={{ width: 80, height: 36, borderRadius: 8 }} />
+                <Skeleton style={{ width: 80, height: 36, borderRadius: 8 }} />
+              </div>
+            </div>
+            {/* Identity card skeleton */}
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <div className="flex items-center gap-5">
+                <Skeleton style={{ width: 64, height: 64, borderRadius: 16 }} />
+                <div className="flex-1">
+                  <Skeleton style={{ width: 200, height: 24 }} />
+                  <Skeleton style={{ width: 150, height: 14, marginTop: 4 }} />
+                </div>
+                <Skeleton style={{ width: 100, height: 36, borderRadius: 8 }} />
+              </div>
+            </div>
+            {/* Profile and enrollment skeletons */}
+            <div className="grid grid-cols-1 gap-6">
+              <div className="bg-white rounded-xl border border-gray-100 p-6">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="py-3 border-b border-gray-100 last:border-0">
+                    <Skeleton style={{ width: 120, height: 12 }} />
+                    <Skeleton style={{ width: 160, height: 16, marginTop: 4 }} />
+                  </div>
+                ))}
+              </div>
+              <div className="bg-white rounded-xl border border-gray-100 p-6">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="py-3 border-b border-gray-100 last:border-0">
+                    <Skeleton style={{ width: 120, height: 12 }} />
+                    <Skeleton style={{ width: 120, height: 16, marginTop: 4 }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </SchoolLayout>
+    );
+  }
 
+  if (error || !student) {
+    return (
+      <SchoolLayout title="Student Details">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <span className="material-symbols-outlined text-5xl text-red-500 mb-4">error</span>
+            <p className="text-gray-500">{error || "Student not found."}</p>
+            <button
+              onClick={() => navigate("/school-admin/students")}
+              className="mt-4 px-4 py-2 bg-[#0058be] text-white rounded-lg text-sm font-bold"
+            >
+              Back to Directory
+            </button>
+          </div>
+        </div>
+      </SchoolLayout>
+    );
+  }
+
+  // ── Render ──
   const fName = student.first_name || student.user?.first_name || "";
   const lName = student.last_name || student.user?.last_name || "";
   const displayName = `${fName} ${lName}`.trim() || student.user?.email || "Unknown Student";
   const emailAddr = student.email || student.user?.email || "No Email";
   const initials = fName && lName ? `${fName[0]}${lName[0]}`.toUpperCase() : "ST";
 
-  // Lookup display names for view mode
   const yearName = academicYears.find(y => String(y.id) === String(selectedYear))?.name || "N/A";
   const className = classLevels.find(c => String(c.id) === String(selectedClass))?.name || "N/A";
   const sectionName = sections.find(s => String(s.id) === String(selectedSection))?.name
@@ -189,10 +295,68 @@ export default function StudentDetails() {
 
   return (
     <SchoolLayout title="Student Details">
-      <div className="max-w-4xl px-4 md:px-8 py-6 space-y-6">
+      <div className="max-w-4xl px-4 md:px-8 pt-4 pb-12 space-y-6">
+
+        {/* Toast */}
+        {toast && (
+          <div className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 transition-all duration-300 ${toast.type === "success"
+              ? "bg-green-600 text-white"
+              : toast.type === "error"
+                ? "bg-red-600 text-white"
+                : "bg-gray-100 text-gray-800"
+            }`}>
+            <span className="material-symbols-outlined text-base">
+              {toast.type === "success" ? "check_circle" : toast.type === "error" ? "error" : "info"}
+            </span>
+            {toast.msg}
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-200 animate-in zoom-in-95 duration-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-red-600 text-2xl">warning</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Delete Student</h3>
+                  <p className="text-sm text-gray-500">This action cannot be undone.</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mb-6">
+                Are you sure you want to delete <span className="font-bold text-gray-900">{displayName}</span>?
+                All associated data will be permanently removed.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 rounded-lg text-sm font-bold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="px-4 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-70"
+                >
+                  {isDeleting ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Student"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Top Bar */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap justify-between items-center gap-3">
           <button
             onClick={() => navigate("/school-admin/students")}
             className="flex items-center gap-1.5 text-[#0058be] text-sm font-semibold hover:underline"
@@ -200,31 +364,41 @@ export default function StudentDetails() {
             <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Directory
           </button>
 
-          {!isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#eff4ff] text-[#0058be] text-sm font-bold rounded-md hover:bg-[#dce9ff] transition-colors"
-            >
-              <span className="material-symbols-outlined text-[16px]">edit</span> Edit Profile
-            </button>
-          ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={() => { setIsEditing(false); fetchAll(); }}
-                className="px-4 py-2 text-sm text-gray-500 font-bold hover:bg-gray-100 rounded-md"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 bg-[#0058be] text-white text-sm font-bold rounded-md shadow-sm disabled:opacity-70"
-              >
-                {isSaving && <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>}
-                {isSaving ? "Saving..." : "Save Changes"}
-              </button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            {!isEditing ? (
+              <>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-bold rounded-md hover:bg-red-100 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">delete</span> Delete
+                </button>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#eff4ff] text-[#0058be] text-sm font-bold rounded-md hover:bg-[#dce9ff] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">edit</span> Edit Profile
+                </button>
+              </>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setIsEditing(false); fetchAll(); }}
+                  className="px-4 py-2 text-sm text-gray-500 font-bold hover:bg-gray-100 rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#0058be] text-white text-sm font-bold rounded-md shadow-sm disabled:opacity-70"
+                >
+                  {isSaving && <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>}
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Identity Header Card */}
@@ -268,7 +442,6 @@ export default function StudentDetails() {
               </div>
             </div>
 
-            {/* Status badge / toggle */}
             <div className="shrink-0">
               {isEditing ? (
                 <div className="flex gap-2">
@@ -291,8 +464,8 @@ export default function StudentDetails() {
                 student.is_archived
                   ? <span className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg font-bold text-sm">Archived Profile</span>
                   : <span className="bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px]">check_circle</span> Active
-                    </span>
+                    <span className="material-symbols-outlined text-[18px]">check_circle</span> Active
+                  </span>
               )}
             </div>
           </div>

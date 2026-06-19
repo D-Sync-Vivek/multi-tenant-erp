@@ -64,45 +64,71 @@ const PerformanceChart = () => {
 
   if (loading) {
     return (
-      <div className="h-full bg-surface-container-lowest dark:bg-slate-800/60 p-5 rounded-xl border border-outline-variant/5 dark:border-slate-700/40 animate-pulse flex flex-col gap-3">
-        <div className="h-5 w-48 bg-surface-container-low dark:bg-slate-700 rounded" />
-        <div className="h-4 w-64 bg-surface-container-low dark:bg-slate-700 rounded" />
-        <div className="flex-1 bg-surface-container-low dark:bg-slate-700 rounded" />
+      <div className="perf-chart-card h-full bg-surface-container-lowest dark:bg-slate-800/60 rounded-xl border border-outline-variant/5 dark:border-slate-700/40 animate-pulse flex flex-col gap-3 p-4 sm:p-5">
+        <div className="h-5 w-40 sm:w-48 bg-surface-container-low dark:bg-slate-700 rounded" />
+        <div className="h-4 w-52 sm:w-64 bg-surface-container-low dark:bg-slate-700 rounded" />
+        <div className="flex-1 min-h-[180px] bg-surface-container-low dark:bg-slate-700 rounded" />
       </div>
     );
   }
 
   return (
     /*
-      h-full fills the fixed grid row height (380px on lg).
-      flex-col lets header stay top, SVG fills middle, labels stay bottom.
+      Same native-CSS-container-query approach as AllInsights.jsx, so this
+      card also self-corrects based on its OWN rendered width rather than
+      the page viewport. Keeps both cards visually consistent if they ever
+      end up sharing a narrow row (e.g. Nest Hub, Nest Hub Max).
     */
-    <div className="h-full bg-surface-container-lowest dark:bg-slate-800/60 p-5 rounded-xl border border-outline-variant/5 dark:border-slate-700/40 flex flex-col">
+    <div className="perf-chart-card h-full min-h-[280px] sm:min-h-[320px] bg-surface-container-lowest dark:bg-slate-800/60 rounded-xl border border-outline-variant/5 dark:border-slate-700/40 flex flex-col">
+      <style>{`
+        .perf-chart-card {
+          container-type: inline-size;
+          container-name: perfcard;
+          padding: 0.75rem;
+        }
+        .perf-chart-card .pc-title { font-size: 0.875rem; }
+        .perf-chart-card .pc-subtitle { font-size: 0.6875rem; }
+        .perf-chart-card .pc-year-label { font-size: 0.6875rem; }
+        .perf-chart-card .pc-month-label { font-size: 0.5625rem; }
+
+        @container perfcard (min-width: 250px) {
+          .perf-chart-card { padding: 1rem; }
+          .perf-chart-card .pc-title { font-size: 1rem; }
+          .perf-chart-card .pc-subtitle { font-size: 0.75rem; }
+          .perf-chart-card .pc-year-label { font-size: 0.75rem; }
+          .perf-chart-card .pc-month-label { font-size: 0.625rem; }
+        }
+
+        @container perfcard (min-width: 320px) {
+          .perf-chart-card { padding: 1.25rem; }
+          .perf-chart-card .pc-title { font-size: 1.125rem; }
+          .perf-chart-card .pc-month-label { font-size: 0.75rem; }
+        }
+      `}</style>
 
       {/* Header */}
-      <div className="flex justify-between items-start mb-3 flex-shrink-0">
-        <div>
-          <h3 className="text-base sm:text-lg font-bold font-headline text-on-surface dark:text-white mb-0.5">
+      <div className="flex justify-between items-start mb-3 flex-shrink-0 gap-2">
+        <div className="min-w-0">
+          <h3 className="pc-title font-bold font-headline text-on-surface dark:text-white mb-0.5 truncate">
             Performance Trend
           </h3>
-          <p className="text-xs text-on-surface-variant dark:text-slate-400">Average score across all subjects</p>
+          <p className="pc-subtitle text-on-surface-variant dark:text-slate-400 truncate">Average score across all subjects</p>
         </div>
         {hasData && (
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-primary" />
-            <span className="text-xs font-medium text-on-surface-variant dark:text-slate-400">{yearLabel}</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-primary flex-shrink-0" />
+            <span className="pc-year-label font-medium text-on-surface-variant dark:text-slate-400 whitespace-nowrap">{yearLabel}</span>
           </div>
         )}
       </div>
 
       {!hasData ? (
-        <div className="flex-1 flex items-center justify-center text-sm text-on-surface-variant dark:text-slate-400">
+        <div className="flex-1 flex items-center justify-center text-sm text-on-surface-variant dark:text-slate-400 text-center px-4">
           Not enough exam data yet to show a trend.
         </div>
       ) : (
-        /* flex-1 + min-h-0: SVG fills all remaining space after header */
         <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 w-full min-h-0">
+          <div className="flex-1 w-full min-h-[160px] sm:min-h-[200px]">
             <svg className="w-full h-full" viewBox="0 0 1000 300" preserveAspectRatio="none">
               <line stroke="#eff4ff" strokeWidth="1" x1="0" x2="1000" y1="50"  y2="50"  />
               <line stroke="#eff4ff" strokeWidth="1" x1="0" x2="1000" y1="125" y2="125" />
@@ -126,11 +152,11 @@ const PerformanceChart = () => {
             </svg>
           </div>
           {/* Month labels pinned to bottom */}
-          <div className="flex justify-between mt-2 px-1 flex-shrink-0">
+          <div className="flex justify-between mt-2 px-1 flex-shrink-0 overflow-x-auto">
             {monthLabels.map((label, i) => (
               <span
                 key={`${label}-${i}`}
-                className={`text-[9px] sm:text-xs font-semibold
+                className={`pc-month-label font-semibold whitespace-nowrap
                   ${i === monthLabels.length - 1
                     ? "text-primary font-bold underline underline-offset-4"
                     : "text-on-surface-variant dark:text-slate-400"

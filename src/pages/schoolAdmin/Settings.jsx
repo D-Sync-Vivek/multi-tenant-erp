@@ -3,6 +3,90 @@ import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import apiClient from "../../services/axiosClient";
 
+// ─────────────────────────────────────────────
+// Skeleton Loader (matches other pages)
+// ─────────────────────────────────────────────
+function Skeleton({ className = "", style = {} }) {
+  return (
+    <div
+      className={`rounded-md ${className}`}
+      style={{
+        background: "linear-gradient(90deg, color-mix(in srgb, var(--color-outline-variant) 16%, var(--color-surface-container-lowest)) 25%, color-mix(in srgb, var(--color-outline-variant) 28%, var(--color-surface-container-lowest)) 50%, color-mix(in srgb, var(--color-outline-variant) 16%, var(--color-surface-container-lowest)) 75%)",
+        backgroundSize: "200% 100%",
+        animation: "skeleton-shimmer 1.4s ease infinite",
+        ...style,
+      }}
+    />
+  );
+}
+
+// ─────────────────────────────────────────────
+// Stat Card (reused)
+// ─────────────────────────────────────────────
+function StatCard({ icon, label, value, accentColor }) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl p-4 flex flex-col justify-between transition-all duration-200"
+      style={{
+        background: "var(--color-surface-container-lowest)",
+        border: "1px solid color-mix(in srgb, var(--color-outline-variant) 12%, transparent)",
+        borderLeft: `3px solid ${accentColor}`,
+        minHeight: "72px",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 4px 16px color-mix(in srgb, ${accentColor} 12%, transparent)`; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; }}
+    >
+      <div className="absolute -top-4 -right-4 w-14 h-14 rounded-full opacity-[0.04] pointer-events-none"
+        style={{ background: accentColor }} />
+      <div className="flex items-start justify-between">
+        <div className="w-7 h-7 rounded-md flex items-center justify-center"
+          style={{ background: `color-mix(in srgb, ${accentColor} 12%, transparent)` }}>
+          <span className="material-symbols-outlined" style={{ color: accentColor, fontSize: "16px" }}>{icon}</span>
+        </div>
+      </div>
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
+          style={{ color: "var(--color-on-surface-variant)" }}>{label}</p>
+        <p className="text-xl font-headline font-black leading-none"
+          style={{ color: "var(--color-on-surface)" }}>{value}</p>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Toggle Switch Component
+// ─────────────────────────────────────────────
+function ToggleSwitch({ enabled, onChange, label, description, icon }) {
+  return (
+    <div className="flex items-start justify-between gap-6 py-4 border-b border-outline-variant/10 last:border-0 last:pb-0 first:pt-0">
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          {icon && (
+            <span className="material-symbols-outlined text-on-surface-variant text-[20px]">{icon}</span>
+          )}
+          <p className="font-headline font-bold text-on-surface">{label}</p>
+        </div>
+        {description && (
+          <p className="text-xs text-on-surface-variant mt-0.5">{description}</p>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onChange}
+        className={`relative w-12 h-7 rounded-full transition-all duration-300 flex items-center px-1 flex-shrink-0 ${enabled ? "bg-primary" : "bg-surface-container-high"}`}
+      >
+        <div
+          className={`w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${enabled ? "translate-x-5" : "translate-x-0"}`}
+        />
+      </button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────
 export default function Settings() {
   const { darkMode, toggleDarkMode } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -20,15 +104,13 @@ export default function Settings() {
   const [originalForm, setOriginalForm] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const dk = darkMode;
-
-  // Force a full re-render when darkMode changes
+  // Force re-render on theme change
   const [renderKey, setRenderKey] = useState(0);
   useEffect(() => {
     setRenderKey(prev => prev + 1);
   }, [darkMode]);
 
-  // Fetch current settings from backend
+  // Fetch settings
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -109,26 +191,61 @@ export default function Settings() {
     }
   };
 
+  // Skeleton loading
   if (loading) {
     return (
-      <SchoolLayout title="School Configuration" key={`layout-${renderKey}`}>
-        <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <SchoolLayout key={`layout-${renderKey}`}>
+        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-4 pb-12">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <Skeleton style={{ width: 240, height: 32 }} />
+              <Skeleton style={{ width: 320, height: 18 }} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-xl p-4 border border-outline-variant/10 bg-surface-container-lowest">
+                  <Skeleton style={{ width: 24, height: 24, borderRadius: 6 }} />
+                  <Skeleton style={{ width: 80, height: 12, marginTop: 8 }} />
+                  <Skeleton style={{ width: 48, height: 24, marginTop: 4 }} />
+                </div>
+              ))}
+            </div>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-xl p-6 border border-outline-variant/10 bg-surface-container-lowest">
+                <Skeleton style={{ width: 140, height: 20 }} />
+                <Skeleton style={{ width: 200, height: 14, marginTop: 4 }} />
+                <div className="mt-6 flex flex-wrap gap-4">
+                  <Skeleton style={{ width: 200, height: 40 }} />
+                  <Skeleton style={{ width: 200, height: 40 }} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </SchoolLayout>
     );
   }
 
-  return (
-    <SchoolLayout title="School Configuration" key={`layout-${renderKey}`}>
-      <div className="max-w-6xl mx-auto animate-in fade-in duration-500" key={`content-${darkMode}`}>
+  // Stats for overview cards
+  const stats = [
+    { icon: "school", label: "School Name", value: form.schoolName || "Not set", accentColor: "var(--color-primary)" },
+    { icon: "event", label: "Academic Year", value: form.academicYear || "Not set", accentColor: "var(--color-secondary)" },
+    { icon: "grading", label: "Grading Scale", value: form.grading || "Not set", accentColor: "var(--color-tertiary)" },
+  ];
 
-        {/* Toast */}
+  return (
+    <SchoolLayout key={`layout-${renderKey}`}>
+      <div className="max-w-6xl mx-auto px-4 md:px-8 pt-4 pb-12 animate-in fade-in duration-300" key={`content-${renderKey}`}>
+
+        {/* Toast Notification */}
         {toast && (
-          <div className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-xl font-bold text-sm flex items-center gap-3 transition-all
-            ${toast.type === "success" ? "bg-success text-white" : toast.type === "error" ? "bg-error text-white" : "bg-surface-container-high text-on-surface"}`}>
+          <div className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 transition-all duration-300 ${
+            toast.type === "success"
+              ? "bg-success text-white"
+              : toast.type === "error"
+              ? "bg-error text-white"
+              : "bg-surface-container-high text-on-surface"
+          }`}>
             <span className="material-symbols-outlined text-base">
               {toast.type === "success" ? "check_circle" : toast.type === "error" ? "error" : "info"}
             </span>
@@ -136,206 +253,210 @@ export default function Settings() {
           </div>
         )}
 
-        <div className="mb-10">
-          <h1 className={`text-3xl font-headline font-black mb-2 ${dk ? "text-on-surface" : "text-on-surface"}`}>
-            School Configuration
-          </h1>
-          <p className={dk ? "text-on-surface-variant" : "text-on-surface-variant"}>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-headline font-black text-on-surface">School Configuration</h1>
+          <p className="text-sm text-on-surface-variant mt-1">
             Manage your institution's identity and academic parameters.
           </p>
         </div>
 
-        <form onSubmit={save} className="space-y-14" key={`form-${renderKey}`}>
+        {/* Overview Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          {stats.map((s, i) => (
+            <StatCard key={i} icon={s.icon} label={s.label} value={s.value} accentColor={s.accentColor} />
+          ))}
+        </div>
 
-          {/* SCHOOL PROFILE */}
-          <div className="grid lg:grid-cols-3 gap-10">
-            <div>
-              <h3 className={`text-xl font-headline font-bold mb-2 ${dk ? "text-on-surface" : "text-on-surface"}`}>
-                School Profile
-              </h3>
-              <p className={`text-sm leading-relaxed ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>
-                Public identity details for your reports and communication.
-              </p>
+        <form onSubmit={save} className="space-y-8">
+
+          {/* ── SCHOOL PROFILE ── */}
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-outline-variant/10 bg-surface-container-high/30">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl">apartment</span>
+                <div>
+                  <h3 className="text-lg font-headline font-bold text-on-surface">School Profile</h3>
+                  <p className="text-xs text-on-surface-variant">Public identity details for your reports and communication.</p>
+                </div>
+              </div>
             </div>
-            <div className={`lg:col-span-2 p-8 rounded-xl shadow-sm border ${dk ? "bg-surface-container-lowest border-outline-variant/20" : "bg-surface-container-lowest border-outline-variant/10"}`}>
-              <div className="flex gap-8 items-start mb-10">
+            <div className="p-6 space-y-6">
+              {/* Logo Upload */}
+              <div className="flex flex-col sm:flex-row items-start gap-6 pb-6 border-b border-outline-variant/10">
                 <div className="relative group">
-                  <div className="w-32 h-32 rounded-xl bg-surface-container-high/50 flex items-center justify-center border-2 border-dashed border-primary/30">
+                  <div className="w-28 h-28 rounded-xl bg-surface-container-high/50 flex items-center justify-center border-2 border-dashed border-primary/30 group-hover:border-primary transition-colors">
                     <span className="material-symbols-outlined text-4xl text-primary/50">school</span>
                   </div>
-                  <button type="button" className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+                  <button type="button" className="absolute -bottom-1 -right-1 w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
                     <span className="material-symbols-outlined text-sm">edit</span>
                   </button>
                 </div>
                 <div>
-                  <p className={`font-headline font-bold ${dk ? "text-on-surface" : "text-on-surface"}`}>Institution Logo</p>
-                  <p className={`text-sm mb-4 ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>Recommended: 400x400px. PNG/SVG.</p>
-                  <button type="button" className="px-5 py-2 bg-primary/10 text-primary font-bold text-sm rounded-md hover:bg-primary/20 transition-colors">
+                  <p className="font-headline font-bold text-on-surface">Institution Logo</p>
+                  <p className="text-sm text-on-surface-variant mb-3">Recommended: 400×400px. PNG/SVG.</p>
+                  <button type="button" className="px-5 py-2 bg-primary/10 text-primary font-bold text-sm rounded-lg hover:bg-primary/20 transition-colors">
                     Upload New Logo
                   </button>
                 </div>
               </div>
-              <div className="grid md:grid-cols-2 gap-6">
+
+              {/* Form fields */}
+              <div className="grid md:grid-cols-2 gap-5">
                 {[
-                  { key: "schoolName", label: "School Name" },
-                  { key: "email", label: "Email" },
-                  { key: "phone", label: "Phone" },
-                ].map(({ key, label }) => (
+                  { key: "schoolName", label: "School Name", icon: "domain" },
+                  { key: "email", label: "Email", icon: "email" },
+                  { key: "phone", label: "Phone", icon: "phone" },
+                ].map(({ key, label, icon }) => (
                   <div key={key}>
-                    <label className={`text-2xs font-headline font-black tracking-widest uppercase mb-2 block ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>
+                    <label className="text-2xs font-headline font-black tracking-widest uppercase text-on-surface-variant flex items-center gap-2 mb-2">
+                      <span className="material-symbols-outlined text-[14px]">{icon}</span>
                       {label}
                     </label>
                     <input
                       name={key}
                       value={form[key]}
                       onChange={change}
-                      className={`w-full border px-4 py-3 rounded-lg outline-none focus:border-primary transition-all font-body
-                        ${dk ? "bg-surface-container-low border-outline-variant/20 text-on-surface placeholder:text-outline" : "bg-surface-container-low border-outline-variant/10 text-on-surface placeholder:text-outline"}`}
+                      className="w-full border px-4 py-2.5 rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary transition bg-surface-container-low border-outline-variant/10 text-on-surface placeholder:text-outline font-body"
+                      placeholder={`Enter ${label.toLowerCase()}`}
                     />
                   </div>
                 ))}
                 <div>
-                  <label className={`text-2xs font-headline font-black tracking-widest uppercase mb-2 block ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>
+                  <label className="text-2xs font-headline font-black tracking-widest uppercase text-on-surface-variant flex items-center gap-2 mb-2">
+                    <span className="material-symbols-outlined text-[14px]">public</span>
                     Country
                   </label>
                   <select
                     name="country"
                     value={form.country}
                     onChange={change}
-                    className={`w-full border px-4 py-3 rounded-lg outline-none cursor-pointer font-body
-                      ${dk ? "bg-surface-container-low border-outline-variant/20 text-on-surface" : "bg-surface-container-low border-outline-variant/10 text-on-surface"}`}
+                    className="w-full border px-4 py-2.5 rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary transition bg-surface-container-low border-outline-variant/10 text-on-surface font-body"
                   >
                     <option>India</option>
+                    <option>United States</option>
+                    <option>United Kingdom</option>
+                    <option>Canada</option>
+                    <option>Australia</option>
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className={`text-2xs font-headline font-black tracking-widest uppercase mb-2 block ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>
+                  <label className="text-2xs font-headline font-black tracking-widest uppercase text-on-surface-variant flex items-center gap-2 mb-2">
+                    <span className="material-symbols-outlined text-[14px]">home</span>
                     Street Address
                   </label>
                   <input
                     name="address"
                     value={form.address}
                     onChange={change}
-                    className={`w-full border px-4 py-3 rounded-lg outline-none focus:border-primary transition-all font-body
-                      ${dk ? "bg-surface-container-low border-outline-variant/20 text-on-surface placeholder:text-outline" : "bg-surface-container-low border-outline-variant/10 text-on-surface placeholder:text-outline"}`}
+                    className="w-full border px-4 py-2.5 rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary transition bg-surface-container-low border-outline-variant/10 text-on-surface placeholder:text-outline font-body"
+                    placeholder="Enter full address"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* APPEARANCE – Dark Mode only, no language toggle */}
-          <div className="grid lg:grid-cols-3 gap-10">
-            <div>
-              <h3 className={`text-xl font-headline font-bold mb-2 ${dk ? "text-on-surface" : "text-on-surface"}`}>
-                Appearance
-              </h3>
-              <p className={`text-sm leading-relaxed ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>
-                Customize the look of your portal.
-              </p>
-            </div>
-            <div className={`lg:col-span-2 p-8 rounded-xl shadow-sm border space-y-8 ${dk ? "bg-surface-container-lowest border-outline-variant/20" : "bg-surface-container-lowest border-outline-variant/10"}`}>
-              <div className="flex justify-between items-center">
+          {/* ── APPEARANCE ── */}
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-outline-variant/10 bg-surface-container-high/30">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl">palette</span>
                 <div>
-                  <p className={`font-headline font-bold ${dk ? "text-on-surface" : "text-on-surface"}`}>Dark Mode</p>
-                  <p className={`text-xs ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>
-                    Switch between light and dark interface.
-                  </p>
+                  <h3 className="text-lg font-headline font-bold text-on-surface">Appearance</h3>
+                  <p className="text-xs text-on-surface-variant">Customize the look of your portal.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={toggleDarkMode}
-                  className={`w-14 h-7 rounded-full transition-all duration-300 flex items-center px-1 ${dk ? "bg-primary" : "bg-surface-container-high"}`}
-                >
-                  <div
-                    className={`w-5 h-5 bg-white rounded-full transition-transform duration-300 ${dk ? "translate-x-7" : "translate-x-0"}`}
-                  />
-                </button>
               </div>
+            </div>
+            <div className="p-6">
+              <ToggleSwitch
+                enabled={darkMode}
+                onChange={toggleDarkMode}
+                label="Dark Mode"
+                description="Switch between light and dark interface."
+                icon="dark_mode"
+              />
             </div>
           </div>
 
-          {/* ACADEMIC PREFERENCES */}
-          <div className="grid lg:grid-cols-3 gap-10">
-            <div>
-              <h3 className={`text-xl font-headline font-bold mb-2 ${dk ? "text-on-surface" : "text-on-surface"}`}>
-                Academic Preferences
-              </h3>
-              <p className={`text-sm ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>
-                Define operational logic for grading and reporting cycles.
-              </p>
-            </div>
-            <div className={`lg:col-span-2 p-8 rounded-xl shadow-sm border space-y-8 ${dk ? "bg-surface-container-lowest border-outline-variant/20" : "bg-surface-container-lowest border-outline-variant/10"}`}>
-              <div className="flex justify-between items-center pb-6 border-b last:border-0 last:pb-0">
+          {/* ── ACADEMIC PREFERENCES ── */}
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-outline-variant/10 bg-surface-container-high/30">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl">menu_book</span>
                 <div>
-                  <p className={`font-headline font-bold ${dk ? "text-on-surface" : "text-on-surface"}`}>Grading Scale System</p>
-                  <p className={`text-xs ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>
-                    Choose how performance is evaluated.
-                  </p>
+                  <h3 className="text-lg font-headline font-bold text-on-surface">Academic Preferences</h3>
+                  <p className="text-xs text-on-surface-variant">Define operational logic for grading and reporting cycles.</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 space-y-2">
+              {/* Grading Scale */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-b border-outline-variant/10">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-on-surface-variant text-[20px]">grading</span>
+                    <p className="font-headline font-bold text-on-surface">Grading Scale System</p>
+                  </div>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Choose how performance is evaluated.</p>
                 </div>
                 <select
                   name="grading"
                   value={form.grading}
                   onChange={change}
-                  className={`border px-4 py-2 rounded-lg text-sm font-bold font-body
-                    ${dk ? "bg-surface-container-low border-outline-variant/20 text-on-surface" : "bg-surface-container-low border-outline-variant/10 text-on-surface"}`}
+                  className="border px-4 py-2 rounded-lg text-sm font-bold bg-surface-container-low border-outline-variant/10 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
                 >
                   <option>4.0 GPA Scale</option>
                   <option>Percentage (0-100)</option>
+                  <option>Letter Grades (A-F)</option>
                 </select>
               </div>
-              <div className="flex justify-between items-center pb-6 border-b last:border-0 last:pb-0">
+
+              {/* Attendance Tracking */}
+              <ToggleSwitch
+                enabled={form.attendance}
+                onChange={toggleAttendance}
+                label="Attendance Tracking"
+                description="Automated alerts for absences."
+                icon="event_available"
+              />
+
+              {/* Default Academic Year */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-outline-variant/10">
                 <div>
-                  <p className={`font-headline font-bold ${dk ? "text-on-surface" : "text-on-surface"}`}>Attendance Tracking</p>
-                  <p className={`text-xs ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>
-                    Automated alerts for absences.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={toggleAttendance}
-                  className={`w-14 h-7 rounded-full transition-all duration-300 flex items-center px-1 ${form.attendance ? "bg-primary" : "bg-surface-container-high"}`}
-                >
-                  <div
-                    className={`w-5 h-5 bg-white rounded-full transition-transform duration-300 ${form.attendance ? "translate-x-7" : "translate-x-0"}`}
-                  />
-                </button>
-              </div>
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className={`font-headline font-bold ${dk ? "text-on-surface" : "text-on-surface"}`}>Default Academic Year</p>
-                  <p className={`text-xs ${dk ? "text-on-surface-variant" : "text-on-surface-variant"}`}>
-                    Active period for registrations.
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-on-surface-variant text-[20px]">calendar_month</span>
+                    <p className="font-headline font-bold text-on-surface">Default Academic Year</p>
+                  </div>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Active period for registrations.</p>
                 </div>
                 <select
                   name="academicYear"
                   value={form.academicYear}
                   onChange={change}
-                  className={`border px-4 py-2 rounded-lg text-sm font-bold font-body
-                    ${dk ? "bg-surface-container-low border-outline-variant/20 text-on-surface" : "bg-surface-container-low border-outline-variant/10 text-on-surface"}`}
+                  className="border px-4 py-2 rounded-lg text-sm font-bold bg-surface-container-low border-outline-variant/10 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
                 >
                   <option>2023-2024</option>
                   <option>2024-2025</option>
+                  <option>2025-2026</option>
                 </select>
               </div>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className={`flex justify-end gap-4 pt-8 border-t ${dk ? "border-outline-variant/20" : "border-outline-variant/10"}`}>
+          {/* ── SAVE / DISCARD ── */}
+          <div className="flex justify-end gap-4 pt-4 border-t border-outline-variant/10">
             <button
               type="button"
               onClick={discard}
-              className={`px-6 py-3 font-headline font-bold text-sm rounded-lg border transition-all
-                ${dk ? "border-outline-variant/20 text-on-surface hover:bg-surface-container-high" : "border-outline-variant/10 text-on-surface hover:bg-surface-container-high"}`}
+              className="px-6 py-2.5 font-headline font-bold text-sm rounded-lg border border-outline-variant/10 text-on-surface hover:bg-surface-container-high transition-colors"
             >
               Discard
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-8 py-3 bg-primary text-white font-headline font-bold text-sm rounded-lg shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center gap-2 disabled:opacity-70"
+              className="px-8 py-2.5 bg-primary text-white font-headline font-bold text-sm rounded-lg shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center gap-2 disabled:opacity-70"
             >
               {isSaving ? (
                 <>

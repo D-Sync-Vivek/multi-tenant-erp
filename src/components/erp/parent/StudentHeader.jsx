@@ -96,89 +96,96 @@ const StudentHeader = () => {
   if (loading) {
     return (
       <section className="animate-pulse space-y-3">
-        <div className="h-8 bg-slate-100 dark:bg-slate-700 rounded w-48" />
+        <div className="h-7 sm:h-8 bg-slate-100 dark:bg-slate-700 rounded w-40 sm:w-48" />
         <div className="flex gap-3">
           <div className="h-4 bg-slate-100 dark:bg-slate-700 rounded w-24" />
           <div className="h-4 bg-slate-100 dark:bg-slate-700 rounded w-20" />
         </div>
-        <div className="flex gap-3 pt-1">
-          <div className="h-10 bg-slate-100 dark:bg-slate-700 rounded w-36" />
-          <div className="h-10 bg-slate-100 dark:bg-slate-700 rounded w-36" />
+        <div className="flex flex-wrap gap-2 sm:gap-3 pt-1">
+          <div className="h-10 bg-slate-100 dark:bg-slate-700 rounded w-32 sm:w-36" />
+          <div className="h-10 bg-slate-100 dark:bg-slate-700 rounded w-32 sm:w-36" />
         </div>
       </section>
     );
   }
 
   return (
-    <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    /*
+      Key fix: stack name+chips above buttons until lg (1024px) instead of sm (640px).
+      On tablets (iPad 768-1024px, Nest Hub 1024px) the title + 3 chips + 2 buttons
+      simply don't fit on one row without wrapping awkwardly mid-word — so we
+      keep them stacked (flex-col) for the whole tablet range and only go
+      side-by-side on real desktop widths.
+    */
+    <section className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
 
       {/* Left: name + meta */}
       <div className="space-y-1.5 min-w-0">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-on-surface dark:text-white font-headline tracking-tight leading-tight">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-on-surface dark:text-white font-headline tracking-tight leading-tight">
           Parent Dashboard
         </h2>
 
-        {/* Chips row — wraps on mobile */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-on-surface-variant dark:text-slate-300">
-          <span className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-primary dark:text-blue-300 text-base">person</span>
-            <span className="font-semibold text-on-surface dark:text-white">{displayName}</span>
+        {/* Chips row — wraps freely at every breakpoint */}
+        <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 text-xs sm:text-sm text-on-surface-variant dark:text-slate-300">
+          <span className="flex items-center gap-1 min-w-0 max-w-full">
+            <span className="material-symbols-outlined text-primary dark:text-blue-300 text-sm sm:text-base flex-shrink-0">person</span>
+            <span className="font-semibold text-on-surface dark:text-white truncate">{displayName}</span>
           </span>
 
-          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 flex-shrink-0" />
 
-          <span className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-primary dark:text-blue-300 text-base">school</span>
-            <span>{classSection}</span>
+          <span className="flex items-center gap-1 min-w-0 max-w-full">
+            <span className="material-symbols-outlined text-primary dark:text-blue-300 text-sm sm:text-base flex-shrink-0">school</span>
+            <span className="truncate">{classSection}</span>
           </span>
 
-          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 hidden sm:block" />
+          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 flex-shrink-0" />
 
-          <span className="text-primary dark:text-blue-300 font-medium hidden sm:inline">{schoolName}</span>
+          <span className="text-primary dark:text-blue-300 font-medium truncate max-w-full">{schoolName}</span>
         </div>
       </div>
 
-      {/* Right: action buttons — stack on very small screens */}
-      <div className="flex flex-wrap gap-2 sm:gap-3 sm:flex-nowrap sm:justify-end flex-shrink-0">
+      {/* Right: action buttons — full-width grid on mobile/tablet, inline row on lg+ */}
+      <div className="grid grid-cols-2 lg:flex gap-2 sm:gap-3 lg:flex-nowrap lg:justify-end flex-shrink-0 w-full lg:w-auto">
         <button
           onClick={downloadReportCard}
           disabled={downloading}
-          className="flex items-center gap-1.5
+          className="flex items-center justify-center gap-1.5
                      bg-slate-100 dark:bg-slate-700
                      text-primary dark:text-blue-300
-                     px-4 py-2.5 rounded-lg font-semibold text-sm
+                     px-3 sm:px-4 py-2.5 rounded-lg font-semibold text-xs sm:text-sm
                      hover:bg-slate-200 dark:hover:bg-slate-600
                      transition-colors active:scale-95 duration-75
-                     disabled:opacity-50 whitespace-nowrap"
+                     disabled:opacity-50 whitespace-nowrap min-w-0"
         >
-          <span className="material-symbols-outlined text-base">
+          <span className="material-symbols-outlined text-base flex-shrink-0">
             {downloading ? "hourglass_empty" : "picture_as_pdf"}
           </span>
-          {downloading ? "Preparing..." : "Download Report"}
+          <span className="truncate">{downloading ? "Preparing..." : "Download Report"}</span>
         </button>
 
         {teacherEmail ? (
           <a
             href={`mailto:${teacherEmail}`}
-            className="flex items-center gap-1.5
+            className="flex items-center justify-center gap-1.5
                        bg-blue-600 text-white
-                       px-4 py-2.5 rounded-lg font-semibold text-sm
+                       px-3 sm:px-4 py-2.5 rounded-lg font-semibold text-xs sm:text-sm
                        hover:bg-blue-700 transition-colors active:scale-95 duration-75
-                       whitespace-nowrap"
+                       whitespace-nowrap min-w-0"
           >
-            <span className="material-symbols-outlined text-base">mail</span>
-            Contact Teacher
+            <span className="material-symbols-outlined text-base flex-shrink-0">mail</span>
+            <span className="truncate">Contact Teacher</span>
           </a>
         ) : (
           <button
             disabled
             title="Teacher email not available"
-            className="flex items-center gap-1.5
+            className="flex items-center justify-center gap-1.5
                        bg-blue-600 text-white opacity-60 cursor-not-allowed
-                       px-4 py-2.5 rounded-lg font-semibold text-sm whitespace-nowrap"
+                       px-3 sm:px-4 py-2.5 rounded-lg font-semibold text-xs sm:text-sm whitespace-nowrap min-w-0"
           >
-            <span className="material-symbols-outlined text-base">mail</span>
-            Contact Teacher
+            <span className="material-symbols-outlined text-base flex-shrink-0">mail</span>
+            <span className="truncate">Contact Teacher</span>
           </button>
         )}
       </div>
