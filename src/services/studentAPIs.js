@@ -201,6 +201,12 @@ export const getUpcomingAssignments = async () => {
 // ── Submissions ──
 
 export const getSubmissions = async () => {
+  // TEMP: commented out — /operations/submissions/me/ is currently
+  // returning 500 Internal Server Error on the backend. Short-circuiting
+  // to [] so it doesn't break Promise.allSettled / the dashboard load.
+  // Re-enable once the backend route is fixed.
+  return [];
+  /*
   try {
     const response = await api.get(`/operations/submissions/me/`);
     return response.data.results || [];
@@ -211,6 +217,7 @@ export const getSubmissions = async () => {
     }
     throw error;
   }
+  */
 };
 
 export const getPendingDrafts = async () => {
