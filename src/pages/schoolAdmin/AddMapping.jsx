@@ -160,7 +160,6 @@ export default function AddMapping() {
     setError(null);
 
     try {
-      // FIXME: change the route from "profiles" to "school-admin" for post method
       await api.post(`profiles/parent-student-mappings/`, {
         parent: selectedParent,
         student: selectedStudent,
