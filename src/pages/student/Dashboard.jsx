@@ -1,10 +1,7 @@
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import MainLayout from "../../layouts/MainLayout";
-import {
-  calculateAttendance,
-  getMonthName,
-} from "../../utils/calculations";
+import { getMonthName } from "../../utils/calculations";
 import { useStudent } from "../../context/StudentProvider";
 
 function Skeleton({ className = "" }) {
@@ -88,6 +85,24 @@ function DashboardSkeleton() {
   );
 }
 
+function DashboardError({ message, onRetry }) {
+  return (
+    <MainLayout title="Dashboard">
+      <div className="px-8 py-16 flex flex-col items-center text-center gap-4">
+        <span className="material-symbols-outlined text-5xl text-red-400">error</span>
+        <p className="text-base font-bold text-on-surface">Couldn&apos;t load your dashboard</p>
+        <p className="text-sm text-on-surface-variant max-w-md">{message}</p>
+        <button
+          onClick={onRetry}
+          className="mt-2 px-5 py-2 rounded-lg bg-primary text-white text-sm font-bold hover:opacity-90 transition-opacity"
+        >
+          Try Again
+        </button>
+      </div>
+    </MainLayout>
+  );
+}
+
 export default function Dashboard() {
   const {
     profile: student,
@@ -96,6 +111,8 @@ export default function Dashboard() {
     academic,
     attendanceRecords,
     loading,
+    error,
+    reload,
   } = useStudent();
 
   const now       = useMemo(() => new Date(), []);
@@ -164,20 +181,27 @@ export default function Dashboard() {
       .slice(0, 4);
   }, [studentData, academic]);
 
-  if (loading || !studentData || !student) {
+  if (loading) {
     return <DashboardSkeleton />;
   }
 
-  const allAttendance  = studentData?.attendance?.results || [];
-  const attendanceRate = Number(calculateAttendance(allAttendance));
-  const grades         = studentData?.grades?.results || [];
+  if (!student) {
+    return (
+      <DashboardError
+        message={error || "Your profile couldn't be loaded."}
+        onRetry={reload}
+      />
+    );
+  }
 
-  // ── Overall Percentage (replaces GPA) ──
-  const totalMarks = grades.reduce((sum, g) => sum + parseFloat(g.marks_obtained || 0), 0);
-  const totalMax   = grades.reduce((sum, g) => sum + parseFloat(g.max_marks || 1), 0);
-  const percentage = totalMax > 0 ? ((totalMarks / totalMax) * 100).toFixed(1) : "0.0";
+  // ── Attendance rate comes pre-computed from the backend ──
+  const attendanceRate = Number(studentData?.attendanceSummary?.attendance_percentage ?? 0);
 
-  // ── Percentage status label ──
+  // ── Overall Percentage comes pre-computed from the report-card endpoint ──
+  const percentage = studentData?.reportCard?.overall_percentage != null
+    ? Number(studentData.reportCard.overall_percentage).toFixed(1)
+    : "0.0";
+
   const percentageStatus =
     parseFloat(percentage) >= 75
       ? { label: "EXCELLENT",    className: "text-green-800 bg-green-100"  }
