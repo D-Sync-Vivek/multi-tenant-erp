@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useStudent } from "../../context/StudentProvider";
-import { getSectionById } from "../../services/studentAPIs";
 
 function Skeleton({ className = "" }) {
   return <div className={`animate-pulse bg-gray-200 rounded-md ${className}`} />;
@@ -69,25 +68,16 @@ function getPerformanceMeta(percentage) {
 }
 
 export default function Subjects() {
-  const { academic, dashboard, enrollment, loading } = useStudent();
-  const [classLevelId, setClassLevelId] = useState(null);
-
-  useEffect(() => {
-    const fetchSection = async () => {
-      try {
-        if (!enrollment?.section) return;
-        const sectionData = await getSectionById(enrollment.section);
-        setClassLevelId(sectionData.class_level);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchSection();
-  }, [enrollment]);
+  const { academic, dashboard, loading } = useStudent();
 
   if (loading) return <SubjectsSkeleton />;
 
-  const subjects     = (academic?.subs || []).filter(s => s.class_levels?.includes(classLevelId));
+  // `/profiles/students/me/subjects/` is already scoped to this student's
+  // current class — it returns exactly the subjects that belong to them,
+  // so no extra client-side filtering by class_levels is needed (or safe;
+  // that's what broke this page before — it depended on a separate
+  // /academics/sections/{id}/ fetch that never resolved in time).
+  const subjects = academic?.subs || [];
   const grades       = dashboard?.grades?.results || [];
   const academicYears = academic?.years || [];
 
