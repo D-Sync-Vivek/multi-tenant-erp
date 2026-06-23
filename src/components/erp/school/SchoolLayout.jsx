@@ -221,7 +221,7 @@ function SchoolLayoutInner({ children, title = "Dashboard" }) {
 
         {/* ── PAGE CONTENT — pt-12 to clear 48px topbar ── */}
         <div key={location.pathname}
-          className="pt-12 lg:px-5  pb-5 flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-400">
+          className="pt-12 lg:px-5 px-2  pb-5 flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-400">
           {children}
         </div>
       </main>
