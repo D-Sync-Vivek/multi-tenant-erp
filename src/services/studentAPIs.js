@@ -201,12 +201,6 @@ export const getUpcomingAssignments = async () => {
 // ── Submissions ──
 
 export const getSubmissions = async () => {
-  // TEMP: commented out — /operations/submissions/me/ is currently
-  // returning 500 Internal Server Error on the backend. Short-circuiting
-  // to [] so it doesn't break Promise.allSettled / the dashboard load.
-  // Re-enable once the backend route is fixed.
-  return [];
-  /*
   try {
     const response = await api.get(`/operations/submissions/me/`);
     return response.data.results || [];
@@ -217,28 +211,25 @@ export const getSubmissions = async () => {
     }
     throw error;
   }
-  */
 };
 
-export const getPendingDrafts = async () => {
-  try {
-    const response = await api.get(`/operations/submissions/my-pending-drafts/`);
-    return response.data.results || response.data || [];
-  } catch (error) {
-    if (isIgnorableClientError(error)) {
-      logIgnoredError("getPendingDrafts", error);
-      return [];
-    }
-    throw error;
-  }
-};
+// NOTE: removed getPendingDrafts() (/operations/submissions/my-pending-drafts/)
+// — not in the current routes table. The new request-upload/confirm flow
+// has no draft concept to query, so this had nothing left to call.
 
-export const initiateUpload = async (assignmentId, fileName) => {
-  const response = await api.post(`/operations/submissions/initiate-upload/`, {
+// ── Submission upload flow ──
+// Per the current routes table, this is a 2-step flow (no draft concept):
+//   1) POST /operations/submissions/request-upload/  → get a signed R2 upload URL
+//   2) PUT  {upload_url}                              → direct upload to R2
+//   3) POST /operations/submissions/confirm/          → create the submission
+
+export const requestUploadUrl = async (assignmentId, fileName, contentType) => {
+  const response = await api.post(`/operations/submissions/request-upload/`, {
     assignment_id: assignmentId,
     file_name: fileName,
+    content_type: contentType || "application/octet-stream",
   });
-  return response.data; // { draft_id, upload_url, file_path, expires_at }
+  return response.data; // { upload_url, file_path, expires_at, ... }
 };
 
 export const uploadFileToSignedUrl = async (uploadUrl, file) => {
@@ -255,25 +246,37 @@ export const uploadFileToSignedUrl = async (uploadUrl, file) => {
   }
 };
 
-export const completeUpload = async (draftId) => {
-  const response = await api.post(`/operations/submissions/complete-upload/`, {
-    draft_id: draftId,
-  });
-  return response.data;
+// The upload_url's path includes the R2 bucket name as its first segment
+// (e.g. /ai-cos/submissions/.../file.pdf). The confirm/ endpoint expects
+// the path WITHOUT that bucket segment — so we derive it from the URL
+// instead of trusting the raw `file_path` field on the request-upload
+// response (that field is what was including the bucket name and causing
+// confirm/ to fail).
+const extractFilePathFromUrl = (uploadUrl) => {
+  const url = new URL(uploadUrl);
+  let path = url.pathname;
+  if (path.startsWith("/")) path = path.substring(1);
+  const parts = path.split("/");
+  parts.shift(); // drop the bucket name (first segment)
+  return parts.join("/");
 };
 
-export const cancelDraft = async (draftId) => {
-  const response = await api.delete(`/operations/submissions/cancel-draft/`, {
-    data: { draft_id: draftId },
+export const confirmSubmission = async (assignmentId, filePath) => {
+  const response = await api.post(`/operations/submissions/confirm/`, {
+    assignment_id: assignmentId,
+    file_path: filePath,
   });
   return response.data;
 };
 
 // Convenience wrapper: runs all 3 upload steps for a given File object.
+// Public signature (assignmentId, file) is unchanged, so callers like
+// Assignments.jsx don't need to know the route names changed underneath.
 export const submitAssignment = async (assignmentId, file) => {
-  const { draft_id, upload_url } = await initiateUpload(assignmentId, file.name);
+  const { upload_url } = await requestUploadUrl(assignmentId, file.name, file.type);
   await uploadFileToSignedUrl(upload_url, file);
-  return completeUpload(draft_id);
+  const actualFilePath = extractFilePathFromUrl(upload_url);
+  return confirmSubmission(assignmentId, actualFilePath);
 };
 
 // ── Combined dashboard fetch ──

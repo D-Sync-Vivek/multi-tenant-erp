@@ -1,298 +1,287 @@
-
-
 import React, { useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { useStudent } from "../../context/StudentProvider";
 import { submitAssignment } from "../../services/studentAPIs";
 
+function Skeleton({ className = "" }) {
+  return <div className={`animate-pulse bg-gray-200 rounded-md ${className}`} />;
+}
+
+function AssignmentsSkeleton() {
+  return (
+    <MainLayout title="Assignments">
+      <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl mx-auto">
+        <div className="space-y-2 mb-8">
+          <Skeleton className="w-56 h-8" />
+          <Skeleton className="w-72 h-4" />
+        </div>
+        <div className="flex gap-6 mb-6 border-b border-gray-100 pb-3">
+          <Skeleton className="w-28 h-5" />
+          <Skeleton className="w-32 h-5" />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-lg shadow-sm p-5 space-y-3">
+              <Skeleton className="w-48 h-4" />
+              <Skeleton className="w-32 h-3" />
+              <Skeleton className="w-full h-10 rounded-md" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </MainLayout>
+  );
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+// Status field names aren't 100% confirmed from the routes doc — these
+// cover the values mentioned ("submission_status", "status") plus the
+// common variants. Adjust the case labels below if your backend uses
+// different strings once you see a real response.
+function getStatusMeta(status) {
+  switch ((status || "").toLowerCase()) {
+    case "graded":
+      return { label: "Graded", className: "bg-green-100 text-green-700" };
+    case "submitted":
+      return { label: "Submitted", className: "bg-blue-100 text-blue-700" };
+    case "late":
+      return { label: "Late", className: "bg-orange-100 text-orange-700" };
+    case "pending":
+    default:
+      return { label: "Pending", className: "bg-gray-100 text-gray-600" };
+  }
+}
+
 export default function Assignments() {
-  const {assignments, submissions, academic, dashboard, loading, refreshSubmissions} = useStudent();
+  const { assignments, submissions, loading, reload, refreshSubmissions } = useStudent();
+  const [activeTab, setActiveTab] = useState("assignments"); // "assignments" | "submissions"
 
-  const [selectedSubject, setSelectedSubject] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedAssignment, setSelectedAssignment] = useState(null); // For modal
-  const [file, setFile] = useState(null);
-  
-  if (loading)
-    return (
-      <MainLayout>
-        <div>Loading Assignments...</div>
-      </MainLayout>
-    );
+  // Per-assignment upload state, keyed by assignment id:
+  // { [id]: { file, uploading, error, success } }
+  const [uploadState, setUploadState] = useState({});
 
-   const subs = academic.subs || []
-   const exams = dashboard?.exams?.results || [];
+  if (loading) return <AssignmentsSkeleton />;
 
-  const filteredAssignments = assignments.filter((assign) => {
-    const mySubmission = submissions.find((s) => s.assignment === assign.id);
+  const list = assignments || [];
+  const subs = submissions || [];
 
-    // Subject Filter Logic
-    const matchesSubject =
-      selectedSubject === "all" ||
-      assign.subject.toString() === selectedSubject;
+  // Used to hide the upload control for assignments that already have a
+  // submission, in case the assignment object's own status field is stale.
+  const submittedAssignmentIds = new Set(
+    subs.map((s) => s.assignment_id || s.assignment?.id || s.assignment).filter(Boolean),
+  );
 
-    // Status Filter Logic
-    let matchesStatus = true;
-    if (selectedStatus === "pending") matchesStatus = !mySubmission;
-    if (selectedStatus === "submitted") matchesStatus = !!mySubmission;
-    if (selectedStatus === "graded") matchesStatus = mySubmission?.grade != null;
+  const setRowState = (id, patch) =>
+    setUploadState((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
 
-    return matchesSubject && matchesStatus;
-  });
-
-  const pendingTasks = assignments.filter(
-    (a) => !submissions.find((s) => s.assignment === a.id),
-  ).length;
-
-  const gradedSubmissions = submissions.filter((s) => s.grade != null);
-  const avgGradeValue =
-    gradedSubmissions.length > 0
-      ? gradedSubmissions.reduce(
-          (acc, curr) => acc + parseFloat(curr.grade),
-          0,
-        ) / gradedSubmissions.length
-      : 0;
-
-  const getLetterGrade = (grade) => {
-    if (grade >= 90) return "A";
-    if (grade >= 80) return "B";
-    return "C"; //school's logic here
+  const handleFileSelect = (assignmentId, file) => {
+    setRowState(assignmentId, { file, error: null, success: false });
   };
-  const averageGradeLetter = getLetterGrade(avgGradeValue);
-  const upcomingExam = exams?.length > 0 ? exams[0] : null;
- 
+
+  const handleUpload = async (assignmentId) => {
+    const row = uploadState[assignmentId];
+    if (!row?.file) return;
+
+    setRowState(assignmentId, { uploading: true, error: null });
+    try {
+      await submitAssignment(assignmentId, row.file);
+      setRowState(assignmentId, { uploading: false, success: true, file: null });
+      // Refresh submissions list + assignment statuses so both tabs reflect
+      // the new submission without a manual page reload.
+      await Promise.all([refreshSubmissions(), reload()]);
+    } catch (err) {
+      console.error("Failed to submit assignment:", err);
+      setRowState(assignmentId, {
+        uploading: false,
+        error:
+          err?.response?.data?.detail ||
+          err?.message ||
+          "Upload failed. Please try again.",
+      });
+    }
+  };
 
   return (
     <MainLayout title="Assignments">
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-          {/* Pending Tasks Card */}
-          <div className="bg-surface-container-lowest p-6 rounded-xl ambient-shadow flex flex-col gap-2">
-            <span className="text-on-surface-variant text-sm font-medium">
-              Pending Tasks
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="font-headline text-3xl font-bold text-primary">
-                {String(pendingTasks).padStart(2, "0")}
-              </span>
-              <span className="text-xs text-on-surface-variant">this week</span>
-            </div>
-          </div>
-          {/* Average Grade Card */}
-          <div className="bg-surface-container-lowest p-6 rounded-xl ambient-shadow flex flex-col gap-2">
-            <span className="text-on-surface-variant text-sm font-medium">
-              Average Grade
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="font-headline text-3xl font-bold text-secondary">
-                {averageGradeLetter}
-              </span>
-              <span className="text-xs text-on-surface-variant">
-                {avgGradeValue.toFixed(1)}%
-              </span>
-            </div>
-          </div>
-          {/* Upcoming Exam Card */}
-          <div className="col-span-2 bg-primary-container p-6 rounded-xl ambient-shadow primary-gradient text-on-primary flex justify-between items-center relative overflow-hidden">
-            <div className="z-10">
-              <h3 className="font-headline text-xl font-bold mb-1">
-                {upcomingExam ? upcomingExam.name : "No upcoming exams"}
-              </h3>
-              <p className="text-blue-100 text-sm opacity-90">
-                {upcomingExam
-                  ? `${new Date(upcomingExam.start_date).toDateString()}`
-                  : "Enjoy your free time!"}
-              </p>
-            </div>
-          </div>
+      <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-5xl mx-auto">
+        <div className="mb-8">
+          <h2 className="text-2xl sm:text-3xl font-headline font-extrabold text-on-surface tracking-tight">
+            Assignments &amp; Submissions
+          </h2>
+          <p className="text-on-surface-variant mt-1 font-medium">
+            Upload your work and keep track of what you've submitted
+          </p>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 mb-8 items-center justify-between">
-          <div className="flex flex-1 w-full max-w-md bg-surface-container-low rounded-md px-4 py-2.5 items-center gap-3">
-            <span
-              className="material-symbols-outlined text-slate-400 text-xl"
-              data-icon="search"
-            >
-              search
-            </span>
-            <input
-              className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400"
-              placeholder="Search assignments..."
-              type="text"
-            />
-          </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <select
-              value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
-              className="bg-surface-container-low border-none rounded-md px-4 py-2.5 text-sm text-on-surface-variant focus:ring-2 focus:ring-surface-tint min-w-[140px]"
-            >
-              <option value="all">All Subjects</option>
-              {subs.map((sub) => (
-                <option key={sub.id} value={sub.id}>
-                  {sub.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Status Filter */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-surface-container-low border-none rounded-md px-4 py-2.5 text-sm text-on-surface-variant focus:ring-2 focus:ring-surface-tint min-w-[140px]"
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="submitted">Submitted</option>
-              <option value="graded">Graded</option>
-            </select>
-            <button className="p-2.5 bg-surface-container-low text-primary rounded-md hover:bg-surface-container-high transition-colors">
-              <span className="material-symbols-outlined" data-icon="tune">
-                tune
-              </span>
-            </button>
-          </div>
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6 border-b border-surface-container-low">
+          <button
+            type="button"
+            onClick={() => setActiveTab("assignments")}
+            className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-colors ${
+              activeTab === "assignments"
+                ? "border-primary text-primary"
+                : "border-transparent text-on-surface-variant hover:text-on-surface"
+            }`}
+          >
+            Assignments ({list.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("submissions")}
+            className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-colors ${
+              activeTab === "submissions"
+                ? "border-primary text-primary"
+                : "border-transparent text-on-surface-variant hover:text-on-surface"
+            }`}
+          >
+            My Submissions ({subs.length})
+          </button>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-xl overflow-hidden ambient-shadow">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-container-low text-on-surface-variant">
-                <th className="px-6 py-4 font-headline text-sm font-bold uppercase">
-                  Assignment Title
-                </th>
-                <th className="px-6 py-4 font-headline text-sm font-bold uppercase">
-                  Subject
-                </th>
-                <th className="px-6 py-4 font-headline text-sm font-bold uppercase">
-                  Due Date
-                </th>
-                <th className="px-6 py-4 font-headline text-sm font-bold uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-4 font-headline text-sm font-bold uppercase">
-                  Grade
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredAssignments.map((assign) => {
-                // Use filteredAssignments here
-                const mySubmission = submissions.find(
-                  (s) => s.assignment === assign.id,
-                );
-                const subject = subs.find((s) => s.id === assign.subject) || {
-                  name: "N/A",
-                };
+        {activeTab === "assignments" ? (
+          <div className="space-y-4">
+            {list.length === 0 && (
+              <div className="bg-surface-container-lowest rounded-lg p-10 text-center text-sm text-on-surface-variant shadow-sm">
+                No assignments yet.
+              </div>
+            )}
+            {list.map((a) => {
+              const alreadySubmitted =
+                submittedAssignmentIds.has(a.id) ||
+                ["submitted", "graded"].includes((a.submission_status || "").toLowerCase());
+              const row = uploadState[a.id] || {};
+              const { label, className } = getStatusMeta(a.submission_status);
 
-                return (
-                  <tr
-                    key={assign.id}
-                    className="hover:bg-slate-50/50 transition-colors"
-                  >
-                    <td className="px-6 py-6 font-bold">{assign.title}</td>
-                    <td className="px-6 py-6">{subject.name}</td>
-                    <td className="px-6 py-6">
-                      {new Date(assign.due_date).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-6">
-                      {mySubmission ? (
-                        <span className="text-emerald-600 font-bold text-xs">
-                          Submitted
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => setSelectedAssignment(assign)}
-                          className="text-primary font-bold text-xs hover:underline"
-                        >
-                          Submit Now
-                        </button>
+              return (
+                <div key={a.id} className="bg-surface-container-lowest rounded-lg shadow-sm p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div>
+                      <p className="font-bold text-on-surface">{a.title}</p>
+                      <p className="text-xs text-outline mt-0.5">
+                        {a.subject_name || a.subject?.name || ""}
+                        {a.due_date && <> · Due {formatDate(a.due_date)}</>}
+                      </p>
+                      {a.description && (
+                        <p className="text-sm text-on-surface-variant mt-2">{a.description}</p>
                       )}
-                    </td>
-                    <td className="px-6 py-6 font-bold">
-                      {mySubmission?.grade || "—"}
-                    </td>
+                    </div>
+                    <span
+                      className={`inline-flex h-fit items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${className}`}
+                    >
+                      {label}
+                    </span>
+                  </div>
+
+                  {!alreadySubmitted && (
+                    <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                      <label className="flex-1 cursor-pointer border-2 border-dashed border-surface-container-high rounded-md px-4 py-2.5 text-sm text-on-surface-variant hover:border-primary hover:bg-primary-container/10 transition-colors text-center sm:text-left truncate">
+                        {row.file ? `📎 ${row.file.name}` : "Choose a file to submit"}
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => handleFileSelect(a.id, e.target.files?.[0] || null)}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        disabled={!row.file || row.uploading}
+                        onClick={() => handleUpload(a.id)}
+                        className="px-5 py-2.5 rounded-md text-sm font-bold bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors whitespace-nowrap"
+                      >
+                        {row.uploading ? "Uploading..." : "Submit"}
+                      </button>
+                    </div>
+                  )}
+                  {row.error && <p className="text-xs text-red-600 mt-2">{row.error}</p>}
+                  {row.success && (
+                    <p className="text-xs text-green-600 mt-2">Submitted successfully!</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-[600px] w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-container-low/50">
+                    <th className="px-6 py-4 text-xs font-bold text-outline uppercase tracking-wider">
+                      Assignment
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-outline uppercase tracking-wider">
+                      Submitted
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-outline uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-outline uppercase tracking-wider">
+                      File
+                    </th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mt-12 bg-white/40 border border-white p-8 rounded-xl flex items-center gap-8 relative overflow-hidden glass-card">
-          <div className="w-20 h-20 rounded-2xl bg-tertiary-fixed flex items-center justify-center text-tertiary shrink-0">
-            <span
-              className="material-symbols-outlined text-4xl"
-              data-icon="psychology"
-              style={{ fontVariationSettings: `&apos` }}
-            >
-              psychology
-            </span>
-          </div>
-          <div>
-            <h4 className="font-headline font-bold text-xl text-on-surface mb-2">
-              Personalized Recommendation
-            </h4>
-            <p className="text-on-surface-variant leading-relaxed max-w-2xl">
-              I&apos;ve noticed your performance in{" "}
-              <span className="font-bold text-primary">Quantum Mechanics</span>{" "}
-              has been slightly lower than your semester average. Would you like
-              to schedule a 15-minute review session or access supplemental
-              materials before your next assignment?
-            </p>
-            <div className="flex gap-4 mt-6">
-              <button className="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm shadow-sm hover:opacity-90 transition-opacity">
-                Get Help Now
-              </button>
-              <button className="text-on-surface-variant px-6 py-2.5 rounded-md font-bold text-sm hover:bg-white/50 transition-colors">
-                Maybe Later
-              </button>
+                </thead>
+                <tbody className="divide-y divide-surface-container-low">
+                  {subs.length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-10 text-center text-sm text-on-surface-variant">
+                        No submissions yet.
+                      </td>
+                    </tr>
+                  )}
+                  {subs.map((s) => {
+                    const { label, className } = getStatusMeta(s.status);
+                    return (
+                      <tr key={s.id} className="hover:bg-surface-container-low/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <p className="font-bold text-on-surface">
+                            {s.assignment_title || s.assignment_name || "Assignment"}
+                          </p>
+                          {s.marks_obtained != null && s.max_marks != null && (
+                            <p className="text-xs text-outline mt-0.5">
+                              {s.marks_obtained} / {s.max_marks}
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-on-surface-variant">
+                          {formatDate(s.submitted_at)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${className}`}
+                          >
+                            {label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {s.view_url ? (
+                            <a
+                              href={s.view_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary text-sm font-semibold hover:underline"
+                            >
+                              View File →
+                            </a>
+                          ) : (
+                            <span className="text-xs text-outline">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
-
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-tertiary/5 rounded-full blur-3xl" />
-        </div>
+        )}
       </div>
-      {/* Submission Modal */}
-      {selectedAssignment && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-8 rounded-xl w-full max-w-sm">
-            <h3 className="font-bold text-lg mb-4">
-              Submit: {selectedAssignment.title}
-            </h3>
-            <input
-              type="file"
-              onChange={(e) => setFile(e.target.files[0])}
-              className="mb-4 text-sm"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={async () => {
-                  const userData = JSON.parse(
-                    localStorage.getItem("user_data"),
-                  );
-                  const formData = new FormData();
-                  formData.append("assignment", selectedAssignment.id);
-                  formData.append("student", userData.profiles.student.id);
-                  formData.append("file", file);
-                  await submitAssignment(formData);
-                  setSelectedAssignment(null);
-                  await refreshSubmissions();
-                }}
-                className="bg-primary text-white px-4 py-2 rounded-md font-bold text-sm"
-              >
-                Upload Submission
-              </button>
-              <button
-                onClick={() => setSelectedAssignment(null)}
-                className="px-4 py-2 text-sm font-bold"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </MainLayout>
   );
 }
