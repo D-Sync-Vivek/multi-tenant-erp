@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
-import api from "../../services/axiosClient";
-import { schoolAdminApi } from "../../services/schoolAdminApi";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 
 /* ─────────────────────────────────────────────
    Skeleton Shimmer Style Injection
@@ -42,7 +41,7 @@ function DashboardSkeleton() {
           </div>
         ))}
       </div>
-      <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 p-4 flex flex-col lg:flex-row gap-6 min-h-[350px]">
+      <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 p-4 flex flex-col lg:flex-row gap-6 min-h-svh">
         <div className="flex-1 flex flex-col gap-4">
           <Sk w={150} h={18} />
           <Sk w={220} h={12} />
@@ -375,67 +374,21 @@ function AnalyticsCard({ allBars, classLevels, sections, totalStudents }) {
 ───────────────────────────────────────────── */
 export default function Dashboard() {
   const navigate = useNavigate();
+  const {
+    studentsCount,
+    activeStudents,
+    teachersCount,
+    classLevels,
+    sections,
+    enrollmentTrends,
+    loading,
+  } = useSchoolAdmin();
 
-  const [studentsCount, setStudentsCount] = useState(0);
-  const [activeStudents, setActiveStudents] = useState(0);
-  const [teachersCount, setTeachersCount] = useState(0);
-  const [classLevels, setClassLevels] = useState([]);
-  const [sections, setSections] = useState([]);
-  const [trendsData, setTrendsData] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showQuickActions, setShowQuickActions] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const [classRes, sectionRes, studentsRes, teachersRes,] = await Promise.all([
-          api.get("academics/class-levels/"),
-          api.get("academics/sections/"),
-          api.get("school-admin/students/"),
-          api.get("school-admin/teachers/"),
-        ]);
-
-        setClassLevels(classRes.data?.results ?? (Array.isArray(classRes.data) ? classRes.data : []));
-        setSections(sectionRes.data?.results ?? (Array.isArray(sectionRes.data) ? sectionRes.data : []));
-
-        const totalStu = studentsRes.data?.count ?? studentsRes.data?.results?.length ?? (Array.isArray(studentsRes.data) ? studentsRes.data.length : 0);
-        setStudentsCount(totalStu);
-
-        try {
-          const activeRes = await api.get("school-admin/students/?is_archived=false&page_size=1");
-          setActiveStudents(activeRes.data?.count ?? activeRes.data?.results?.length ?? totalStu);
-        } catch {
-          const stuArr = studentsRes.data?.results ?? (Array.isArray(studentsRes.data) ? studentsRes.data : []);
-          const activeFallback = stuArr.filter(s => s.is_archived === false || s.status === "ACTIVE" || s.is_active === true).length;
-          setActiveStudents(activeFallback || totalStu);
-        }
-
-        setTeachersCount(teachersRes.data?.count ?? teachersRes.data?.results?.length ?? (Array.isArray(teachersRes.data) ? teachersRes.data.length : 0));
-
-        try {
-          const statsRes = await schoolAdminApi.getDashboardStats();
-          if (statsRes?.total_students) setStudentsCount(statsRes.total_students);
-          if (statsRes?.active_students) setActiveStudents(statsRes.active_students);
-          if (statsRes?.total_teachers) setTeachersCount(statsRes.total_teachers);
-        } catch {}
-
-        try {
-          const trendsRes = await schoolAdminApi.getEnrollmentTrends();
-          const arr = trendsRes?.results ?? trendsRes?.data ?? trendsRes;
-          setTrendsData(Array.isArray(arr) ? arr : []);
-        } catch {}
-
-      } catch (err) {
-        console.error("Dashboard fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
 
   if (loading) return <SchoolLayout><DashboardSkeleton /></SchoolLayout>;
 
-  const allBars = buildBarsFromTrends(trendsData);
+  const allBars = buildBarsFromTrends(enrollmentTrends);
   if (!allBars.some(b => b.hasData) && studentsCount > 0) {
     const nowMonth = MONTH_ORDER[new Date().getMonth()];
     const idx = allBars.findIndex(b => b.m === nowMonth);

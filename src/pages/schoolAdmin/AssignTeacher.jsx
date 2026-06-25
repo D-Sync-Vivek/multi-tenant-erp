@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/axiosClient";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 
 // ── Skeleton shimmer ──
 if (typeof document !== "undefined" && !document.getElementById("skeleton-shimmer-style")) {
@@ -94,13 +95,15 @@ function AssignTeacherSkeleton() {
 // ── Main Component ──
 export default function AssignTeacher() {
   const navigate = useNavigate();
-
-  // Dropdown Data
-  const [teachers, setTeachers] = useState([]);
-  const [academicYears, setAcademicYears] = useState([]);
-  const [classLevels, setClassLevels] = useState([]);
-  const [sections, setSections] = useState([]);
-  const [subjects, setSubjects] = useState([]);
+  const {
+    teachers,
+    academicYears,
+    classLevels,
+    sections,
+    subjects,
+    loading: initialLoading,
+    refreshAcademics,
+  } = useSchoolAdmin();
 
   // Form State
   const [selectedTeacher, setSelectedTeacher] = useState("");
@@ -112,35 +115,7 @@ export default function AssignTeacher() {
 
   // UI State
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchDropdownData = async () => {
-      try {
-        const [teacherRes, yearRes, classRes, sectionRes, subjectRes] = await Promise.all([
-          api.get(`school-admin/teachers/`),
-          api.get(`academics/academic-years/`),
-          api.get(`academics/class-levels/`),
-          api.get(`academics/sections/`),
-          api.get(`academics/subjects/`),
-        ]);
-
-        setTeachers(teacherRes.data.results || teacherRes.data || []);
-        setAcademicYears(yearRes.data.results || yearRes.data || []);
-        setClassLevels(classRes.data.results || classRes.data || []);
-        setSections(sectionRes.data.results || sectionRes.data || []);
-        setSubjects(subjectRes.data.results || subjectRes.data || []);
-      } catch (err) {
-        console.error("Error fetching FK dropdowns:", err);
-        setError("Failed to load dropdown data from the server.");
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    fetchDropdownData();
-  }, []);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -159,6 +134,7 @@ export default function AssignTeacher() {
 
       await api.post(`academics/teacher-assignments/`, payload);
 
+      await refreshAcademics();
       alert("Teacher assigned successfully!");
       navigate("/school-admin/teacher-assignment");
     } catch (err) {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import SchoolSidebar from "./SchoolSidebar";
 import { useNavigate, useLocation } from "react-router-dom";
-import { schoolAdminApi } from "../../../services/schoolAdminApi";
+import { useSchoolAdmin } from "../../../context/SchoolAdminProvider";
 import { ThemeProvider, useTheme } from "../../../context/ThemeContext";
 
 function SchoolLayoutInner({ children, title = "Dashboard" }) {
@@ -26,48 +26,35 @@ function SchoolLayoutInner({ children, title = "Dashboard" }) {
     localStorage.setItem('schoolSidebarOpen', JSON.stringify(isSidebarOpen));
   }, [isSidebarOpen]);
 
-  // ── Rest of the component state ──
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [notificationPreviewList, setNotificationPreviewList] = useState([]);
+  const {
+    notificationPreviewList: contextPreview,
+    unreadCount: contextUnread,
+    markNotificationRead,
+    refreshNotifications,
+  } = useSchoolAdmin();
+
+  const placeholderNotifications = [
+    { id: "h-1", title: "System Core Snapshot", message: "Automated verification complete.", is_read: false, category: "system" },
+    { id: "h-2", title: "Security Handshake Blocked", message: "Malicious origin payload contained.", is_read: false, category: "security" },
+    { id: "h-3", title: "Academic Term Window Close", message: "Roster cycle configurations expiring soon.", is_read: false, category: "academic" },
+  ];
+
+  const notificationPreviewList = contextPreview.length > 0 ? contextPreview : placeholderNotifications;
+  const unreadCount = contextPreview.length > 0 ? contextUnread : placeholderNotifications.length;
+
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchString, setSearchString] = useState("");
 
-  const synchronizeLayoutStates = useCallback(async () => {
-    try {
-      const response = await schoolAdminApi.getNotifications();
-      const realData = response?.results || response;
-      if (Array.isArray(realData)) {
-        setUnreadCount(realData.filter(n => !n.is_read).length);
-        setNotificationPreviewList(realData.slice(0, 4));
-      } else {
-        setUnreadCount(3);
-      }
-    } catch {
-      const placeholders = [
-        { id: "h-1", title: "System Core Snapshot", message: "Automated verification complete.", is_read: false, category: "system" },
-        { id: "h-2", title: "Security Handshake Blocked", message: "Malicious origin payload contained.", is_read: false, category: "security" },
-        { id: "h-3", title: "Academic Term Window Close", message: "Roster cycle configurations expiring soon.", is_read: false, category: "academic" },
-      ];
-      setNotificationPreviewList(placeholders);
-      setUnreadCount(placeholders.length);
-    }
-  }, []);
-
   useEffect(() => {
-    synchronizeLayoutStates();
-    const handler = (e) => {
-      if (typeof e.detail === "number") setUnreadCount(e.detail);
-      synchronizeLayoutStates();
-    };
+    const handler = () => refreshNotifications();
     window.addEventListener("sync-unread-count", handler);
     return () => window.removeEventListener("sync-unread-count", handler);
-  }, [synchronizeLayoutStates]);
+  }, [refreshNotifications]);
 
   const handleQuickResolve = (id, e) => {
     e.stopPropagation();
-    setNotificationPreviewList(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    markNotificationRead(id);
   };
 
   const dk = darkMode;

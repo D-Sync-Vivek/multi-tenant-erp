@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/axiosClient";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 
 // ── Skeleton shimmer ──
 if (typeof document !== "undefined" && !document.getElementById("skeleton-shimmer-style")) {
@@ -64,29 +65,12 @@ function CreateSectionSkeleton() {
 // ── Main Component ──
 export default function CreateSection() {
   const navigate = useNavigate();
+  const { classLevels, loading: loadingLevels, refreshAcademics } = useSchoolAdmin();
 
-  const [classLevels, setClassLevels] = useState([]);
   const [classLevelId, setClassLevelId] = useState("");
   const [sectionName, setSectionName] = useState("");
-  const [loadingLevels, setLoadingLevels] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    const fetchClassLevels = async () => {
-      try {
-        const res = await api.get("academics/class-levels/");
-        const data = res.data.results ?? res.data;
-        setClassLevels(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to fetch class levels:", err);
-        setError("Could not load class levels. Please refresh and try again.");
-      } finally {
-        setLoadingLevels(false);
-      }
-    };
-    fetchClassLevels();
-  }, []);
 
   const selectedLevel = classLevels.find(
     (cl) => String(cl.id) === String(classLevelId)
@@ -109,6 +93,7 @@ export default function CreateSection() {
         class_level: classLevelId,
         name: sectionName.trim(),
       });
+      await refreshAcademics();
       navigate(-1);
     } catch (err) {
       console.error("Error creating section:", err);

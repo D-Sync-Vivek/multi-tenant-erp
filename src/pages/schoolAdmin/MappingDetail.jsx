@@ -276,7 +276,7 @@ export default function MappingDetail() {
         {/* Top Bar */}
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/school-admin/mapping")}
             className="text-primary font-medium flex items-center gap-1 hover:underline transition-all font-body"
           >
             <span className="material-symbols-outlined text-sm">arrow_back</span>

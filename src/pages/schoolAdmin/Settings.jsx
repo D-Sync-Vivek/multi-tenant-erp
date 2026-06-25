@@ -1,7 +1,7 @@
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import apiClient from "../../services/axiosClient";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 
 // ─────────────────────────────────────────────
 // Skeleton Loader (matches other pages)
@@ -89,6 +89,11 @@ function ToggleSwitch({ enabled, onChange, label, description, icon }) {
 // ─────────────────────────────────────────────
 export default function Settings() {
   const { darkMode, toggleDarkMode } = useTheme();
+  const {
+    settings: contextSettings,
+    loading: contextLoading,
+    updateSettings,
+  } = useSchoolAdmin();
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
@@ -110,34 +115,28 @@ export default function Settings() {
     setRenderKey(prev => prev + 1);
   }, [darkMode]);
 
-  // Fetch settings
+  // Hydrate form from context settings
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        setLoading(true);
-        const response = await apiClient.get("/school-admin/settings/");
-        const data = response.data;
-        const newForm = {
-          schoolName: data.name || "",
-          email: data.email || "",
-          phone: data.phone || "",
-          country: data.country || "India",
-          address: data.address || "",
-          grading: data.grading_scale || "4.0 GPA",
-          attendance: data.attendance_tracking_enabled ?? true,
-          academicYear: data.default_academic_year || "",
-        };
-        setForm(newForm);
-        setOriginalForm(newForm);
-      } catch (error) {
-        console.error("Failed to load settings:", error);
-        showToast("Could not load school configuration.", "error");
-      } finally {
-        setLoading(false);
-      }
+    if (contextLoading) return;
+    if (!contextSettings) {
+      setLoading(false);
+      return;
+    }
+    const data = contextSettings;
+    const newForm = {
+      schoolName: data.name || "",
+      email: data.email || "",
+      phone: data.phone || "",
+      country: data.country || "India",
+      address: data.address || "",
+      grading: data.grading_scale || "4.0 GPA",
+      attendance: data.attendance_tracking_enabled ?? true,
+      academicYear: data.default_academic_year || "",
     };
-    fetchSettings();
-  }, []);
+    setForm(newForm);
+    setOriginalForm(newForm);
+    setLoading(false);
+  }, [contextSettings, contextLoading]);
 
   const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const toggleAttendance = () => setForm({ ...form, attendance: !form.attendance });
@@ -168,8 +167,7 @@ export default function Settings() {
         attendance_tracking_enabled: form.attendance,
         default_academic_year: form.academicYear,
       };
-      const response = await apiClient.put("/school-admin/settings/", payload);
-      const updatedData = response.data;
+      const updatedData = await updateSettings(payload);
       const updatedForm = {
         schoolName: updatedData.name || "",
         email: updatedData.email || "",

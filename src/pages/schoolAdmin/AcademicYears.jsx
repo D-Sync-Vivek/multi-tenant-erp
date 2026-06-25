@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
-import api from "../../services/axiosClient";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 
 // ─────────────────────────────────────────────
 // Skeleton Loader (same as Dashboard)
@@ -130,25 +130,9 @@ function StatCard({ icon, label, value, accentColor }) {
 // ─────────────────────────────────────────────
 export default function AcademicYears() {
   const navigate = useNavigate();
-  const [years, setYears] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { academicYears: years, loading } = useSchoolAdmin();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // all, active, archived
-
-  // Fetch data
-  useEffect(() => {
-    const fetchYears = async () => {
-      try {
-        const response = await api.get(`academics/academic-years/`);
-        setYears(response.data.results || response.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchYears();
-  }, []);
 
   // Filtered years
   const filteredYears = useMemo(() => {

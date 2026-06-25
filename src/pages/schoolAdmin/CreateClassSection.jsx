@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from '../../services/schoolAdminApi';
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 
 export default function CreateClassSection() {
   const navigate = useNavigate();
+  const { classLevels: liveClasses, refreshAcademics } = useSchoolAdmin();
 
   // Global UI States
   const [loading, setLoading] = useState(false);
@@ -14,27 +16,10 @@ export default function CreateClassSection() {
   // Smart Form State
   const [targetGrade, setTargetGrade] = useState("1");
   const [targetSection, setTargetSection] = useState("A");
-  
-  // Background tracking for existing records
-  const [liveClasses, setLiveClasses] = useState([]);
 
   // Generators for 1-12 and A-Z
   const gradeLevels = Array.from({ length: 12 }, (_, i) => i + 1);
   const sectionAlphabet = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
-
-  // Fetch live classes silently on mount to know what already exists
-  const fetchClassLevels = async () => {
-    try {
-      const data = await schoolAdminApi.getClassLevels();
-      setLiveClasses(data?.results || data || []);
-    } catch (err) {
-      console.error("Failed to sync live class schema:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchClassLevels();
-  }, []);
 
   // Unified Smart Submit Handler
   const handleSmartDeploy = async (e) => {
@@ -87,7 +72,7 @@ export default function CreateClassSection() {
         setSuccess(`Success! Deployed "Section ${targetSection}" into the existing "Grade ${targetGrade}".`);
       }
 
-      fetchClassLevels(); // Refresh background state
+      await refreshAcademics();
 
       // Auto-increment section letter for rapid entry (A -> B -> C)
       if (targetSection !== "Z") {

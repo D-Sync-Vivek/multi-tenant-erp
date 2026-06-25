@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from '../../services/schoolAdminApi';
-import api from "../../services/axiosClient";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 
 // ─────────────────────────────────────────────
 // Skeleton Loader (reused)
@@ -153,8 +153,8 @@ const PAGE_SIZE_OPTIONS = [10, 25];
 
 export default function Students() {
   const navigate = useNavigate();
+  const { classLevels } = useSchoolAdmin();
   const [allStudents, setAllStudents] = useState([]);
-  const [classLevels, setClassLevels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -165,13 +165,6 @@ export default function Students() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [classFilter, setClassFilter] = useState("");
-
-  // Fetch class levels
-  useEffect(() => {
-    api.get(`academics/class-levels/`)
-      .then(res => setClassLevels(res.data.results || res.data || []))
-      .catch(() => { });
-  }, []);
 
   // Debounce search
   useEffect(() => {

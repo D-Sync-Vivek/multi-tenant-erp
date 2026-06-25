@@ -306,7 +306,7 @@ export default function TeacherAssignment() {
               placeholder="Search by teacher, subject, or class..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 rounded-lg text-sm bg-surface-container-high/50 border border-outline-variant/10 focus:border-primary focus:ring-1 focus:ring-primary transition outline-none"
+              className="w-full pl-9 pr-3 py-2 rounded-lg text-sm bg-surface-container-lowest border border-outline-variant/10 focus:border-primary focus:ring-1 focus:ring-primary transition outline-none"
               style={{ color: "var(--color-on-surface)" }}
             />
           </div>

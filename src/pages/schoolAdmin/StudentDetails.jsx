@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from "../../services/schoolAdminApi";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 import api from "../../services/axiosClient";
 
 // ─────────────────────────────────────────────
@@ -57,6 +58,11 @@ export default function StudentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const {
+    academicYears,
+    classLevels,
+    fetchSectionsByClass,
+  } = useSchoolAdmin();
 
   const [student, setStudent] = useState(null);
   const [enrollment, setEnrollment] = useState(null);
@@ -81,8 +87,6 @@ export default function StudentDetails() {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
 
-  const [academicYears, setAcademicYears] = useState([]);
-  const [classLevels, setClassLevels] = useState([]);
   const [sections, setSections] = useState([]);
 
   // ── Toast helper ──
@@ -95,11 +99,9 @@ export default function StudentDetails() {
   const fetchAll = async () => {
     try {
       setLoading(true);
-      const [studentData, enrollmentRes, yearsRes, classRes] = await Promise.all([
+      const [studentData, enrollmentRes] = await Promise.all([
         schoolAdminApi.getStudentById(id),
         api.get(`academics/enrollments/?student=${id}`),
-        schoolAdminApi.getAcademicYears(),
-        schoolAdminApi.getClassLevels(),
       ]);
 
       setStudent(studentData);
@@ -114,9 +116,6 @@ export default function StudentDetails() {
         address: studentData.address || "",
         is_archived: !!studentData.is_archived,
       });
-
-      setAcademicYears(yearsRes?.results ?? yearsRes ?? []);
-      setClassLevels(classRes?.results ?? classRes ?? []);
 
       const results = enrollmentRes.data?.results || enrollmentRes.data || [];
       if (results.length > 0) {
@@ -140,10 +139,10 @@ export default function StudentDetails() {
   // ── Fetch sections on class change ──
   useEffect(() => {
     if (!selectedClass) { setSections([]); return; }
-    api.get(`academics/sections/?class_level=${selectedClass}`)
-      .then(res => setSections(res.data?.results || res.data || []))
+    fetchSectionsByClass(selectedClass)
+      .then(setSections)
       .catch(() => setSections([]));
-  }, [selectedClass]);
+  }, [selectedClass, fetchSectionsByClass]);
 
   // ── Save handler ──
   const handleSave = async () => {
@@ -207,22 +206,75 @@ export default function StudentDetails() {
   };
 
   // ── Loading state ──
+ // ── Loading state ──
   if (loading) {
     return (
       <SchoolLayout>
-        <div className="flex flex-col gap-4 px-4 md:px-8 pt-4 pb-12 animate-pulse">
-          <div className="flex justify-between items-center">
-            <Skeleton style={{ width: 140, height: 20 }} />
-            <div className="flex gap-2"><Skeleton style={{ width: 80, height: 36 }} /><Skeleton style={{ width: 80, height: 36 }} /></div>
-          </div>
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 p-6">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Skeleton style={{ width: 64, height: 64, borderRadius: 16 }} className="shrink-0" />
-              <div className="flex flex-col md:items-start items-center w-full"><Skeleton style={{ width: 180, height: 24 }} /><Skeleton style={{ width: 140, height: 14, marginTop: 6 }} /></div>
+        <div className="flex flex-col gap-4 px-4 md:px-8 pt-4 pb-12 w-full mx-auto">
+          
+          {/* Header Action Strip Skeleton */}
+          <div className="flex justify-between items-center gap-3">
+            <Skeleton style={{ width: 80, height: 20 }} />
+            <div className="flex gap-2">
+              <Skeleton style={{ width: 90, height: 36 }} />
+              <Skeleton style={{ width: 120, height: 36 }} />
             </div>
           </div>
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 p-6 flex flex-col gap-4">
-            {Array.from({ length: 4 }).map((_, i) => <div key={i}><Skeleton style={{ width: 90, height: 12 }} /><Skeleton style={{ h: 36, mt: 4 }} className="w-full" /></div>)}
+
+          {/* Identity Section Header Module Skeleton */}
+          <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 md:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left w-full">
+                <Skeleton style={{ width: 64, height: 64, borderRadius: 12 }} className="shrink-0" />
+                <div className="flex flex-col md:items-start items-center gap-2 w-full">
+                  <Skeleton style={{ width: 220, height: 24 }} />
+                  <Skeleton style={{ width: 160, height: 14 }} />
+                </div>
+              </div>
+              <div className="shrink-0">
+                <Skeleton style={{ width: 90, height: 28, borderRadius: 9999 }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Academic Profile Card Skeleton */}
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+            <div className="px-4 md:px-6 py-4 border-b border-outline-variant/10 flex items-center gap-2">
+              <Skeleton style={{ width: 4, height: 20, borderRadius: 9999 }} />
+              <Skeleton style={{ width: 140, height: 16 }} />
+            </div>
+            <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex flex-col gap-2">
+                  <Skeleton style={{ width: 90, height: 12 }} />
+                  <Skeleton style={{ height: 38, borderRadius: 8 }} className="w-full" />
+                </div>
+              ))}
+              <div className="sm:col-span-2 flex flex-col gap-2">
+                <Skeleton style={{ width: 120, height: 12 }} />
+                <Skeleton style={{ height: 62, borderRadius: 8 }} className="w-full" />
+              </div>
+            </div>
+          </div>
+
+          {/* Class Enrollment Card Skeleton */}
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+            <div className="px-4 md:px-6 py-4 border-b border-outline-variant/10 flex items-center gap-2">
+              <Skeleton style={{ width: 4, height: 20, borderRadius: 9999 }} />
+              <Skeleton style={{ width: 160, height: 16 }} />
+            </div>
+            <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="flex flex-col gap-2">
+                  <Skeleton style={{ width: 100, height: 12 }} />
+                  <Skeleton style={{ height: 38, borderRadius: 8 }} className="w-full" />
+                </div>
+              ))}
+              <div className="sm:col-span-2 flex flex-col gap-2">
+                <Skeleton style={{ width: 110, height: 12 }} />
+                <Skeleton style={{ height: 38, borderRadius: 8 }} className="w-full" />
+              </div>
+            </div>
           </div>
         </div>
       </SchoolLayout>

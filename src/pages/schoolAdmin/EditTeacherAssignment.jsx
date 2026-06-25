@@ -2,43 +2,27 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from "../../services/schoolAdminApi";
-import api from "../../services/axiosClient";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 
 // ─────────────────────────────────────────────
-// Shimmer keyframe injected once into <head>
+// Responsive Fluid Fields & Variables
 // ─────────────────────────────────────────────
-function InjectShimmer() {
-  useEffect(() => {
-    if (document.getElementById("skeleton-shimmer-style")) return;
-    const tag = document.createElement("style");
-    tag.id = "skeleton-shimmer-style";
-    tag.textContent = `
-      @keyframes skeleton-shimmer {
-        0%   { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-      }
-    `;
-    document.head.appendChild(tag);
-  }, []);
-  return null;
-}
+const labelClass = "text-[10px] md:text-xs font-bold uppercase tracking-wider text-on-surface-variant/80 mb-1.5 block";
+const viewFieldClass = "text-xs md:text-sm font-semibold text-on-surface bg-surface-container-high/50 px-4 py-2.5 rounded-lg border border-outline-variant/10 w-full truncate";
+const editFieldClass = "w-full text-xs md:text-sm font-semibold text-on-surface bg-surface-container-lowest border border-outline-variant/30 focus:border-primary focus:ring-1 focus:ring-primary outline-none px-3 py-2 rounded-lg transition";
 
 // ─────────────────────────────────────────────
-// Skeleton atom (inline styles — no Tailwind dep)
+// Unified Theme-Aware Skeleton Atoms
 // ─────────────────────────────────────────────
-function Sk({ w, h, r = 6, mt = 0, mb = 0, full = false }) {
+function Skeleton({ className = "", style = {} }) {
   return (
     <div
+      className={`rounded-md ${className}`}
       style={{
-        width: full ? "100%" : w,
-        height: h,
-        borderRadius: r,
-        marginTop: mt,
-        marginBottom: mb,
-        flexShrink: 0,
-        background: "linear-gradient(90deg,#ececec 25%,#d8d8d8 50%,#ececec 75%)",
+        background: "linear-gradient(90deg, color-mix(in srgb, var(--color-outline-variant) 16%, var(--color-surface-container-lowest)) 25%, color-mix(in srgb, var(--color-outline-variant) 28%, var(--color-surface-container-lowest)) 50%, color-mix(in srgb, var(--color-outline-variant) 16%, var(--color-surface-container-lowest)) 75%)",
         backgroundSize: "200% 100%",
         animation: "skeleton-shimmer 1.4s ease infinite",
+        ...style,
       }}
     />
   );
@@ -48,58 +32,47 @@ function Sk({ w, h, r = 6, mt = 0, mb = 0, full = false }) {
 // Full-page skeleton — mirrors exact layout
 // ─────────────────────────────────────────────
 function PageSkeleton() {
-  const card = {
-    background: "#fff",
-    borderRadius: 12,
-    border: "1px solid #f3f4f6",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-  };
-
   return (
-    <div style={{padding: "16px 32px 48px", display: "flex", flexDirection: "column", gap: 24 }}>
+    <div className="flex flex-col gap-4 px-4 md:px-8 pt-4 pb-12 w-full mx-auto">
 
       {/* ── Top bar ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Sk w={160} h={18} />
-        <div style={{ display: "flex", gap: 8 }}>
-          <Sk w={80} h={36} r={8} />
-          <Sk w={110} h={36} r={8} />
+      <div className="flex justify-between items-center gap-3">
+        <Skeleton style={{ width: 140, height: 20 }} />
+        <div className="flex gap-2">
+          <Skeleton style={{ width: 80, height: 36, borderRadius: 8 }} />
+          <Skeleton style={{ width: 110, height: 36, borderRadius: 8 }} />
         </div>
       </div>
 
       {/* ── Identity card ── */}
-      <div style={{ ...card, padding: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-            {/* Avatar */}
-            <Sk w={64} h={64} r={14} />
-            {/* Name + subtitle */}
-            <div>
-              <Sk w={200} h={26} mb={8} />
-              <Sk w={120} h={12} />
+      <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 md:p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row  gap-4 text-center sm:text-left w-full">
+            <Skeleton style={{ width: 64, height: 64, borderRadius: 12 }} className="shrink-0" />
+            <div className="flex flex-col md:items-start gap-2 w-full">
+              <Skeleton style={{ width: 220, height: 24 }} />
+              <Skeleton style={{ width: 160, height: 14 }} />
             </div>
           </div>
-          {/* Role badge */}
-          <div className="hidden md:block">
-            <Sk w={120} h={36} r={8} />
+          <div className="shrink-0 hidden md:block">
+            <Skeleton style={{ width: 120, height: 36, borderRadius: 8 }} />
           </div>
         </div>
       </div>
 
       {/* ── Assignment Details card ── */}
-      <div style={{ ...card, overflow: "hidden" }}>
+      <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
         {/* Card header */}
-        <div style={{ padding: "16px 24px", borderBottom: "1px solid #f3f4f6", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 4, height: 20, borderRadius: 4, background: "#60a5fa", flexShrink: 0 }} />
-          <Sk w={18} h={18} r={4} />
-          <Sk w={140} h={14} />
+        <div className="px-4 md:px-6 py-4 border-b border-outline-variant/10 flex items-center gap-2">
+          <Skeleton style={{ width: 4, height: 20, borderRadius: 9999 }} />
+          <Skeleton style={{ width: 140, height: 16 }} />
         </div>
-        {/* Card body — 2-col grid */}
-        <div className="p-6 grid md:grid-cols-2 gap-6 ">
+        {/* Card body — grid */}
+        <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i}>
-              <Sk w={90} h={10} mb={8} />
-              <Sk full h={36} r={6} />
+            <div key={i} className="flex flex-col gap-2">
+              <Skeleton style={{ width: 90, height: 12 }} />
+              <Skeleton style={{ height: 38, borderRadius: 8 }} className="w-full" />
             </div>
           ))}
         </div>
@@ -110,46 +83,43 @@ function PageSkeleton() {
 }
 
 // ─────────────────────────────────────────────
-// Shared style tokens (same as Student)
+// SectionCard + Field
 // ─────────────────────────────────────────────
-const labelClass =
-  "text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 block";
-const viewFieldClass =
-  "text-sm font-bold text-slate-800 bg-[#f8f9ff] px-4 py-2.5 rounded-md border border-gray-100";
-const editFieldClass =
-  "w-full text-sm font-bold text-slate-800 bg-white border border-[#0058be]/30 focus:ring-2 focus:ring-[#0058be]/10 outline-none px-4 py-2 rounded-md";
-
-// ─────────────────────────────────────────────
-// SectionCard + Field (same as Student)
-// ─────────────────────────────────────────────
-function SectionCard({ title, icon, children }) {
+function SectionCard({ title, icon, accentColor = "var(--color-primary)", children }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-        <span className="w-1 h-5 rounded-full bg-blue-400 shrink-0" />
-        <span className="material-symbols-outlined text-[18px] text-gray-400">{icon}</span>
-        <h2 className="text-sm font-bold text-gray-800">{title}</h2>
+    <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+      <div className="px-4 md:px-6 py-4 border-b border-outline-variant/10 flex items-center gap-2">
+        <span className="w-1 h-5 rounded-full" style={{ background: accentColor }}></span>
+        <span className="material-symbols-outlined text-[18px] text-on-surface-variant/60">{icon}</span>
+        <h3 className="text-sm font-headline font-bold text-on-surface">{title}</h3>
       </div>
-      <div className="p-6 grid md:grid-cols-2 gap-6">{children}</div>
+      <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">{children}</div>
     </div>
   );
 }
 
+// ─────────────────────────────────────────────
+// Context Mutation Block Field Wrapper
+// ─────────────────────────────────────────────
 function Field({ label, viewValue, isEditing, children }) {
   return (
-    <div>
-      <p className={labelClass}>{label}</p>
-      {isEditing ? children : <p className={viewFieldClass}>{viewValue || "N/A"}</p>}
+    <div className="min-w-0 w-full">
+      <span className={labelClass}>{label}</span>
+      {isEditing ? children : <div className={viewFieldClass}>{viewValue || "N/A"}</div>}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────
 export default function EditTeacherAssignment() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const {
+    teachers,
+    subjects,
+    classLevels,
+    academicYears,
+    fetchSectionsByClass,
+  } = useSchoolAdmin();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -167,11 +137,7 @@ export default function EditTeacherAssignment() {
   const [academicYearId, setAcademicYearId] = useState("");
   const [isClassTeacher, setIsClassTeacher] = useState(false);
 
-  const [teachers, setTeachers] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [classLevels, setClassLevels] = useState([]);
   const [sections, setSections] = useState([]);
-  const [academicYears, setAcademicYears] = useState([]);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -190,21 +156,9 @@ export default function EditTeacherAssignment() {
       setAcademicYearId(assignData.academic_year_id || "");
       setIsClassTeacher(assignData.is_class_teacher || false);
 
-      const [teachersRes, subjectsRes, classLevelsRes, academicYearsRes] = await Promise.all([
-        api.get("/school-admin/teachers/"),
-        api.get("/academics/subjects/"),
-        api.get("/academics/class-levels/"),
-        api.get("/academics/academic-years/"),
-      ]);
-
-      setTeachers(teachersRes.data.results || teachersRes.data || []);
-      setSubjects(subjectsRes.data.results || subjectsRes.data || []);
-      setClassLevels(classLevelsRes.data.results || classLevelsRes.data || []);
-      setAcademicYears(academicYearsRes.data.results || academicYearsRes.data || []);
-
       if (assignData.class_level_id) {
-        const sectionsRes = await api.get(`/academics/sections/?class_level=${assignData.class_level_id}`);
-        setSections(sectionsRes.data.results || sectionsRes.data || []);
+        const sectionList = await fetchSectionsByClass(assignData.class_level_id);
+        setSections(sectionList);
       }
     } catch (err) {
       console.error("Error loading data:", err);
@@ -218,10 +172,10 @@ export default function EditTeacherAssignment() {
 
   useEffect(() => {
     if (!classLevelId) { setSections([]); setSectionId(""); return; }
-    api.get(`/academics/sections/?class_level=${classLevelId}`)
-      .then((res) => setSections(res.data.results || res.data || []))
+    fetchSectionsByClass(classLevelId)
+      .then(setSections)
       .catch(() => setSections([]));
-  }, [classLevelId]);
+  }, [classLevelId, fetchSectionsByClass]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -285,8 +239,7 @@ export default function EditTeacherAssignment() {
   // ── Skeleton ──
   if (loading) {
     return (
-      <SchoolLayout title="Assignment Details">
-        <InjectShimmer />
+      <SchoolLayout>
         <PageSkeleton />
       </SchoolLayout>
     );
@@ -307,18 +260,16 @@ export default function EditTeacherAssignment() {
       : teacherName.slice(0, 2).toUpperCase();
 
   return (
-    <SchoolLayout title="Assignment Details">
-      <InjectShimmer />
-      <div className="px-4 md:px-8 pt-4 pb-12 space-y-6">
+    <SchoolLayout>
+      <div className="flex flex-col gap-4 px-4 md:px-8 pt-4 pb-12 mx-auto w-full">
 
         {/* Toast */}
         {toast && (
-          <div className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 transition-all duration-300 ${toast.type === "success" ? "bg-green-600 text-white"
-            : toast.type === "error" ? "bg-red-600 text-white"
-              : "bg-gray-100 text-gray-800"
-            }`}>
+          <div className={`fixed top-6 right-4 md:right-6 z-50 px-5 py-3.5 rounded-xl shadow-xl font-bold text-xs md:text-sm flex items-center gap-3 border border-outline-variant/10 transition-all ${
+            toast.type === "success" ? "bg-success text-white" : "bg-error text-white"
+          }`}>
             <span className="material-symbols-outlined text-base">
-              {toast.type === "success" ? "check_circle" : toast.type === "error" ? "error" : "info"}
+              {toast.type === "success" ? "check_circle" : "error"}
             </span>
             {toast.msg}
           </div>
@@ -326,29 +277,28 @@ export default function EditTeacherAssignment() {
 
         {/* Delete Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-200 animate-in zoom-in-95 duration-200">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-red-600 text-2xl">warning</span>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-2xl p-5 md:p-6 max-w-md w-full shadow-xl">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-error text-xl">warning</span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Delete Assignment</h3>
-                  <p className="text-sm text-gray-500">This action cannot be undone.</p>
+                  <h3 className="text-base font-headline font-bold text-on-surface">Delete Assignment</h3>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Permanently remove records.</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mb-6">
-                Are you sure you want to delete the assignment for{" "}
-                <span className="font-bold text-gray-900">{teacherName}</span> — {subjectName} ({classLevelName})?
+              <p className="text-xs md:text-sm text-on-surface-variant mb-6 leading-relaxed">
+                Are you sure you want to delete the assignment for <span className="font-bold text-on-surface">{teacherName}</span> — {subjectName} ({classLevelName})?
               </p>
-              <div className="flex justify-end gap-3">
+              <div className="flex gap-2.5 justify-end">
                 <button onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 rounded-lg text-sm font-bold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+                  className="px-4 py-2 border border-outline-variant/20 rounded-lg text-xs md:text-sm font-bold text-on-surface hover:bg-surface-container-high transition">
                   Cancel
                 </button>
                 <button onClick={handleDelete} disabled={deleting}
-                  className="px-4 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-70">
-                  {deleting ? (<><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Deleting...</>) : "Delete Assignment"}
+                  className="px-4 py-2 bg-error text-white rounded-lg text-xs md:text-sm font-bold hover:bg-error/90 transition flex items-center gap-2 disabled:opacity-50">
+                  {deleting ? (<><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Removing...</>) : "Confirm Delete"}
                 </button>
               </div>
             </div>
@@ -358,7 +308,7 @@ export default function EditTeacherAssignment() {
         {/* ── Top Bar ── */}
         <div className="flex flex-wrap justify-between items-center gap-3">
           <button onClick={() => navigate("/school-admin/teacher-assignment")}
-            className="flex items-center gap-1.5 text-[#0058be] text-sm font-semibold hover:underline">
+            className="flex items-center gap-1.5 text-primary text-xs md:text-sm font-semibold hover:underline">
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             Back
           </button>
@@ -367,11 +317,11 @@ export default function EditTeacherAssignment() {
               <>
                 <button onClick={() => setShowDeleteModal(true)}
                   className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-bold rounded-md hover:bg-red-100 transition-colors">
-                  <span className="material-symbols-outlined text-[16px]">delete</span>Delete
+                  <span className="material-symbols-outlined text-base">delete</span>Delete
                 </button>
                 <button onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#eff4ff] text-[#0058be] text-sm font-bold rounded-md hover:bg-[#dce9ff] transition-colors">
-                  <span className="material-symbols-outlined text-[16px]">edit</span>Edit Profile
+                  className="flex items-center gap-2 px-4 py-2 bg-[#f4ebff] text-[#6b38d4] text-sm font-bold rounded-md hover:bg-[#ead9ff] transition-colors">
+                  <span className="material-symbols-outlined text-base">edit</span>Edit Profile
                 </button>
               </>
             ) : (
@@ -381,7 +331,7 @@ export default function EditTeacherAssignment() {
                   Cancel
                 </button>
                 <button onClick={handleSave} disabled={saving}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#0058be] text-white text-sm font-bold rounded-md shadow-sm disabled:opacity-70">
+                  className="flex items-center gap-2 px-4 py-2 bg-[#6b38d4] text-white text-sm font-bold rounded-md shadow-sm disabled:opacity-70">
                   {saving && <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>}
                   {saving ? "Saving..." : "Save Changes"}
                 </button>
@@ -391,10 +341,10 @@ export default function EditTeacherAssignment() {
         </div>
 
         {/* ── Identity Card ── */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 md:p-6 shadow-sm">
           <div className={`${isEditing ? "flex-col" : "flex flex-col md:flex-row md:items-center justify-between gap-4"}`}>
             <div className="flex items-center gap-5">
-              <div className="w-16 h-16 shrink-0 rounded-2xl bg-[#e5eeff] text-[#0058be] flex items-center justify-center font-bold text-xl border border-blue-100">
+              <div className="w-16 h-16 shrink-0 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xl border border-primary/20">
                 {initials}
               </div>
               <div className="flex-1">
@@ -419,26 +369,26 @@ export default function EditTeacherAssignment() {
                   </div>
                 ) : (
                   <>
-                    <h2 className="text-2xl font-bold text-gray-900">{teacherName}</h2>
-                    <p className="text-xs text-gray-400 font-mono mt-1">{subjectName}</p>
+                    <h2 className="text-xl md:text-2xl font-headline font-black text-on-surface truncate">{teacherName}</h2>
+                    <p className="text-xs text-on-surface-variant/80 font-mono mt-0.5 truncate">{subjectName}</p>
                   </>
                 )}
               </div>
             </div>
 
-            <div className={`${isEditing ? "ml-[84px]" : ""} shrink-0`}>
+            <div className={`${isEditing ? "mt-4" : ""} shrink-0`}>
               {isEditing ? (
-                <label className="flex items-center gap-2 px-4 py-2 rounded-lg border border-blue-200 bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors select-none mt-5">
+                <label className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors select-none">
                   <input type="checkbox" checked={isClassTeacher} onChange={() => setIsClassTeacher(!isClassTeacher)}
-                    className="w-4 h-4 rounded text-[#0058be] focus:ring-[#0058be]/50 border-gray-300" />
-                  <span className="text-sm font-bold text-[#0058be]">Class Teacher</span>
+                    className="w-4 h-4 rounded text-primary focus:ring-primary/50 border-outline-variant" />
+                  <span className="text-sm font-bold text-primary">Class Teacher</span>
                 </label>
               ) : assignment?.is_class_teacher ? (
-                <span className="bg-[#eff4ff] text-[#0058be] border border-blue-200 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2">
+                <span className="bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2">
                   <span className="material-symbols-outlined text-[18px]">stars</span>Class Teacher
                 </span>
               ) : (
-                <span className="bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 w-fit">
+                <span className="bg-success/10 text-success border border-success/20 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 w-fit">
                   <span className="material-symbols-outlined text-[18px]">check_circle</span>Subject Teacher
                 </span>
               )}

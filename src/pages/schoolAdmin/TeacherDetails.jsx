@@ -34,7 +34,7 @@ function TeacherDetailsSkeleton() {
       </div>
 
       {/* Identity Header */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6">
+      <div className="bg-surface-container-lowest rounded-xl border border-gray-100 p-6">
         <div className="flex items-center gap-5">
           <Skeleton style={{ width: 64, height: 64, borderRadius: 16 }} />
           <div className="flex-1">
@@ -46,7 +46,7 @@ function TeacherDetailsSkeleton() {
       </div>
 
       {/* Professional Details */}
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div className="bg-bg-surface-container-lowest rounded-xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <Skeleton style={{ width: 140, height: 16 }} />
         </div>
@@ -66,19 +66,19 @@ function TeacherDetailsSkeleton() {
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
-const labelClass = "text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 block";
-const viewFieldClass = "text-sm font-bold text-slate-800 bg-[#f8f9ff] px-4 py-2.5 rounded-md border border-gray-100";
-const editFieldClass = "w-full text-sm font-bold text-slate-800 bg-white border border-[#6b38d4]/30 focus:ring-2 focus:ring-[#6b38d4]/10 outline-none px-4 py-2 rounded-md";
+const labelClass = "text-[10px] md:text-xs font-bold uppercase tracking-wider text-on-surface-variant/80 mb-1.5 block";
+const viewFieldClass = "text-xs md:text-sm font-semibold text-on-surface bg-surface-container-high/50 px-4 py-2.5 rounded-lg border border-outline-variant/10 w-full truncate";
+const editFieldClass = "w-full text-xs md:text-sm font-semibold text-on-surface bg-surface-container-lowest border border-outline-variant/30 focus:border-primary focus:ring-1 focus:ring-primary outline-none px-3 py-2 rounded-lg transition";
 
-function SectionCard({ title, icon, children }) {
+function SectionCard({ title, icon, accentColor = "var(--color-primary)", children }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-        <span className="w-1 h-5 bg-[#6b38d4] rounded-full"></span>
-        <span className="material-symbols-outlined text-[18px] text-gray-400">{icon}</span>
-        <h2 className="text-sm font-bold text-gray-800">{title}</h2>
+    <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+      <div className="px-4 md:px-6 py-4 border-b border-outline-variant/10 flex items-center gap-2">
+        <span className="w-1 h-5 rounded-full" style={{ background: accentColor }}></span>
+        <span className="material-symbols-outlined text-[18px] text-on-surface-variant/60">{icon}</span>
+        <h3 className="text-sm font-headline font-bold text-on-surface">{title}</h3>
       </div>
-      <div className="p-6 grid md:grid-cols-2 gap-6">{children}</div>
+      <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">{children}</div>
     </div>
   );
 }
@@ -363,15 +363,15 @@ export default function TeacherDetails() {
         </div>
 
         {/* Identity Header Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className={`${isEditing ? "flex-col" : "flex items-center justify-between gap-4"}`}>
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 shrink-0 rounded-2xl bg-[#f4ebff] text-[#6b38d4] flex items-center justify-center font-bold text-xl border border-[#e9ddff]">
+         <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 md:p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left w-full min-w-0">
+              <div className="w-14 h-14 md:w-16 md:h-16 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-lg md:text-xl border border-primary/20">
                 {initials}
               </div>
-              <div className="flex-1">
+              <div className="w-full min-w-0">
                 {isEditing ? (
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2 w-full max-w-md mx-auto sm:mx-0">
                     <div className="flex gap-2">
                       <input
                         value={formData.first_name}
@@ -396,53 +396,59 @@ export default function TeacherDetails() {
                   </div>
                 ) : (
                   <>
-                    <h2 className="text-2xl font-bold text-gray-900">{displayName}</h2>
-                    <p className="text-xs text-gray-400 font-mono mt-1">{emailAddr}</p>
+                    <h2 className="text-xl md:text-2xl font-headline font-black text-on-surface truncate">{displayName}</h2>
+                    <p className="text-xs text-on-surface-variant/80 font-mono mt-0.5 truncate">{emailAddr}</p>
                   </>
                 )}
               </div>
             </div>
 
             {/* Status badge / toggle */}
-            <div className="shrink-0">
+            <div className="shrink-0 flex justify-center">
               {isEditing ? (
-                <div className="flex gap-2 mt-2 ml-[84px]">
+                <div className="flex gap-2 bg-surface-container-high/40 p-1 rounded-xl border border-outline-variant/10 mt-2">
                   <button
                     type="button"
                     onClick={() => setFormData(p => ({ ...p, is_archived: false }))}
-                    style={!isArchived
-                      ? { background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", fontWeight: 700 }
-                      : { background: "#f9fafb", color: "#9ca3af", border: "1px solid #e5e7eb" }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 w-full sm:w-auto justify-center ${
+                      !isArchived 
+                        ? "bg-success text-white shadow-sm" 
+                        : "text-on-surface-variant hover:bg-surface-container-highest/50"
+                    }`}
                   >
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: !isArchived ? "#16a34a" : "#d1d5db", display: "inline-block" }}></span>
+                    <span className={`w-2 h-2 rounded-full transition-colors ${!isArchived ? "bg-white" : "bg-outline"}`}></span>
                     Active
                   </button>
+                  
                   <button
                     type="button"
                     onClick={() => setFormData(p => ({ ...p, is_archived: true }))}
-                    style={isArchived
-                      ? { background: "#f3f4f6", color: "#4b5563", border: "1px solid #d1d5db", fontWeight: 700 }
-                      : { background: "#f9fafb", color: "#9ca3af", border: "1px solid #e5e7eb" }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 w-full sm:w-auto justify-center ${
+                      isArchived 
+                        ? "bg-outline text-white shadow-sm" 
+                        : "text-on-surface-variant hover:bg-surface-container-highest/50"
+                    }`}
                   >
                     <span className="material-symbols-outlined text-[14px]">inventory_2</span>
                     Archived
                   </button>
                 </div>
+              ) : isArchived ? (
+                <span className="bg-outline-variant/20 text-outline px-3.5 py-1.5 rounded-full font-extrabold text-2xs uppercase tracking-wider border border-outline-variant/30 flex items-center gap-1.5">
+                  Archived Profile
+                </span>
               ) : (
-                isArchived
-                  ? <span className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg font-bold text-sm">Archived Profile</span>
-                  : <span className="bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">check_circle</span> Active
-                  </span>
+                <span className="bg-success/10 text-success px-3.5 py-1.5 rounded-full font-extrabold text-2xs uppercase tracking-wider border border-success/20 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px]">check_circle</span> 
+                  Active
+                </span>
               )}
             </div>
           </div>
         </div>
 
         {/* Professional Details */}
-        <SectionCard title="Professional Details" icon="school">
+        <SectionCard title="Professional Details" icon="school" accentColor="var(--color-primary)">
           <Field label="Employee ID" viewValue={teacher.employee_id} isEditing={isEditing}>
             <input value={formData.employee_id} onChange={e => setFormData({ ...formData, employee_id: e.target.value })} className={editFieldClass} placeholder="e.g. EMP-2024" />
           </Field>

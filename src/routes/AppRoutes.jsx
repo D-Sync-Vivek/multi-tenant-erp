@@ -1,6 +1,7 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { ParentProvider } from '../context/ParentProvider';
+import { SchoolAdminProvider } from '../context/SchoolAdminProvider';
 
 /* COMMON */
 import Landing from "../pages/Landing";
@@ -141,6 +142,14 @@ function RootRedirect() {
   }
 }
 
+function SchoolAdminOutlet() {
+  return (
+    <SchoolAdminProvider>
+      <Outlet />
+    </SchoolAdminProvider>
+  );
+}
+
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -165,40 +174,37 @@ function AppRoutes() {
         <Route path="/global-admin/security" element={<SecurityAccess />} />
 
         {/* ================= SCHOOL ADMIN ================= */}
-        <Route path="/school-admin" element={<SchoolDashboard />} />
-        <Route path="/school-admin/settings" element={<SchoolSettings />} />
-        <Route path="/school-admin/academic-years" element={<AcademicYears />} />
-        <Route path="/school-admin/academic-years/create" element={<CreateAcademicYear />} />
-        <Route path="/school-admin/academic-years/edit/:id" element={<CreateAcademicYear />} />
-        <Route path="/school-admin/roles" element={<RolesPermissions />} />
-        <Route path="/school-admin/roles/create" element={<CreateRole />} />
-        <Route path="/school-admin/roles/edit/:id" element={<CreateRole />} />
-        <Route path="/school-admin/students" element={<Students />} />
-        <Route path="/school-admin/students/add" element={<AddStudent />} />
-        <Route path="/school-admin/teachers" element={<Teachers />} />
-        <Route path="/school-admin/teachers/create" element={<AddTeacher />} />
-        <Route path="/school-admin/parents" element={<Parents />} />
-        <Route path="/school-admin/parents/create" element={<AddParent />} />
-        <Route path="/school-admin/mapping" element={<ParentStudentMapping />} />
-        <Route path="/school-admin/mapping/create" element={<AddMapping />} />
-        <Route path="/school-admin/teacher-assignment" element={<TeacherAssignment />} />
-        <Route path="/school-admin/teacher-assignment/create" element={<AssignTeacher />} />
-        <Route path="/school-admin/parents/:id" element={<GuardianDetails />} />
-        <Route path="/school-admin/students/:id" element={<StudentDetails />} />
-        <Route path="/school-admin/students/edit/:id" element={<EditStudent />} />
-        <Route path="/school-admin/teachers/:id" element={<TeacherDetails />} />
-        <Route path="/school-admin/mapping/:id" element={<MappingDetail />} />
-        <Route path="/school-admin/teacher-assignment/edit/:id" element={<EditTeacherAssignment />} />
-        <Route path="/school-admin/manage-classes" element={<CreateClassSection />} />
-        <Route path="/school-admin/notifications" element={<SchoolAdminNotifications />} />
-        <Route path="/school-admin/create-subject" element={<CreateSubject />} />
-        <Route path="/school-admin/create-section" element={<CreateSection />} />
-
-        {/* Commented out duplicates to prevent routing bugs */}
-        {/* <Route path="/school-admin/dashboard" element={<Dashboard />} /> */}
-        {/* <Route path="/school-admin/students" element={<Students />} /> */}
-
-        <Route path="/school-admin/class-levels" element={<ClassLevels />} />
+        <Route path="/school-admin" element={<SchoolAdminOutlet />}>
+          <Route index element={<SchoolDashboard />} />
+          <Route path="settings" element={<SchoolSettings />} />
+          <Route path="academic-years" element={<AcademicYears />} />
+          <Route path="academic-years/create" element={<CreateAcademicYear />} />
+          <Route path="academic-years/edit/:id" element={<CreateAcademicYear />} />
+          <Route path="roles" element={<RolesPermissions />} />
+          <Route path="roles/create" element={<CreateRole />} />
+          <Route path="roles/edit/:id" element={<CreateRole />} />
+          <Route path="students" element={<Students />} />
+          <Route path="students/add" element={<AddStudent />} />
+          <Route path="teachers" element={<Teachers />} />
+          <Route path="teachers/create" element={<AddTeacher />} />
+          <Route path="parents" element={<Parents />} />
+          <Route path="parents/create" element={<AddParent />} />
+          <Route path="mapping" element={<ParentStudentMapping />} />
+          <Route path="mapping/create" element={<AddMapping />} />
+          <Route path="teacher-assignment" element={<TeacherAssignment />} />
+          <Route path="teacher-assignment/create" element={<AssignTeacher />} />
+          <Route path="parents/:id" element={<GuardianDetails />} />
+          <Route path="students/:id" element={<StudentDetails />} />
+          <Route path="students/edit/:id" element={<EditStudent />} />
+          <Route path="teachers/:id" element={<TeacherDetails />} />
+          <Route path="mapping/:id" element={<MappingDetail />} />
+          <Route path="teacher-assignment/edit/:id" element={<EditTeacherAssignment />} />
+          <Route path="manage-classes" element={<CreateClassSection />} />
+          <Route path="notifications" element={<SchoolAdminNotifications />} />
+          <Route path="create-subject" element={<CreateSubject />} />
+          <Route path="create-section" element={<CreateSection />} />
+          <Route path="class-levels" element={<ClassLevels />} />
+        </Route>
 
         {/* ================= STUDENT ================= */}
         <Route path="/students" element={<Navigate to="/student" replace />} />

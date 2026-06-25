@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from "../../services/schoolAdminApi";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 import api from "../../services/axiosClient";
 
 /* ─────────────────────────────────────────────
@@ -94,6 +95,14 @@ export default function AddStudent() {
   const navigate = useNavigate();
   const location = useLocation();
   const fromQuickAdd = location.state?.fromQuickAdd || false;
+  const {
+    classLevels,
+    sections,
+    academicYears,
+    loading: loadingOptions,
+    refreshStats,
+    refreshAcademics,
+  } = useSchoolAdmin();
 
   // Account fields
   const [email, setEmail] = useState("");
@@ -113,14 +122,9 @@ export default function AddStudent() {
   const [section, setSection] = useState("");
   const [academicYear, setAcademicYear] = useState("");
 
-  // Dropdown data
-  const [classLevels, setClassLevels] = useState([]);
-  const [sections, setSections] = useState([]);
   const [filteredSections, setFilteredSections] = useState([]);
-  const [academicYears, setAcademicYears] = useState([]);
 
   const [loading, setLoading] = useState(false);
-  const [loadingOptions, setLoadingOptions] = useState(true);
   const [toast, setToast] = useState(null);
   const [error, setError] = useState(null);
 
@@ -129,28 +133,6 @@ export default function AddStudent() {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
-
-  // ── Fetch dropdowns ──
-  useEffect(() => {
-    const fetchOptions = async () => {
-      setLoadingOptions(true);
-      try {
-        const [clRes, secRes, yearRes] = await Promise.all([
-          schoolAdminApi.getClassLevels(),
-          schoolAdminApi.getSections(),
-          schoolAdminApi.getAcademicYears(),
-        ]);
-        setClassLevels(Array.isArray(clRes.results ?? clRes) ? (clRes.results ?? clRes) : []);
-        setSections(Array.isArray(secRes.results ?? secRes) ? (secRes.results ?? secRes) : []);
-        setAcademicYears(Array.isArray(yearRes.results ?? yearRes) ? (yearRes.results ?? yearRes) : []);
-      } catch (err) {
-        console.error("Failed to load dependency elements:", err);
-      } finally {
-        setLoadingOptions(false);
-      }
-    };
-    fetchOptions();
-  }, []);
 
   // ── Filter sections by class ──
   useEffect(() => {
@@ -204,6 +186,8 @@ export default function AddStudent() {
     }
 
     showToast("Student registered successfully!");
+    refreshStats();
+    refreshAcademics();
     setTimeout(() => navigate("/school-admin/students"), 1000);
   } catch (err) {
       if (err.response?.data) {

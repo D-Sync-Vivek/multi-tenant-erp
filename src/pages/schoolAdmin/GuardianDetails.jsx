@@ -23,28 +23,28 @@ function Skeleton({ className = "", style = {} }) {
 // ─────────────────────────────────────────────
 // Helpers (mirrors StudentDetails)
 // ─────────────────────────────────────────────
-const labelClass = "text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 block";
-const viewFieldClass = "text-sm font-bold text-slate-800 bg-[#f8f9ff] px-4 py-2.5 rounded-md border border-gray-100";
-const editFieldClass = "w-full text-sm font-bold text-slate-800 bg-white border border-[#0058be]/30 focus:ring-2 focus:ring-[#0058be]/10 outline-none px-4 py-2 rounded-md";
+const labelClass = "text-[10px] md:text-xs font-bold uppercase tracking-wider text-on-surface-variant/80 mb-1.5 block";
+const viewFieldClass = "text-xs md:text-sm font-semibold text-on-surface bg-surface-container-high/50 px-4 py-2.5 rounded-lg border border-outline-variant/10 w-full truncate";
+const editFieldClass = "w-full text-xs md:text-sm font-semibold text-on-surface bg-surface-container-lowest border border-outline-variant/30 focus:border-primary focus:ring-1 focus:ring-primary outline-none px-3 py-2 rounded-lg transition";
 
-function SectionCard({ title, icon, borderColor = "border-blue-400", children }) {
+function SectionCard({ title, icon, accentColor = "var(--color-primary)", children }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-        <span className={`w-1 h-5 ${borderColor} rounded-full`} style={{ background: "currentColor" }}></span>
-        <span className="material-symbols-outlined text-[18px] text-gray-400">{icon}</span>
-        <h2 className="text-sm font-bold text-gray-800">{title}</h2>
+    <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+      <div className="px-4 md:px-6 py-4 border-b border-outline-variant/10 flex items-center gap-2">
+        <span className="w-1 h-5 rounded-full" style={{ background: accentColor }}></span>
+        <span className="material-symbols-outlined text-[18px] text-on-surface-variant/60">{icon}</span>
+        <h3 className="text-sm font-headline font-bold text-on-surface">{title}</h3>
       </div>
-      <div className="p-6 grid md:grid-cols-2 gap-6">{children}</div>
+      <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">{children}</div>
     </div>
   );
 }
 
 function Field({ label, viewValue, isEditing, children }) {
   return (
-    <div>
-      <p className={labelClass}>{label}</p>
-      {isEditing ? children : <p className={viewFieldClass}>{viewValue || "N/A"}</p>}
+    <div className="min-w-0 w-full">
+      <span className={labelClass}>{label}</span>
+      {isEditing ? children : <div className={viewFieldClass}>{viewValue || "N/A"}</div>}
     </div>
   );
 }
@@ -182,37 +182,47 @@ export default function GuardianDetails() {
     }
   };
 
-  // ── Loading state (mirrors StudentDetails layout exactly) ──
+  // ── Loading state (Matches Student Details Structure precisely) ──
   if (loading) {
     return (
-      <SchoolLayout title="Guardian Details">
-        <div className="px-4 md:px-8 pt-4 pb-12">
-          <div className="flex flex-col gap-6">
-            {/* Top bar skeleton */}
-            <div className="flex justify-between items-center">
-              <Skeleton style={{ width: 140, height: 20 }} />
-              <div className="flex gap-3">
-                <Skeleton style={{ width: 80, height: 36, borderRadius: 8 }} />
-                <Skeleton style={{ width: 80, height: 36, borderRadius: 8 }} />
-              </div>
+      <SchoolLayout>
+        <div className="flex flex-col gap-4 px-4 md:px-8 pt-4 pb-12 w-full mx-auto animate-pulse">
+          {/* Top Bar Skeleton */}
+          <div className="flex justify-between items-center gap-3">
+            <Skeleton style={{ width: 80, height: 20 }} />
+            <div className="flex gap-2">
+              <Skeleton style={{ width: 90, height: 36 }} />
+              <Skeleton style={{ width: 120, height: 36 }} />
             </div>
-            {/* Identity card skeleton */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-              <div className="flex items-center gap-5">
-                <Skeleton style={{ width: 64, height: 64, borderRadius: 16 }} />
-                <div className="flex-1">
-                  <Skeleton style={{ width: 200, height: 24 }} />
-                  <Skeleton style={{ width: 150, height: 14, marginTop: 4 }} />
+          </div>
+
+          {/* Identity Header Card Skeleton */}
+          <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 md:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left w-full">
+                <Skeleton style={{ width: 64, height: 64, borderRadius: 12 }} className="shrink-0" />
+                <div className="flex flex-col md:items-start items-center gap-2 w-full">
+                  <Skeleton style={{ width: 220, height: 24 }} />
+                  <Skeleton style={{ width: 160, height: 14 }} />
                 </div>
-                <Skeleton style={{ width: 100, height: 36, borderRadius: 8 }} />
+              </div>
+              <div className="shrink-0">
+                <Skeleton style={{ width: 90, height: 28, borderRadius: 9999 }} />
               </div>
             </div>
-            {/* Profile skeleton */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="py-3 border-b border-gray-100 last:border-0">
-                  <Skeleton style={{ width: 120, height: 12 }} />
-                  <Skeleton style={{ width: 160, height: 16, marginTop: 4 }} />
+          </div>
+
+          {/* Guardian Profile Card Skeleton */}
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+            <div className="px-4 md:px-6 py-4 border-b border-outline-variant/10 flex items-center gap-2">
+              <Skeleton style={{ width: 4, height: 20, borderRadius: 9999 }} />
+              <Skeleton style={{ width: 140, height: 16 }} />
+            </div>
+            <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex flex-col gap-2">
+                  <Skeleton style={{ width: 90, height: 12 }} />
+                  <Skeleton style={{ height: 38, borderRadius: 8 }} className="w-full" />
                 </div>
               ))}
             </div>
@@ -224,18 +234,13 @@ export default function GuardianDetails() {
 
   if (error || !parent) {
     return (
-      <SchoolLayout title="Guardian Details">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-center">
-            <span className="material-symbols-outlined text-5xl text-red-500 mb-4">error</span>
-            <p className="text-gray-500">{error || "Guardian not found."}</p>
-            <button
-              onClick={() => navigate("/school-admin/parents")}
-              className="mt-4 px-4 py-2 bg-[#0058be] text-white rounded-lg text-sm font-bold"
-            >
-              Back
-            </button>
-          </div>
+      <SchoolLayout>
+        <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
+          <span className="material-symbols-outlined text-5xl text-error mb-4">error</span>
+          <p className="text-on-surface-variant font-medium">{error || "Guardian not found."}</p>
+          <button onClick={() => navigate("/school-admin/parents")} className="mt-4 bg-primary text-white px-5 py-2 rounded-lg text-sm font-bold shadow-sm">
+            Back
+          </button>
         </div>
       </SchoolLayout>
     );
@@ -251,106 +256,70 @@ export default function GuardianDetails() {
   const initials = fName && lName ? `${fName[0]}${lName[0]}`.toUpperCase() : "GU";
 
   return (
-    <SchoolLayout title="Guardian Details">
-      <div className="px-4 md:px-8 pt-4 pb-12 space-y-6">
+    <SchoolLayout>
+      <div className="flex flex-col gap-4 px-4 md:px-8 pt-4 pb-12 mx-auto w-full">
 
-        {/* Toast */}
+        {/* Global Action Notifications Toast */}
         {toast && (
-          <div className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 transition-all duration-300 ${toast.type === "success"
-            ? "bg-green-600 text-white"
-            : toast.type === "error"
-              ? "bg-red-600 text-white"
-              : "bg-gray-100 text-gray-800"
-            }`}>
+          <div className={`fixed top-6 right-4 md:right-6 z-50 px-5 py-3.5 rounded-xl shadow-xl font-bold text-xs md:text-sm flex items-center gap-3 border border-outline-variant/10 transition-all ${
+            toast.type === "success" ? "bg-success text-white" : "bg-error text-white"
+          }`}>
             <span className="material-symbols-outlined text-base">
-              {toast.type === "success" ? "check_circle" : toast.type === "error" ? "error" : "info"}
+              {toast.type === "success" ? "check_circle" : "error"}
             </span>
             {toast.msg}
           </div>
         )}
 
-        {/* Delete Confirmation Modal */}
+        {/* Responsive Modal Overlay */}
         {showDeleteModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-200 animate-in zoom-in-95 duration-200">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-red-600 text-2xl">warning</span>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-2xl p-5 md:p-6 max-w-md w-full shadow-xl">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-error text-xl">warning</span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Delete Guardian</h3>
-                  <p className="text-sm text-gray-500">This action cannot be undone.</p>
+                  <h3 className="text-base font-headline font-bold text-on-surface">Delete Profile</h3>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Permanently remove records.</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mb-6">
-                Are you sure you want to delete <span className="font-bold text-gray-900">{displayName}</span>?
-                All associated data and mappings will be permanently removed.
+              <p className="text-xs md:text-sm text-on-surface-variant mb-6 leading-relaxed">
+                Are you sure you want to delete <span className="font-bold text-on-surface">{displayName}</span>? This structural framework mutation cannot be undone.
               </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 rounded-lg text-sm font-bold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                >
+              <div className="flex gap-2.5 justify-end">
+                <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 border border-outline-variant/20 rounded-lg text-xs md:text-sm font-bold text-on-surface hover:bg-surface-container-high transition">
                   Cancel
                 </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="px-4 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-70"
-                >
-                  {isDeleting ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    "Delete Guardian"
-                  )}
+                <button onClick={handleDelete} disabled={isDeleting} className="px-4 py-2 bg-error text-white rounded-lg text-xs md:text-sm font-bold hover:bg-error/90 transition flex items-center gap-2 disabled:opacity-50">
+                  {isDeleting ? "Removing..." : "Confirm Delete"}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Top Bar */}
+        {/* Context Back Navigation Strip */}
         <div className="flex flex-wrap justify-between items-center gap-3">
-          <button
-            onClick={() => navigate("/school-admin/parents")}
-            className="flex items-center gap-1.5 text-[#0058be] text-sm font-semibold hover:underline"
-          >
+          <button onClick={() => navigate("/school-admin/parents")} className="flex items-center gap-1.5 text-primary text-xs md:text-sm font-semibold hover:underline">
             <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back
           </button>
-
           <div className="flex gap-2">
             {!isEditing ? (
               <>
-                <button
-                  onClick={() => setShowDeleteModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-bold rounded-md hover:bg-red-100 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[16px]">delete</span> Delete
+                <button onClick={() => setShowDeleteModal(true)} className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-bold rounded-md hover:bg-red-100 transition-colors">
+                  <span className="material-symbols-outlined text-base">delete</span> Delete
                 </button>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#eff4ff] text-[#0058be] text-sm font-bold rounded-md hover:bg-[#dce9ff] transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[16px]">edit</span> Edit Profile
+                <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 px-4 py-2 bg-[#f4ebff] text-[#6b38d4] text-sm font-bold rounded-md hover:bg-[#ead9ff] transition-colors">
+                  <span className="material-symbols-outlined text-base">edit</span> Edit Profile
                 </button>
               </>
             ) : (
               <div className="flex gap-2">
-                <button
-                  onClick={() => { setIsEditing(false); fetchParent(); }}
-                  className="px-4 py-2 text-sm text-gray-500 font-bold hover:bg-gray-100 rounded-md"
-                >
+                <button onClick={() => { setIsEditing(false); fetchParent(); }} className="px-4 py-2 text-sm text-gray-500 font-bold hover:bg-gray-100 rounded-md">
                   Cancel
                 </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#0058be] text-white text-sm font-bold rounded-md shadow-sm disabled:opacity-70"
-                >
-                  {isSaving && <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>}
+                <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 px-4 py-2 bg-[#6b38d4] text-white text-sm font-bold rounded-md shadow-sm disabled:opacity-70">
                   {isSaving ? "Saving..." : "Save Changes"}
                 </button>
               </div>
@@ -358,103 +327,85 @@ export default function GuardianDetails() {
           </div>
         </div>
 
-        {/* Identity Header Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className={`${isEditing ? "flex-col" : "flex items-center justify-between md:gap-4"}`}>
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 shrink-0 rounded-2xl bg-[#e5eeff] text-[#0058be] flex items-center justify-center font-bold text-xl border border-blue-100">
+        {/* Identity Section Header Module */}
+        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 md:p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left w-full min-w-0">
+              <div className="w-14 h-14 md:w-16 md:h-16 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-lg md:text-xl border border-primary/20">
                 {initials}
               </div>
-              <div className="flex-1">
+              <div className="w-full min-w-0">
                 {isEditing ? (
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2 w-full max-w-md mx-auto sm:mx-0">
                     <div className="flex gap-2">
-                      <input
-                        value={formData.first_name}
-                        onChange={e => setFormData({ ...formData, first_name: e.target.value })}
-                        placeholder="First Name"
-                        className={editFieldClass}
-                      />
-                      <input
-                        value={formData.last_name}
-                        onChange={e => setFormData({ ...formData, last_name: e.target.value })}
-                        placeholder="Last Name"
-                        className={editFieldClass}
-                      />
+                      <input value={formData.first_name} onChange={e => setFormData({ ...formData, first_name: e.target.value })} placeholder="First Name" className={editFieldClass} />
+                      <input value={formData.last_name} onChange={e => setFormData({ ...formData, last_name: e.target.value })} placeholder="Last Name" className={editFieldClass} />
                     </div>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="Email Address"
-                      className={`${editFieldClass} font-mono text-xs`}
-                    />
+                    <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="Email Address" className={`${editFieldClass} font-mono`} />
                   </div>
                 ) : (
                   <>
-                    <h2 className="text-2xl font-bold text-gray-900">{displayName}</h2>
-                    <p className="text-xs text-gray-400 font-mono mt-1">{emailAddr}</p>
+                    <h2 className="text-xl md:text-2xl font-headline font-black text-on-surface truncate">{displayName}</h2>
+                    <p className="text-xs text-on-surface-variant/80 font-mono mt-0.5 truncate">{emailAddr}</p>
                   </>
                 )}
               </div>
             </div>
 
-            <div className="shrink-0">
+            {/* Fully Responsive & Correctly Styled Archive/Active Toggle Strip */}
+            <div className="shrink-0 flex justify-center items-center">
               {isEditing ? (
-                <div className="flex gap-2 mt-2 ml-[84px]">
+                <div className="flex flex-wrap sm:flex-nowrap gap-2 bg-surface-container-high/40 p-1 rounded-xl border border-outline-variant/10">
                   <button
                     type="button"
                     onClick={() => setFormData(p => ({ ...p, is_archived: false }))}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold border transition-colors ${!formData.is_archived ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100"}`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 w-full sm:w-auto justify-center ${
+                      !formData.is_archived 
+                        ? "bg-success text-white shadow-sm" 
+                        : "text-on-surface-variant hover:bg-surface-container-highest/50"
+                    }`}
                   >
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span> Active
+                    <span className={`w-2 h-2 rounded-full transition-colors ${!formData.is_archived ? "bg-white" : "bg-outline"}`}></span>
+                    Active
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData(p => ({ ...p, is_archived: true }))}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold border transition-colors ${formData.is_archived ? "bg-gray-100 text-gray-600 border-gray-300" : "bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100"}`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 w-full sm:w-auto justify-center ${
+                      formData.is_archived 
+                        ? "bg-outline text-white shadow-sm" 
+                        : "text-on-surface-variant hover:bg-surface-container-highest/50"
+                    }`}
                   >
-                    <span className="material-symbols-outlined text-[14px]">inventory_2</span> Archived
+                    <span className="material-symbols-outlined text-[14px]">inventory_2</span>
+                    Archived
                   </button>
                 </div>
+              ) : isArchived ? (
+                <span className="bg-outline-variant/20 text-outline px-3.5 py-1.5 rounded-full font-extrabold text-2xs uppercase tracking-wider border border-outline-variant/30 flex items-center gap-1.5">
+                  Archived Profile
+                </span>
               ) : (
-                isArchived
-                  ? <span className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg font-bold text-sm">Archived</span>
-                  : <span className="bg-green-50 text-green-700 border border-green-200 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px]">check_circle</span> Active
-                  </span>
+                <span className="bg-success/10 text-success px-3.5 py-1.5 rounded-full font-extrabold text-2xs uppercase tracking-wider border border-success/20 flex items-center gap-1.5">
+                  Active
+                </span>
               )}
             </div>
           </div>
         </div>
 
-        {/* Guardian Profile */}
-        <SectionCard title="Guardian Profile" icon="assignment_ind">
+        {/* Guardian Profile Data Grid */}
+        <SectionCard title="Guardian Profile" icon="assignment_ind" accentColor="var(--color-primary)">
           <Field label="Phone Number" viewValue={parent.phone_number} isEditing={isEditing}>
-            <input
-              value={formData.phone_number}
-              onChange={e => setFormData({ ...formData, phone_number: e.target.value })}
-              className={editFieldClass}
-              placeholder="+91 98765 43210"
-            />
+            <input value={formData.phone_number} onChange={e => setFormData({ ...formData, phone_number: e.target.value })} className={editFieldClass} placeholder="+91 98765 43210" />
           </Field>
 
           <Field label="Occupation" viewValue={parent.occupation} isEditing={isEditing}>
-            <input
-              value={formData.occupation}
-              onChange={e => setFormData({ ...formData, occupation: e.target.value })}
-              className={editFieldClass}
-              placeholder="e.g. Software Engineer"
-            />
+            <input value={formData.occupation} onChange={e => setFormData({ ...formData, occupation: e.target.value })} className={editFieldClass} placeholder="e.g. Software Engineer" />
           </Field>
 
           <Field label="Emergency Contact" viewValue={parent.emergency_contact_number} isEditing={isEditing}>
-            <input
-              value={formData.emergency_contact_number}
-              onChange={e => setFormData({ ...formData, emergency_contact_number: e.target.value })}
-              className={editFieldClass}
-              placeholder="+91 98765 43210"
-            />
+            <input value={formData.emergency_contact_number} onChange={e => setFormData({ ...formData, emergency_contact_number: e.target.value })} className={editFieldClass} placeholder="+91 98765 43210" />
           </Field>
         </SectionCard>
 

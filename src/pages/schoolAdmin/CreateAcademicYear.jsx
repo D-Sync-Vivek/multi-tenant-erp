@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import api from "../../services/axiosClient";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 
 // ─────────────────────────────────────────────
 // Skeleton shimmer keyframe injected once
@@ -144,6 +145,7 @@ export default function CreateAcademicYear() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = Boolean(id);
+  const { refreshAcademics } = useSchoolAdmin();
 
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -211,6 +213,7 @@ export default function CreateAcademicYear() {
         await api.post(`academics/academic-years/`, payload);
       }
       showToast(`Academic Year ${isEditMode ? "updated" : "created"} successfully!`);
+      await refreshAcademics();
       setTimeout(() => navigate("/school-admin/academic-years"), 1000);
     } catch (err) {
       if (err.response?.data) {
@@ -233,6 +236,7 @@ export default function CreateAcademicYear() {
     try {
       await api.delete(`academics/academic-years/${id}/`);
       showToast("Academic Year deleted successfully!", "success");
+      await refreshAcademics();
       setTimeout(() => navigate("/school-admin/academic-years"), 1000);
     } catch (err) {
       console.error("Delete error:", err);

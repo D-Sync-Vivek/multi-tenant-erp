@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SchoolLayout from "../../components/erp/school/SchoolLayout";
 import { schoolAdminApi } from "../../services/schoolAdminApi";
+import { useSchoolAdmin } from "../../context/SchoolAdminProvider";
 
 // ── Skeleton shimmer ──
 if (typeof document !== "undefined" && !document.getElementById("skeleton-shimmer-style")) {
@@ -92,9 +93,13 @@ export default function ClassLevels() {
   const navigate = useNavigate();
   const location = useLocation();
   const fromQuickAdd = location.state?.fromQuickAdd || false;
+  const { classLevels: contextClasses, loading, refreshAcademics } = useSchoolAdmin();
 
-  const [classes, setClasses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const classes = useMemo(
+    () => [...contextClasses].sort((a, b) => (a.numeric_order || 0) - (b.numeric_order || 0)),
+    [contextClasses],
+  );
+
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -103,29 +108,14 @@ export default function ClassLevels() {
   const [loadingSections, setLoadingSections] = useState({});
 
   const fetchLiveClassStructures = useCallback(async () => {
-    setLoading(true);
     setError(null);
     try {
-      const response = await schoolAdminApi.getClassLevels();
-      const liveData = response?.results || response;
-      if (Array.isArray(liveData)) {
-        const sortedClasses = liveData.sort((a, b) => (a.numeric_order || 0) - (b.numeric_order || 0));
-        setClasses(sortedClasses);
-      } else {
-        setClasses([]);
-      }
+      await refreshAcademics();
     } catch (err) {
       console.error("Live configuration sync paused:", err);
       setError("Failed to synchronize active class levels with the data cluster.");
-      setClasses([]);
-    } finally {
-      setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchLiveClassStructures();
-  }, [fetchLiveClassStructures]);
+  }, [refreshAcademics]);
 
   const toggleClassRow = async (classId) => {
     if (expandedClassId === classId) {
@@ -166,7 +156,7 @@ export default function ClassLevels() {
 
     try {
       await schoolAdminApi.deleteClassLevelById(classId);
-      setClasses((prev) => prev.filter((c) => c.id !== classId));
+      await refreshAcademics();
       if (expandedClassId === classId) setExpandedClassId(null);
     } catch (err) {
       console.error("Failed to delete class:", err);
@@ -184,14 +174,7 @@ export default function ClassLevels() {
         ...prev,
         [classId]: prev[classId].filter((sec) => sec.id !== sectionId),
       }));
-      setClasses((prev) =>
-        prev.map((c) => {
-          if (c.id === classId) {
-            return { ...c, sectionCount: Math.max(0, (c.sectionCount || c.sections?.length || 1) - 1) };
-          }
-          return c;
-        })
-      );
+      await refreshAcademics();
     } catch (err) {
       console.error("Failed to delete section:", err);
       alert("Error: Could not delete section.");
