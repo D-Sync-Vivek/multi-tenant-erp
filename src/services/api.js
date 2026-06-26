@@ -275,12 +275,10 @@ const callAiApi = async (endpoint, payload) => {
   const AI_API_BASE_URL = process.env.REACT_APP_AI_API_URL; // Removed hardcoded fallback
   const url = `${AI_API_BASE_URL}${endpoint}`;
 
-  const token = localStorage.getItem("access_token");
-
+  // Removed Authorization headers for the RAG service to bypass token mismatch issues
   const headers = {
     "Content-Type": "application/json",
   };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   try {
     const res = await fetch(url, {
@@ -298,12 +296,7 @@ const callAiApi = async (endpoint, payload) => {
     }
 
     if (!res.ok) {
-      if (res.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        window.location.href = "/login";
-        throw new Error("Session expired. Please log in again.");
-      }
+      // Removed automatic redirect to /login on 401 for RAG service to prevent unintended logouts
       const errData = await res.json().catch(() => null);
 
       let errorMessage =
@@ -403,6 +396,44 @@ export const generatePresentationOutline = (payload) =>
   callAiApi("/api/v1/generate_presentation_outline", payload);
 export const generateRubric = (payload) =>
   callAiApi("/api/v1/generate_rubric", payload);
+
+/**
+ * Get curriculum hierarchy (classes, subjects, chapters) from RAG database
+ * GET /api/v1/curriculum/hierarchy
+ * 
+ * Returns:
+ * {
+ *   "data": [
+ *     {
+ *       "class": "9",
+ *       "subject": "Mathematics",
+ *       "chapters": ["1 - NUMBER SYSTEMS", "2 - POLYNOMIALS", ...]
+ *     }
+ *   ]
+ * }
+ */
+export const getCurriculumHierarchy = () => {
+  const AI_API_BASE_URL = process.env.REACT_APP_AI_API_URL;
+  const url = `${AI_API_BASE_URL}/api/v1/curriculum/hierarchy`;
+
+  // Removed Authorization headers for the RAG service to bypass token mismatch issues
+  const headers = {
+    "Content-Type": "application/json",
+  };
+
+  return fetch(url, { method: "GET", headers })
+    .then(res => {
+      if (!res.ok) {
+        // Removed automatic redirect to /login on 401 for RAG service to prevent unintended logouts
+        throw new Error(`Failed to fetch curriculum data: ${res.status}`);
+      }
+      return res.json();
+    })
+    .catch(err => {
+      console.error("[CURRICULUM API ERROR]", err);
+      throw err;
+    });
+};
 
 // --- Saved AI Content APIs ---
 
