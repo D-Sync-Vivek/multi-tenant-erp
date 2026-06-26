@@ -374,13 +374,13 @@ const AttendanceOverview = () => {
           </Card>
 
           {/* Quick Contact */}
-          <div className="bg-primary/5 p-6 rounded-xl border border-primary/10">
+          {/* <div className="bg-primary/5 p-6 rounded-xl border border-primary/10">
             <h4 className="font-bold text-on-surface text-sm mb-3">Notify Guardians</h4>
             <p className="text-xs text-on-surface-variant mb-4">Send automatic alerts for the absent students today.</p>
             <button className="w-full py-2.5 bg-white text-primary border border-primary rounded-xl font-bold text-xs hover:bg-primary hover:text-white transition-all">
               Send Notifications
             </button>
-          </div>
+          </div> */}
         </div>
 
       </div>

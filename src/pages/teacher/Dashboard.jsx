@@ -344,7 +344,7 @@ const Dashboard = () => {
         <div className="col-span-12 lg:col-span-4 space-y-6">
 
           {/* Recent Activity Feed */}
-          <section className="bg-surface-container-low rounded-lg p-5">
+          {/* <section className="bg-surface-container-low rounded-lg p-5">
             <h4 className="font-display text-base font-bold mb-5 text-on-surface">Recent Activity</h4>
             <div className="space-y-5">
               <div className="flex gap-4 relative">
@@ -384,17 +384,17 @@ const Dashboard = () => {
               View All Activity
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </Link>
-          </section>
+          </section> */}
 
           {/* Student Spotlight */}
-          <div className="relative overflow-hidden rounded-lg shadow-ambient aspect-[4/3] group" style={{boxShadow: '0px 12px 32px rgba(11,28,48,0.06)'}}>
+          {/* <div className="relative overflow-hidden rounded-lg shadow-ambient aspect-[4/3] group" style={{boxShadow: '0px 12px 32px rgba(11,28,48,0.06)'}}>
             <img alt="Class Spotlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8I8LaH-fxwzUfYcklh-0WSH91hBgGJv97HDznz2ihqwjbWy9o6bZ2olprlFKl5PjSOP9PtWz02FrtzqYxTJA6LbuycXjRXfxiSvF_V90ha85ocjHmQJs_X-vp-xprHqsguPNKbZ8q5c-QUjBRHjd2MukIOkSKeghbznUzsSSB5QnUv70pdVSU4kuq9OxbxH-q8tLSB22Sdvvqgtn8Yf2vFHtsUrBsYkpXkJYd5yXsFY6FgUxR4OZkEt_ItOGfCzzlAweX2sQytg" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
             <div className="absolute inset-0 bg-gradient-to-t from-primary/90 to-transparent flex flex-col justify-end p-5">
               <span className="bg-white/20 backdrop-blur-md text-white text-2xs font-bold uppercase tracking-widest px-2 py-1 rounded w-fit mb-2">Class Spotlight</span>
               <h5 className="text-white font-display text-base font-bold">Advanced Physics Lab</h5>
               <p className="text-white/80 text-xs">Achieved 100% submission rate today.</p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </MainLayout>

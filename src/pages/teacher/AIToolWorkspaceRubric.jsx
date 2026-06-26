@@ -6,12 +6,15 @@ import ToolActionButtons from '../../components/erp/global/ToolActionButtons';
 import AIResultEditor from '../../components/erp/global/AIResultEditor';
 import AIWorkspacePreviewSkeleton from '../../components/erp/global/AIWorkspacePreviewSkeleton';
 import { useCurriculumData } from '../../hooks/useCurriculumData';
+import { useTeacherClasses } from '../../hooks/useTeacherClasses';
 
 const AIToolWorkspaceRubric = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const savedId = queryParams.get('id');
+
+  const { teacherClasses } = useTeacherClasses();
 
   const {
     loading: curriculumLoading,
@@ -29,7 +32,7 @@ const AIToolWorkspaceRubric = () => {
     changeSubject,
     hasSavedContentMissing,
     refetch: refetchCurriculum
-  } = useCurriculumData('10', 'Mathematics', '10 - CIRCLES');
+  } = useCurriculumData('10', 'Mathematics', '10 - CIRCLES', { allowedClasses: teacherClasses });
 
   const [assignmentDesc, setAssignmentDesc] = useState('');
   const [totalScore, setTotalScore] = useState(100);

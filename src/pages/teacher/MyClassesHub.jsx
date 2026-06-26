@@ -6,7 +6,7 @@ import Button from "../../components/erp/teacher/Button";
 import Card from "../../components/erp/teacher/Card";
 import Input from "../../components/erp/teacher/Input";
 import Select from "../../components/erp/teacher/Select";
-import { getMyTeacherAssignments, getGrades } from "../../services/api";
+import { getMyTeacherAssignments, getGrades, getSectionEnrollments } from "../../services/api";
 import { useStaleData } from "../../hooks/useStaleData";
 import { RevalidatingBar, SkeletonCard } from "../../components/erp/teacher/LoadingPrimitives";
 import { useTheme } from "../../context/ThemeContext";
@@ -102,13 +102,20 @@ const MyClassesHub = () => {
 
     // Deduplicate grade requests by subject
     const gradesRequestsBySubject = new Map();
+    // Deduplicate enrollment requests by section (to get student IDs for filtering)
+    const enrollmentRequestsBySection = new Map();
     classes.forEach((cls) => {
       const subjectId = cls.subject?.id;
+      const sectionId = cls.section?.id;
+      const academicYearId = cls.academic_year?.id;
       if (subjectId && !gradesRequestsBySubject.has(subjectId)) {
         gradesRequestsBySubject.set(subjectId, getGrades(subjectId));
       }
+      if (sectionId && !enrollmentRequestsBySection.has(sectionId)) {
+        enrollmentRequestsBySection.set(sectionId, getSectionEnrollments(sectionId, academicYearId));
+      }
     });
-    console.log('unique subjects for grades', gradesRequestsBySubject.size);
+    console.log('unique subjects for grades', gradesRequestsBySubject.size, 'unique sections for enrollments', enrollmentRequestsBySection.size);
 
     const classMetrics = await Promise.all(
       classes.map(async (cls) => {
@@ -121,14 +128,28 @@ const MyClassesHub = () => {
         }
 
         try {
-          const gradesData = subjectId
-            ? await gradesRequestsBySubject.get(subjectId)
-            : { results: [] };
-          const grades = Array.isArray(gradesData) ? gradesData : gradesData.results || [];
+          const [gradesData, enrollmentsData] = await Promise.all([
+            subjectId ? gradesRequestsBySubject.get(subjectId) : Promise.resolve({ results: [] }),
+            enrollmentRequestsBySection.get(sectionId),
+          ]);
 
-          const totalObtained = grades.reduce((sum, g) => sum + parseFloat(g.marks_obtained || 0), 0);
-          const totalMax = grades.reduce((sum, g) => sum + parseFloat(g.max_marks || 0), 0);
-          const avgPerformance = totalMax > 0
+          const allGrades = Array.isArray(gradesData) ? gradesData : gradesData?.results || [];
+          const enrollments = Array.isArray(enrollmentsData) ? enrollmentsData : enrollmentsData?.results || [];
+
+          // Build a set of student IDs enrolled in this specific section
+          const sectionStudentIds = new Set(
+            enrollments.map((e) => String(e.student?.id || e.student || e.student_id)).filter(Boolean)
+          );
+
+          // Filter grades to only students in this section
+          const sectionGrades = sectionStudentIds.size > 0
+            ? allGrades.filter((g) => sectionStudentIds.has(String(g.student_id || g.student)))
+            : allGrades;
+
+          const gradedCount = sectionGrades.filter((g) => parseFloat(g.max_marks || 0) > 0).length;
+          const totalObtained = sectionGrades.reduce((sum, g) => sum + parseFloat(g.marks_obtained || 0), 0);
+          const totalMax = sectionGrades.reduce((sum, g) => sum + parseFloat(g.max_marks || 0), 0);
+          const avgPerformance = totalMax > 0 && gradedCount > 0
             ? ((totalObtained / totalMax) * 100).toFixed(1)
             : 'N/A';
 
@@ -412,7 +433,7 @@ const MyClassesHub = () => {
         )}
       </div>
 
-      {!loading && classes.length > 0 && (
+      {/* {!loading && classes.length > 0 && (
         <div className="mt-6">
           <Card className="bg-gradient-to-br from-[#0b1c30] to-[#1e3450] text-white border-transparent" hoverable>
             <div className="flex justify-between items-start mb-4">
@@ -449,7 +470,7 @@ const MyClassesHub = () => {
             </button>
           </Card>
         </div>
-      )}
+      )} */}
     </MainLayout>
   );
 };

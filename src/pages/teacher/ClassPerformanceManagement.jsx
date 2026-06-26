@@ -64,8 +64,17 @@ const ClassPerformanceManagement = () => {
         const grades = Array.isArray(gradesData)
           ? gradesData
           : gradesData.results || [];
-          
-        grades.forEach(grade => {
+
+        // Build a set of enrolled student IDs to scope grades to this section only
+        const enrolledStudentIds = new Set(
+          students.map((s) => String(s.student?.id || s.student || s.student_id)).filter(Boolean)
+        );
+
+        const sectionGrades = enrolledStudentIds.size > 0
+          ? grades.filter((g) => enrolledStudentIds.has(String(g.student_id || g.student)))
+          : grades;
+
+        sectionGrades.forEach(grade => {
           const sId = grade.student_id || grade.student;
           // Only map the latest or highest? We can just keep the most recent or highest.
           // Or just store the grade value
@@ -104,17 +113,19 @@ const ClassPerformanceManagement = () => {
     : 0;
 
   let totalMarks = 0;
+  let gradedStudentCount = 0;
 
   students.forEach(student => {
     const sId = student.student?.id || student.student || student.student_id;
     const grade = gradesMap[sId];
     if (grade) {
       totalMarks += parseFloat(grade.marks_obtained || 0);
+      gradedStudentCount += 1;
     }
   });
 
-  const avgPerformance = students.length > 0
-    ? (totalMarks / students.length).toFixed(1)
+  const avgPerformance = gradedStudentCount > 0
+    ? (totalMarks / gradedStudentCount).toFixed(1)
     : 0;
 
   if (error && !payload) {

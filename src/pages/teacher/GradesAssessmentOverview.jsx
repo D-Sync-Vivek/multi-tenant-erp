@@ -146,9 +146,6 @@ const GradesAssessmentOverview = () => {
             <h3 className="text-sm md:text-base font-bold font-display text-on-surface">Recent Assessments</h3>
             <div className="flex gap-4 items-center">
               <span className="text-2xs md:text-xs text-on-surface-variant hidden sm:inline">Showing {assessmentsData.length} results</span>
-              <button className="text-primary hover:bg-primary/5 p-1 rounded transition-colors outline-none cursor-pointer border-none bg-transparent">
-                <span className="material-symbols-outlined text-lg block">more_vert</span>
-              </button>
             </div>
           </div>
           

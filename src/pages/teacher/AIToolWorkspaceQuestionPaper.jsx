@@ -11,6 +11,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import 'katex/dist/katex.min.css';
 import { useCurriculumData } from '../../hooks/useCurriculumData';
+import { useTeacherClasses } from '../../hooks/useTeacherClasses';
 
 const AIToolWorkspaceQuestionPaper = () => {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ const AIToolWorkspaceQuestionPaper = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [currentSaveId, setCurrentSaveId] = useState(savedId);
+
+  const { teacherClasses } = useTeacherClasses();
 
   const {
     loading: curriculumLoading,
@@ -38,7 +41,7 @@ const AIToolWorkspaceQuestionPaper = () => {
     changeSubject,
     hasSavedContentMissing,
     refetch: refetchCurriculum
-  } = useCurriculumData('10', 'Mathematics', '10 - CIRCLES');
+  } = useCurriculumData('10', 'Mathematics', '10 - CIRCLES', { allowedClasses: teacherClasses });
 
   const [totalMarks, setTotalMarks] = useState(50);
 

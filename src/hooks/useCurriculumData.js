@@ -4,10 +4,17 @@ import { getCurriculumHierarchy } from "../services/api";
 let cachedData = null;
 let cachedPromise = null;
 
+/**
+ * Optional allowedClasses: string[] — when provided, only class names present in
+ * this list will appear in the class dropdown. Subjects and chapters cascade
+ * correctly from the filtered set. This is used to restrict the picker to the
+ * teacher's own assigned classes.
+ */
 export const useCurriculumData = (
   initialClass = "",
   initialSubject = "",
   initialChapter = "",
+  { allowedClasses } = {},
 ) => {
   const [rawData, setRawData] = useState(cachedData || []);
   const [loading, setLoading] = useState(!cachedData);
@@ -50,12 +57,15 @@ export const useCurriculumData = (
   const refetch = () => {
     fetchData(true);
   };
-  // 1. Classes: Unique classes sorted numerically
+  // 1. Classes: Unique classes sorted numerically, optionally restricted to teacher's own classes
   const classes = useMemo(() => {
     const uniqueClasses = Array.from(
       new Set(rawData.map((item) => item.class)),
     );
-    return uniqueClasses.sort((a, b) => {
+    const filtered = allowedClasses && allowedClasses.length > 0
+      ? uniqueClasses.filter((cls) => allowedClasses.includes(cls))
+      : uniqueClasses;
+    return filtered.sort((a, b) => {
       const numA = parseFloat(a);
       const numB = parseFloat(b);
       if (!isNaN(numA) && !isNaN(numB)) {
@@ -63,7 +73,7 @@ export const useCurriculumData = (
       }
       return a.localeCompare(b);
     });
-  }, [rawData]);
+  }, [rawData, allowedClasses]);
   // 2. Subjects available for the selected class, sorted alphabetically
   const subjects = useMemo(() => {
     if (!selectedClass) return [];

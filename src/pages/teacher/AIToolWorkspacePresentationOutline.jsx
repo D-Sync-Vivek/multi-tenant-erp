@@ -7,12 +7,15 @@ import AIResultEditor from '../../components/erp/global/AIResultEditor';
 import AIWorkspacePreviewSkeleton from '../../components/erp/global/AIWorkspacePreviewSkeleton';
 import html2pdf from 'html2pdf.js';
 import { useCurriculumData } from '../../hooks/useCurriculumData';
+import { useTeacherClasses } from '../../hooks/useTeacherClasses';
 
 const AIToolWorkspacePresentationOutline = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const savedId = queryParams.get('id');
+
+  const { teacherClasses } = useTeacherClasses();
 
   const {
     loading: curriculumLoading,
@@ -30,7 +33,7 @@ const AIToolWorkspacePresentationOutline = () => {
     changeSubject,
     hasSavedContentMissing,
     refetch: refetchCurriculum
-  } = useCurriculumData('10', 'Mathematics', '10 - CIRCLES');
+  } = useCurriculumData('10', 'Mathematics', '10 - CIRCLES', { allowedClasses: teacherClasses });
 
   const [topic, setTopic] = useState('');
   const [numSlides, setNumSlides] = useState(7);

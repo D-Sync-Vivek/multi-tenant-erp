@@ -6,6 +6,7 @@ import ToolActionButtons from '../../components/erp/global/ToolActionButtons';
 import AIResultEditor from '../../components/erp/global/AIResultEditor';
 import AIWorkspacePreviewSkeleton from '../../components/erp/global/AIWorkspacePreviewSkeleton';
 import { useCurriculumData } from '../../hooks/useCurriculumData';
+import { useTeacherClasses } from '../../hooks/useTeacherClasses';
 
 const AIToolWorkspaceLessonPlan = () => {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ const AIToolWorkspaceLessonPlan = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [currentSaveId, setCurrentSaveId] = useState(savedId);
+
+  const { teacherClasses } = useTeacherClasses();
 
   const {
     loading: curriculumLoading,
@@ -33,7 +36,7 @@ const AIToolWorkspaceLessonPlan = () => {
     changeSubject,
     hasSavedContentMissing,
     refetch: refetchCurriculum
-  } = useCurriculumData('10', 'Mathematics', '10 - CIRCLES');
+  } = useCurriculumData('10', 'Mathematics', '10 - CIRCLES', { allowedClasses: teacherClasses });
 
   const [lessonDuration, setLessonDuration] = useState('60');
 
