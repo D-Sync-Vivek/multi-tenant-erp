@@ -1,27 +1,53 @@
 // src/components/erp/parent/AIInsights.jsx
 
 import React, { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useParent } from "../../../context/ParentProvider";
 
 const AIInsights = () => {
-  const { activeChild, dashboard } = useParent();
+  // FIX: was reading `dashboard?.recent_grades` / `dashboard?.stats?.total_grades`
+  // — unconfirmed field names from the same family of bug as `gradesReport`
+  // in StudentHeader.jsx / PerformanceChart.jsx. Switched the grade source
+  // to `gradesFlat`, the one field we've actually confirmed ParentProvider
+  // populates (GradesAssessmentHub.jsx already relies on it). Left
+  // `dashboard?.attendance?.status` as-is since nothing here contradicts
+  // it — flag it for a quick check if attendance status still looks wrong
+  // after this fix.
+  const { activeChild, dashboard, gradesFlat } = useParent();
+  const navigate = useNavigate();
 
-  const { topSubject, topPct, checklist } = useMemo(() => {
-    const grades = dashboard?.recent_grades || [];
-    if (!grades.length) return { topSubject: null, topPct: null, checklist: [] };
+  const { topSubject, topPct, weakestSubject, checklist } = useMemo(() => {
+    const grades = Array.isArray(gradesFlat) ? gradesFlat : [];
+    const withScores = grades.filter((g) => g.marks_obtained != null && g.max_marks != null);
+    if (!withScores.length) {
+      return { topSubject: null, topPct: null, weakestSubject: null, checklist: [] };
+    }
 
-    const sorted = [...grades].sort((a, b) => b.percentage - a.percentage);
+    const sorted = [...withScores].sort(
+      (a, b) =>
+        parseFloat(b.marks_obtained) / parseFloat(b.max_marks) -
+        parseFloat(a.marks_obtained) / parseFloat(a.max_marks),
+    );
     const top = sorted[0];
+    const bottom = sorted[sorted.length - 1];
+    const topPctValue = Math.round((parseFloat(top.marks_obtained) / parseFloat(top.max_marks)) * 100);
 
     const items = [];
     if (dashboard?.attendance?.status) {
       items.push(`Attendance status: ${dashboard.attendance.status}`);
     }
-    if (dashboard?.stats?.total_grades) {
-      items.push(`${dashboard.stats.total_grades} grade${dashboard.stats.total_grades > 1 ? "s" : ""} recorded so far`);
-    }
-    return { topSubject: top.subject, topPct: top.percentage, checklist: items };
-  }, [dashboard]);
+    // Tied to the same grades list driving the insight above, instead of a
+    // separate dashboard.stats.total_grades counter that could drift out of
+    // sync with it.
+    items.push(`${withScores.length} grade${withScores.length > 1 ? "s" : ""} recorded so far`);
+
+    return {
+      topSubject: top.subject_name,
+      topPct: topPctValue,
+      weakestSubject: bottom.subject_name !== top.subject_name ? bottom.subject_name : null,
+      checklist: items,
+    };
+  }, [gradesFlat, dashboard]);
 
   const name = activeChild?.name?.split(" ")[0] || "Your child";
 
@@ -96,7 +122,8 @@ const AIInsights = () => {
             <>
               "{name} is performing strongly in{" "}
               <span className="text-tertiary dark:text-purple-300 font-bold">{topSubject}</span>
-              , currently at {topPct}%."
+              , currently at {topPct}%.
+              {weakestSubject ? ` Extra focus on ${weakestSubject} could help bring up the overall average.` : ""}"
             </>
           ) : (
             `"Not enough grade data yet for ${name} to generate an insight."`
@@ -122,7 +149,11 @@ const AIInsights = () => {
         )}
       </ul>
 
+      {/* FIX: had no onClick at all — just hover styles. Confirm this path
+          matches your actual router config for the AI Insights page
+          (it's named "AI Insights" in the parent sidebar). */}
       <button
+        onClick={() => navigate("/parent/ai-insights")}
         className="ai-button w-full rounded-xl font-bold flex-shrink-0 leading-snug
                    bg-surface-container-high dark:bg-slate-700
                    text-primary dark:text-blue-300

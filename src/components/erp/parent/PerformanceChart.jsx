@@ -6,10 +6,18 @@ import { useParent } from "../../../context/ParentProvider";
 const MONTH_LABELS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
 const PerformanceChart = () => {
-  const { gradesReport, gradesLoading } = useParent();
+  // FIX: was destructuring `gradesReport` / `gradesLoading`, neither of which
+  // ParentProvider actually sets (same root cause as the Download Report
+  // bug in StudentHeader.jsx). `gradesReport?.exams` was therefore always
+  // undefined -> exams = [] -> hasData always false -> permanent "Not
+  // enough exam data yet" placeholder, regardless of real data. The actual
+  // exam-grouped data (already shaped as [{ exam_date, subjects: [...] }])
+  // lives in `gradesExams`; loading state is `loading` / `childDataLoading`,
+  // same as GradesAssessmentHub.jsx.
+  const { gradesExams, loading, childDataLoading } = useParent();
 
   const { points, monthLabels, yearLabel, hasData } = useMemo(() => {
-    const exams = (gradesReport?.exams || []).filter((e) => e.is_published !== false && e.exam_date);
+    const exams = (gradesExams || []).filter((e) => e.is_published !== false && e.exam_date);
     if (!exams.length)
       return { points: [], monthLabels: [], yearLabel: new Date().getFullYear(), hasData: false };
 
@@ -40,7 +48,7 @@ const PerformanceChart = () => {
     const labels = pts.map((p) => MONTH_LABELS[p.month]);
     const latestYear = pts.length ? pts[pts.length - 1].year : new Date().getFullYear();
     return { points: pts, monthLabels: labels, yearLabel: latestYear, hasData: pts.length > 0 };
-  }, [gradesReport]);
+  }, [gradesExams]);
 
   const { linePath, areaPath, dotPositions } = useMemo(() => {
     if (!points.length) return { linePath: "", areaPath: "", dotPositions: [] };
@@ -62,7 +70,7 @@ const PerformanceChart = () => {
     return { linePath: line, areaPath: area, dotPositions: coords };
   }, [points]);
 
-  if (gradesLoading) {
+  if (loading || childDataLoading) {
     return (
       <div className="perf-chart-card h-full bg-surface-container-lowest dark:bg-slate-800/60 rounded-xl border border-outline-variant/5 dark:border-slate-700/40 animate-pulse flex flex-col gap-3 p-4 sm:p-5">
         <div className="h-5 w-40 sm:w-48 bg-surface-container-low dark:bg-slate-700 rounded" />

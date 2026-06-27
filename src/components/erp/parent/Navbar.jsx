@@ -85,7 +85,7 @@ const Navbar = ({ onOpenSidebar, onToggleSidebar, isMobile }) => {
       {/* Right */}
       <div className="flex items-center gap-2 sm:gap-3 lg:gap-6 flex-shrink-0">
 
-        {/* Child switcher — only renders once there's data and >0 children */}
+        {/* Child switcher */}
         {!loading && students.length > 0 && (
           <div className="relative" ref={menuRef}>
             <button
@@ -142,11 +142,16 @@ const Navbar = ({ onOpenSidebar, onToggleSidebar, isMobile }) => {
           </div>
         )}
 
-        {/* Name + divider — desktop only */}
+        {/* Parent name — now a button that navigates to /parent/settings */}
         <div className="hidden lg:flex items-center gap-4">
-          <span className="text-sm font-medium text-blue-700 dark:text-blue-400 whitespace-nowrap">
+          <button
+            type="button"
+            onClick={() => navigate("/parent/settings")}
+            className="text-sm font-medium text-blue-700 dark:text-blue-400 whitespace-nowrap
+                       hover:underline hover:text-blue-900 dark:hover:text-blue-300 transition-colors"
+          >
             {displayName}
-          </span>
+          </button>
           <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
         </div>
 

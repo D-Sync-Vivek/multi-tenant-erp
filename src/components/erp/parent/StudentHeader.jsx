@@ -1,6 +1,6 @@
 // src/components/erp/parent/StudentHeader.jsx
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useParent } from "../../../context/ParentProvider";
 
 const getGradeDetails = (obtained, max) => {
@@ -13,7 +13,15 @@ const getGradeDetails = (obtained, max) => {
 };
 
 const StudentHeader = () => {
-  const { activeChild, dashboard, gradesReport, loading } = useParent();
+  // FIX: this used to destructure `gradesReport`, a field that ParentProvider
+  // never actually sets — GradesAssessmentHub.jsx (the real Grades & Report
+  // page) gets its data from `gradesFlat` / `gradesExams` / `gradesSummary`.
+  // Since gradesReport was always undefined, `disabled={downloading ||
+  // !gradesReport}` made this button permanently disabled and the early
+  // `if (!gradesReport) return;` inside downloadReportCard made the click
+  // handler a no-op even on the rare chance it wasn't disabled. Switched to
+  // the same fields the working Grades page already uses.
+  const { activeChild, dashboard, gradesFlat, gradesExams, gradesSummary, loading } = useParent();
   const [downloading, setDownloading] = useState(false);
 
   const displayName = activeChild?.name || "Student";
@@ -30,16 +38,39 @@ const StudentHeader = () => {
     // ignore parse errors, keep fallback
   }
 
-  const downloadReportCard = () => {
-    if (!gradesReport) return;
-    setDownloading(true);
+  // gradesFlat is already flattened exam→subject by ParentProvider (same
+  // data GradesAssessmentHub.jsx renders) — no exams[].subjects nesting to
+  // walk through here.
+  const flatRows = useMemo(() => (Array.isArray(gradesFlat) ? gradesFlat : []), [gradesFlat]);
+  const hasGrades = flatRows.length > 0;
 
-    const exams = gradesReport.exams || [];
-    const flatRows = exams.flatMap((exam) =>
-      (exam.subjects || []).map((s) => ({ ...s, exam_name: exam.exam_name }))
+  // Prefer the backend's overall_percentage (computed across ALL exams
+  // server-side) the same way GradesAssessmentHub does; fall back to
+  // averaging the loaded rows only if that's missing.
+  const overallPct = useMemo(() => {
+    if (gradesSummary?.overall_percentage != null) return gradesSummary.overall_percentage;
+    const withScores = flatRows.filter((r) => r.marks_obtained != null && r.max_marks != null);
+    if (!withScores.length) return 0;
+    return Math.round(
+      withScores.reduce((sum, r) => sum + (parseFloat(r.marks_obtained) / parseFloat(r.max_marks)) * 100, 0) /
+        withScores.length,
     );
-    const overallPct = gradesReport.overall_percentage ?? 0;
-    const latestExam = exams[exams.length - 1] || null;
+  }, [flatRows, gradesSummary]);
+
+  // Latest exam by date, same chronological approach as GradesAssessmentHub's
+  // trend chart — falls back to the last flat row's exam name if gradesExams
+  // isn't available for some reason.
+  const latestExamName = useMemo(() => {
+    if (Array.isArray(gradesExams) && gradesExams.length) {
+      const sorted = [...gradesExams].sort((a, b) => new Date(a.exam_date) - new Date(b.exam_date));
+      return sorted[sorted.length - 1]?.exam_name || null;
+    }
+    return flatRows[flatRows.length - 1]?.exam_name || null;
+  }, [gradesExams, flatRows]);
+
+  const downloadReportCard = () => {
+    if (!hasGrades) return;
+    setDownloading(true);
 
     const printWindow = window.open("", "_blank");
     const reportHTML = `<!DOCTYPE html><html><head><title>Report Card</title><meta charset="UTF-8">
@@ -62,14 +93,14 @@ const StudentHeader = () => {
     <div class="header"><h1>ACADEMIC REPORT CARD</h1><h2>${classSection}</h2><p>Academic Year ${classInfo?.academic_year || new Date().getFullYear()}</p></div>
     <div class="info">
       <div class="info-item"><span class="info-label">Student:</span><span class="info-value">${displayName}</span></div>
-      <div class="info-item"><span class="info-label">Enroll No:</span><span class="info-value">${gradesReport.enrollment_number || "N/A"}</span></div>
+      <div class="info-item"><span class="info-label">Enroll No:</span><span class="info-value">${activeChild?.enrollment_number || "N/A"}</span></div>
       <div class="info-item"><span class="info-label">Roll No:</span><span class="info-value">${classInfo?.roll_number || "N/A"}</span></div>
       <div class="info-item"><span class="info-label">Date:</span><span class="info-value">${new Date().toLocaleDateString()}</span></div>
     </div>
     <div class="summary">
       <div class="card"><h4>Overall %</h4><div class="value">${overallPct}%</div></div>
-      <div class="card" style="background:linear-gradient(135deg,#10b981,#059669)"><h4>Subjects Passed</h4><div class="value">${flatRows.filter(r=>parseFloat(r.marks_obtained)>=parseFloat(r.max_marks)*0.4).length}</div></div>
-      <div class="card" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)"><h4>Latest Exam</h4><div class="value" style="font-size:16px">${latestExam?.exam_name || "N/A"}</div></div>
+      <div class="card" style="background:linear-gradient(135deg,#10b981,#059669)"><h4>Subjects Passed</h4><div class="value">${flatRows.filter(r=>parseFloat(r.max_marks)>0 && parseFloat(r.marks_obtained)>=parseFloat(r.max_marks)*0.4).length}</div></div>
+      <div class="card" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)"><h4>Latest Exam</h4><div class="value" style="font-size:16px">${latestExamName || "N/A"}</div></div>
     </div>
     <table><thead><tr><th>Subject</th><th>Exam</th><th>Obtained</th><th>Max</th><th>%</th><th>Grade</th><th>Remarks</th></tr></thead>
     <tbody>${flatRows.map((r) => {
@@ -132,7 +163,8 @@ const StudentHeader = () => {
       <div className="grid grid-cols-2 lg:flex gap-2 sm:gap-3 lg:flex-nowrap lg:justify-end flex-shrink-0 w-full lg:w-auto">
         <button
           onClick={downloadReportCard}
-          disabled={downloading || !gradesReport}
+          disabled={downloading || !hasGrades}
+          title={!hasGrades ? "No grades available yet for this child" : undefined}
           className="flex items-center justify-center gap-1.5
                      bg-slate-100 dark:bg-slate-700
                      text-primary dark:text-blue-300
@@ -147,8 +179,9 @@ const StudentHeader = () => {
           <span className="truncate">{downloading ? "Preparing..." : "Download Report"}</span>
         </button>
 
-        {/* Teacher email isn't returned by any current parent API — disabled
-            until that's available. Wire up once we hit the Assignments page. */}
+        {/* Teacher email isn't returned by any current parent API — intentionally
+            disabled until that's available. Wire up once we hit the Assignments page.
+            (Unlike Download Report, this one is disabled on purpose, not a bug.) */}
         <button
           disabled
           title="Teacher contact not available yet"

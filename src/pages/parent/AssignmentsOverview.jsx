@@ -42,23 +42,25 @@ function AssignmentsSkeleton() {
    Helpers
 ───────────────────────────────────────────── */
 const SUBJECT_META = {
-  physics:           { icon: "science",     bg: "bg-blue-100",    color: "text-blue-600"    },
-  mathematics:       { icon: "calculate",   bg: "bg-purple-100",  color: "text-purple-600"  },
-  math:              { icon: "calculate",   bg: "bg-purple-100",  color: "text-purple-600"  },
-  english:           { icon: "menu_book",   bg: "bg-orange-100",  color: "text-orange-600"  },
-  literature:        { icon: "menu_book",   bg: "bg-orange-100",  color: "text-orange-600"  },
-  chemistry:         { icon: "experiment",  bg: "bg-green-100",   color: "text-green-600"   },
-  biology:           { icon: "biotech",     bg: "bg-emerald-100", color: "text-emerald-600" },
-  "computer science":{ icon: "code",        bg: "bg-indigo-100",  color: "text-indigo-600"  },
-  history:           { icon: "history_edu", bg: "bg-amber-100",   color: "text-amber-600"   },
-  hindi:             { icon: "translate",   bg: "bg-red-100",     color: "text-red-600"     },
-  science:           { icon: "science",     bg: "bg-sky-100",     color: "text-sky-600"     },
-  "social studies":  { icon: "public",      bg: "bg-teal-100",    color: "text-teal-600"    },
+  physics:            { icon: "science",     bg: "bg-blue-100",    color: "text-blue-600"    },
+  mathematics:        { icon: "calculate",   bg: "bg-purple-100",  color: "text-purple-600"  },
+  math:               { icon: "calculate",   bg: "bg-purple-100",  color: "text-purple-600"  },
+  english:            { icon: "menu_book",   bg: "bg-orange-100",  color: "text-orange-600"  },
+  literature:         { icon: "menu_book",   bg: "bg-orange-100",  color: "text-orange-600"  },
+  chemistry:          { icon: "experiment",  bg: "bg-green-100",   color: "text-green-600"   },
+  biology:            { icon: "biotech",     bg: "bg-emerald-100", color: "text-emerald-600" },
+  "computer science": { icon: "code",        bg: "bg-indigo-100",  color: "text-indigo-600"  },
+  history:            { icon: "history_edu", bg: "bg-amber-100",   color: "text-amber-600"   },
+  hindi:              { icon: "translate",   bg: "bg-red-100",     color: "text-red-600"     },
+  science:            { icon: "science",     bg: "bg-sky-100",     color: "text-sky-600"     },
+  "social studies":   { icon: "public",      bg: "bg-teal-100",    color: "text-teal-600"    },
 };
 
 function subjectMeta(name) {
-  return SUBJECT_META[(name || "").toLowerCase()] ||
-         { icon: "assignment", bg: "bg-slate-100", color: "text-slate-600" };
+  return (
+    SUBJECT_META[(name || "").toLowerCase()] ||
+    { icon: "assignment", bg: "bg-slate-100", color: "text-slate-600" }
+  );
 }
 
 const STATUS_STYLES = {
@@ -99,6 +101,113 @@ function UnauthorizedState({ childName }) {
 }
 
 /* ─────────────────────────────────────────────
+   Assignment Detail Modal
+───────────────────────────────────────────── */
+function AssignmentDetailModal({ assignment, onClose }) {
+  if (!assignment) return null;
+
+  const meta = subjectMeta(assignment.subject_name);
+  const due  = dueLabel(assignment.due_date);
+  const st   = STATUS_STYLES[assignment.submission_status] || { badge: "bg-slate-100 text-slate-700" };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-5"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className={`${meta.bg} w-12 h-12 rounded-xl flex items-center justify-center shrink-0`}>
+              <span className={`material-symbols-outlined ${meta.color} text-2xl`}>{meta.icon}</span>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                {assignment.subject_name || "—"}
+                {assignment.section_name ? ` · ${assignment.section_name}` : ""}
+              </p>
+              <h2 className="text-base font-bold text-slate-800 dark:text-white leading-snug">
+                {assignment.title || "Untitled Assignment"}
+              </h2>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-700 dark:hover:text-white shrink-0"
+          >
+            <span className="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
+
+        {/* Details grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Status</p>
+            <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${st.badge}`}>
+              {assignment.submission_status}
+            </span>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Deadline</p>
+            <p className={`text-sm font-bold ${due.urgent ? "text-red-500" : "text-slate-700 dark:text-slate-200"}`}>
+              {due.text}
+            </p>
+          </div>
+
+          {assignment.teacher_name && (
+            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-3">
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Teacher</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{assignment.teacher_name}</p>
+            </div>
+          )}
+
+          {assignment.submission_status === "Graded" && assignment.grade != null && (
+            <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-3">
+              <p className="text-[10px] text-blue-400 uppercase tracking-wider mb-1">Grade</p>
+              <p className="text-sm font-bold text-blue-600 dark:text-blue-400">{assignment.grade}%</p>
+            </div>
+          )}
+
+          {assignment.submission_status === "Submitted" && assignment.submitted_at && (
+            <div className="bg-purple-50 dark:bg-purple-900/30 rounded-xl p-3">
+              <p className="text-[10px] text-purple-400 uppercase tracking-wider mb-1">Submitted On</p>
+              <p className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                {new Date(assignment.submitted_at).toLocaleDateString("en-US", {
+                  month: "short", day: "numeric", year: "numeric"
+                })}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Description */}
+        {assignment.description && (
+          <div>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5">Description</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              {assignment.description}
+            </p>
+          </div>
+        )}
+
+        <button
+          onClick={onClose}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl
+                     transition-colors text-sm"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
    Main
 ───────────────────────────────────────────── */
 export default function AssignmentsOverview() {
@@ -110,12 +219,20 @@ export default function AssignmentsOverview() {
   const [fetchError,   setFetchError]   = useState(null);
   const [unauthorized, setUnauthorized] = useState(false);
 
+  // FIX 1: filters default to "All" — reset whenever active child changes
   const [subjectFilter, setSubjectFilter] = useState("All Subjects");
   const [statusFilter,  setStatusFilter]  = useState("All Status");
+
+  // FIX 2: selected assignment for the detail modal (powers "Review Now" and card clicks)
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
 
   useEffect(() => {
     if (!activeChild?.id) { setFetching(false); return; }
     let cancelled = false;
+
+    // FIX 3: reset filters when the child switches so stale selections don't persist
+    setSubjectFilter("All Subjects");
+    setStatusFilter("All Status");
 
     (async () => {
       setFetching(true);
@@ -142,14 +259,19 @@ export default function AssignmentsOverview() {
     return () => { cancelled = true; };
   }, [activeChild?.id]);
 
-  /* derived */
+  /* ── Derived values ── */
+
+  // FIX 4: subjectOptions built from actual data — guaranteed to match assignment.subject_name exactly
   const subjectOptions = useMemo(
-    () => ["All Subjects", ...Array.from(new Set(assignments.map(a => a.subject_name).filter(Boolean)))],
+    () => [
+      "All Subjects",
+      ...Array.from(new Set(assignments.map(a => a.subject_name).filter(Boolean))).sort(),
+    ],
     [assignments]
   );
 
   const total          = assignments.length;
-  const submittedCount = assignments.filter(a => ["Submitted","Graded"].includes(a.submission_status)).length;
+  const submittedCount = assignments.filter(a => ["Submitted", "Graded"].includes(a.submission_status)).length;
   const pendingCount   = assignments.filter(a => a.submission_status === "Pending").length;
   const submissionRate = total > 0 ? Math.round((submittedCount / total) * 100) : 0;
 
@@ -162,20 +284,29 @@ export default function AssignmentsOverview() {
     .filter(a => a.submission_status === "Pending")
     .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0];
 
+  // FIX 5: filter comparison is case-insensitive so dropdown value always matches subject_name
   const filtered = assignments
-    .filter(a => (subjectFilter === "All Subjects" || a.subject_name === subjectFilter))
-    .filter(a => (statusFilter  === "All Status"   || a.submission_status === statusFilter))
+    .filter(a =>
+      subjectFilter === "All Subjects" ||
+      (a.subject_name || "").toLowerCase() === subjectFilter.toLowerCase()
+    )
+    .filter(a =>
+      statusFilter === "All Status" || a.submission_status === statusFilter
+    )
     .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
 
   const studentName      = childInfo?.name || activeChild?.name || "Student";
   const studentFirstName = studentName.split(" ")[0];
+
+  /* ── Early returns ── */
 
   if (ctxLoading || fetching) return <AssignmentsSkeleton />;
 
   if (ctxError || fetchError) {
     return (
       <DashboardLayout>
-        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl p-5 text-sm">
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800
+                        text-red-700 dark:text-red-300 rounded-xl p-5 text-sm">
           Could not load assignments. {(ctxError || fetchError)?.message || "Please try again later."}
         </div>
       </DashboardLayout>
@@ -185,15 +316,24 @@ export default function AssignmentsOverview() {
   if (!activeChild?.id) {
     return (
       <DashboardLayout>
-        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 text-amber-700 rounded-xl p-5 text-sm">
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 text-amber-700
+                        rounded-xl p-5 text-sm">
           No active child selected.
         </div>
       </DashboardLayout>
     );
   }
 
+  /* ── Render ── */
+
   return (
     <DashboardLayout>
+      {/* FIX 6: Assignment detail modal */}
+      <AssignmentDetailModal
+        assignment={selectedAssignment}
+        onClose={() => setSelectedAssignment(null)}
+      />
+
       <div className="space-y-5 sm:space-y-6">
 
         {/* HEADER */}
@@ -222,12 +362,17 @@ export default function AssignmentsOverview() {
                     </p>
                     <p className="text-white font-semibold text-sm sm:text-base leading-snug">
                       <span className="font-bold">{nextPending.title}</span>
-                      {" "}({nextPending.subject_name}) is due {dueLabel(nextPending.due_date).text.toLowerCase()}.
+                      {" "}({nextPending.subject_name}) is due{" "}
+                      {dueLabel(nextPending.due_date).text.toLowerCase()}.
                     </p>
                   </div>
                 </div>
-                <button className="self-start sm:self-auto shrink-0 bg-white text-blue-700 px-4 py-2
-                                   rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors">
+                {/* FIX 7: "Review Now" opens the next pending assignment in the modal */}
+                <button
+                  onClick={() => setSelectedAssignment(nextPending)}
+                  className="self-start sm:self-auto shrink-0 bg-white text-blue-700 px-4 py-2
+                             rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors"
+                >
                   Review Now
                 </button>
               </div>
@@ -285,7 +430,7 @@ export default function AssignmentsOverview() {
               {/* Left: list */}
               <div className="xl:col-span-2 space-y-3">
 
-                {/* Filters */}
+                {/* FIX 8: Filters — value is controlled state, onChange updates state correctly */}
                 <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2">
                   <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white">
                     Assignment Roadmap
@@ -293,28 +438,47 @@ export default function AssignmentsOverview() {
                   <div className="flex gap-2 w-full xs:w-auto">
                     <select
                       value={subjectFilter}
-                      onChange={e => { setSubjectFilter(e.target.value); }}
+                      onChange={e => setSubjectFilter(e.target.value)}
                       className="flex-1 xs:flex-none border border-slate-200 dark:border-slate-600
                                  rounded-lg px-3 py-2 text-xs sm:text-sm
                                  bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100
                                  focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     >
-                      {subjectOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                      {subjectOptions.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
                     </select>
+
                     <select
                       value={statusFilter}
-                      onChange={e => { setStatusFilter(e.target.value); }}
+                      onChange={e => setStatusFilter(e.target.value)}
                       className="flex-1 xs:flex-none border border-slate-200 dark:border-slate-600
                                  rounded-lg px-3 py-2 text-xs sm:text-sm
                                  bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100
                                  focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     >
-                      {["All Status","Pending","Submitted","Graded"].map(s => (
+                      {["All Status", "Pending", "Submitted", "Graded"].map(s => (
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
                   </div>
                 </div>
+
+                {/* Results count hint */}
+                {(subjectFilter !== "All Subjects" || statusFilter !== "All Status") && (
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                    Showing {filtered.length} of {total} assignment{total !== 1 ? "s" : ""}
+                    {subjectFilter !== "All Subjects" ? ` in ${subjectFilter}` : ""}
+                    {statusFilter  !== "All Status"   ? ` · ${statusFilter}`   : ""}
+                    {" "}
+                    <button
+                      onClick={() => { setSubjectFilter("All Subjects"); setStatusFilter("All Status"); }}
+                      className="text-blue-500 hover:underline font-medium"
+                    >
+                      Clear filters
+                    </button>
+                  </p>
+                )}
 
                 {/* Empty */}
                 {filtered.length === 0 && (
@@ -326,10 +490,16 @@ export default function AssignmentsOverview() {
                     <p className="text-slate-500 dark:text-slate-400 text-sm mt-3">
                       No assignments match the selected filters.
                     </p>
+                    <button
+                      onClick={() => { setSubjectFilter("All Subjects"); setStatusFilter("All Status"); }}
+                      className="mt-3 text-sm text-blue-500 hover:underline font-medium"
+                    >
+                      Clear filters
+                    </button>
                   </div>
                 )}
 
-                {/* Cards */}
+                {/* FIX 9: Cards — clicking any card opens the detail modal */}
                 {filtered.map(a => {
                   const meta   = subjectMeta(a.subject_name);
                   const due    = dueLabel(a.due_date);
@@ -338,11 +508,14 @@ export default function AssignmentsOverview() {
                   const subm   = a.submission_status === "Submitted";
 
                   return (
-                    <div key={a.id}
-                         className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200
-                                    dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow
-                                    p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
-
+                    <button
+                      key={a.id}
+                      onClick={() => setSelectedAssignment(a)}
+                      className="w-full text-left bg-white dark:bg-slate-800 rounded-2xl border border-slate-200
+                                 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-blue-300
+                                 dark:hover:border-blue-600 transition-all p-4 sm:p-5 flex items-center
+                                 gap-3 sm:gap-4 group"
+                    >
                       {/* Icon */}
                       <div className={`${meta.bg} w-10 h-10 sm:w-12 sm:h-12 rounded-xl
                                        flex items-center justify-center shrink-0`}>
@@ -382,7 +555,7 @@ export default function AssignmentsOverview() {
                             <p className="text-[10px] text-slate-400 dark:text-slate-500">Submitted</p>
                             <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
                               {a.submitted_at
-                                ? new Date(a.submitted_at).toLocaleDateString("en-US",{ month:"short", day:"numeric" })
+                                ? new Date(a.submitted_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
                                 : "—"}
                             </p>
                           </>
@@ -403,8 +576,10 @@ export default function AssignmentsOverview() {
                       </span>
 
                       <span className="material-symbols-outlined text-slate-300 dark:text-slate-600
-                                       text-lg shrink-0 hidden sm:block">chevron_right</span>
-                    </div>
+                                       group-hover:text-blue-400 text-lg shrink-0 hidden sm:block transition-colors">
+                        chevron_right
+                      </span>
+                    </button>
                   );
                 })}
               </div>
@@ -423,8 +598,10 @@ export default function AssignmentsOverview() {
                     <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400">{submissionRate}%</span>
                   </div>
                   <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                    <div className="h-2 bg-blue-600 rounded-full transition-all duration-700"
-                         style={{ width: `${submissionRate}%` }} />
+                    <div
+                      className="h-2 bg-blue-600 rounded-full transition-all duration-700"
+                      style={{ width: `${submissionRate}%` }}
+                    />
                   </div>
                 </div>
 
@@ -452,18 +629,27 @@ export default function AssignmentsOverview() {
                         .map(a => {
                           const due = dueLabel(a.due_date);
                           return (
-                            <div key={a.id} className="flex gap-2.5 items-start">
+                            /* FIX 10: sidebar pending items are also clickable */
+                            <button
+                              key={a.id}
+                              onClick={() => setSelectedAssignment(a)}
+                              className="flex gap-2.5 items-start w-full text-left
+                                         hover:bg-slate-50 dark:hover:bg-slate-700/50
+                                         rounded-lg p-1 -mx-1 transition-colors group"
+                            >
                               <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0" />
                               <div className="min-w-0">
                                 <p className="text-xs sm:text-sm font-semibold text-slate-700
-                                              dark:text-slate-200 truncate leading-tight">
+                                              dark:text-slate-200 truncate leading-tight
+                                              group-hover:text-blue-600 dark:group-hover:text-blue-400
+                                              transition-colors">
                                   {a.title || "Untitled"}
                                 </p>
                                 <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                                   {a.subject_name} · {due.text}
                                 </p>
                               </div>
-                            </div>
+                            </button>
                           );
                         })}
                     </div>
@@ -471,7 +657,6 @@ export default function AssignmentsOverview() {
                 </div>
               </div>
             </div>
-
           </>
         )}
       </div>

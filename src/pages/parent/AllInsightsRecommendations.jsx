@@ -1,7 +1,55 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import DashboardLayout from "../../components/erp/parent/DashboardLayout";
+import { useParent } from "../../context/ParentProvider";
+
+// Shown on every section below that's still fabricated content with no real
+// AI-generation endpoint behind it yet (Learning Efficiency, Behavioral
+// Insights, Study Roadmap, Recommendations). Pulled out so it's obvious at a
+// glance which sections are real vs. sample, and easy to delete in one place
+// once each section actually gets wired up.
+const SampleNote = ({ className = "" }) => (
+  <p className={`text-[10px] font-bold uppercase tracking-wide text-amber-600 ${className}`}>
+    Sample insight — full analysis coming soon
+  </p>
+);
 
 const AIInsightsRecommendations = () => {
+  // FIX: this component previously had no useParent() call at all — every
+  // field (name, grade/section, avatar, subject mastery %) was hardcoded to
+  // a student ("Alex Rivera") that doesn't exist in this app's data. Wired
+  // up the identity fields + Concept Mastery to real context, same gradesFlat
+  // source used by GradesAssessmentHub.jsx / AIInsights.jsx / PerformanceChart.jsx.
+  const { activeChild, enrollment, gradesFlat } = useParent();
+
+  const displayName = activeChild?.name || "your child";
+  const classSection = enrollment
+    ? `${enrollment.class_level_name || ""}${enrollment.section_name ? ` • ${enrollment.section_name}` : ""}`.trim()
+    : "—";
+
+  // activeChild.profile_picture may be a plain URL or a storage path needing
+  // a signed view URL (see Sidebar.jsx's useEffect for that pattern) — only
+  // the plain-URL case is handled here; falls back to a generated avatar
+  // otherwise rather than showing a stock photo of someone else's child.
+  const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff`;
+  const avatarSrc =
+    activeChild?.profile_picture && activeChild.profile_picture.startsWith("http")
+      ? activeChild.profile_picture
+      : fallbackAvatar;
+
+  // Real subject mastery — same percentage math as GradesAssessmentHub.jsx,
+  // sorted strongest-first. Replaces the 3 hardcoded subjects (none of which
+  // exist anywhere else in this app's data).
+  const conceptMastery = useMemo(() => {
+    const grades = Array.isArray(gradesFlat) ? gradesFlat : [];
+    return grades
+      .filter((g) => g.marks_obtained != null && g.max_marks != null && parseFloat(g.max_marks) > 0)
+      .map((g) => ({
+        label: g.subject_name || "Unknown Subject",
+        pct: Math.round((parseFloat(g.marks_obtained) / parseFloat(g.max_marks)) * 100),
+      }))
+      .sort((a, b) => b.pct - a.pct);
+  }, [gradesFlat]);
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
@@ -21,7 +69,7 @@ const AIInsightsRecommendations = () => {
               AI Academic Insights
             </h2>
             <p className="text-sm sm:text-base text-on-surface-variant max-w-xl">
-              Deep-dive into Alex Rivera's cognitive progression and learning patterns powered by Academic Architect AI.
+              Deep-dive into {displayName}'s cognitive progression and learning patterns powered by Academic Architect AI.
             </p>
           </div>
 
@@ -30,16 +78,21 @@ const AIInsightsRecommendations = () => {
             <div className="bg-surface-container-low px-4 py-3 rounded-md flex items-center gap-3 w-full sm:w-auto">
               <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden flex-shrink-0">
                 <img
-                  alt="Alex Rivera"
+                  alt={displayName}
                   className="w-full h-full object-cover"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjK8BFKgzhoOCnqjKRgAX9vgGvr0nm6JxfKzzcl4Rbxhm-VsdR1rdpKbcb58wwmijqlbSWdRsVfZNIVfttIRfkd_ZWQdbHKHbISpIFDgnj0USQvVte09Qmav0BPmE-JoXLapcra4TR8p6mJo5HBQ8GonRoUXwXLaaBbI0wWIo9dJocM1u1WGMQBF-ffUJOyp927fJf4MMl9ajDLyAi3rRldNsml-TWaXfxz_rFVhko5D5VFQDlNN3NuHHy3_xvcKxqYAawew_3sw"
+                  src={avatarSrc}
+                  onError={(e) => { e.currentTarget.src = fallbackAvatar; }}
                 />
               </div>
               <div>
-                <p className="text-xs font-bold text-on-surface">Alex Rivera</p>
-                <p className="text-[10px] text-on-surface-variant font-medium uppercase tracking-tighter">Grade 8 • Section B</p>
+                <p className="text-xs font-bold text-on-surface">{displayName}</p>
+                <p className="text-[10px] text-on-surface-variant font-medium uppercase tracking-tighter">{classSection}</p>
               </div>
             </div>
+            {/* NOTE: "Full Report" has no onClick — same decorative-button
+                pattern as the other buttons already fixed elsewhere. Left
+                alone for now since it wasn't part of the requested scope
+                (real student + real subject mastery only). */}
             <button className="bg-gradient-to-r from-primary to-primary-container text-white px-5 py-3 rounded-md flex items-center justify-center gap-2 font-semibold text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity w-full sm:w-auto">
               <span className="material-symbols-outlined text-sm" data-icon="download">download</span>
               Full Report
@@ -50,7 +103,8 @@ const AIInsightsRecommendations = () => {
         {/* ── Bento Insights Grid ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-6">
 
-          {/* Learning Efficiency */}
+          {/* Learning Efficiency — BLOCKED ON BACKEND: no endpoint exists for
+              session-timing / retention analysis. Still sample content. */}
           <div className="sm:col-span-1 lg:col-span-4 bg-surface-container-lowest p-5 sm:p-6 rounded-lg flex flex-col justify-between shadow-sm">
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -59,8 +113,9 @@ const AIInsightsRecommendations = () => {
               </div>
               <h3 className="text-lg sm:text-xl font-bold font-headline mb-1">Learning Efficiency</h3>
               <p className="text-sm text-on-surface-variant leading-relaxed">
-                Alex is absorbing concepts faster during morning sessions. Information retention in STEM subjects has peaked at 88%.
+                {displayName} is absorbing concepts faster during morning sessions. Information retention in STEM subjects has peaked at 88%.
               </p>
+              <SampleNote className="mt-2" />
             </div>
             <div className="mt-6 flex items-end gap-1">
               <div className="w-full bg-slate-100 h-20 sm:h-24 rounded-sm relative overflow-hidden">
@@ -70,7 +125,7 @@ const AIInsightsRecommendations = () => {
             </div>
           </div>
 
-          {/* Concept Mastery */}
+          {/* Concept Mastery — REAL DATA, from gradesFlat */}
           <div className="sm:col-span-1 lg:col-span-8 bg-surface-container-lowest p-5 sm:p-6 rounded-lg shadow-sm">
             <div className="flex items-start justify-between mb-5 gap-3">
               <div>
@@ -83,26 +138,29 @@ const AIInsightsRecommendations = () => {
                 <span className="w-3 h-3 rounded-full bg-surface-variant"></span>
               </div>
             </div>
-            <div className="space-y-5">
-              {[
-                { label: "Mathematics: Algebra & Geometry", pct: 94 },
-                { label: "Science: Molecular Biology", pct: 72 },
-                { label: "Literature: Comparative Analysis", pct: 81 },
-              ].map(({ label, pct }) => (
-                <div key={label} className="space-y-1.5">
-                  <div className="flex justify-between text-[10px] sm:text-xs font-bold uppercase tracking-wider gap-2">
-                    <span className="truncate">{label}</span>
-                    <span className="text-primary flex-shrink-0">{pct}%</span>
+            {conceptMastery.length === 0 ? (
+              <p className="text-sm text-on-surface-variant py-6 text-center">
+                No assessment data available yet for {displayName}.
+              </p>
+            ) : (
+              <div className="space-y-5">
+                {conceptMastery.map(({ label, pct }) => (
+                  <div key={label} className="space-y-1.5">
+                    <div className="flex justify-between text-[10px] sm:text-xs font-bold uppercase tracking-wider gap-2">
+                      <span className="truncate">{label}</span>
+                      <span className="text-primary flex-shrink-0">{pct}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
+                      <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }}></div>
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Behavioral Insights */}
+          {/* Behavioral Insights — BLOCKED ON BACKEND: no sentiment/behavioral
+              analysis endpoint exists. Still sample content. */}
           <div className="sm:col-span-1 lg:col-span-5 bg-primary-container text-white p-6 sm:p-8 rounded-lg relative overflow-hidden shadow-sm">
             <div className="relative z-10">
               <div className="inline-block px-3 py-1 bg-white/20 backdrop-blur rounded-full text-[10px] font-bold uppercase mb-4">
@@ -110,9 +168,9 @@ const AIInsightsRecommendations = () => {
               </div>
               <h3 className="text-xl sm:text-2xl font-bold font-headline mb-3">Behavioral Insights</h3>
               <p className="opacity-90 leading-relaxed mb-6 text-sm sm:text-base">
-                AI notes a high level of collaborative initiative. Alex frequently assists peers in group projects, showing strong leadership potential and emotional intelligence.
+                AI notes a high level of collaborative initiative. {displayName} frequently assists peers in group projects, showing strong leadership potential and emotional intelligence.
               </p>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 mb-3">
                 <div className="flex -space-x-2">
                   <div className="w-8 h-8 rounded-full border-2 border-primary-container bg-surface-variant"></div>
                   <div className="w-8 h-8 rounded-full border-2 border-primary-container bg-secondary"></div>
@@ -120,6 +178,7 @@ const AIInsightsRecommendations = () => {
                 </div>
                 <span className="text-xs font-medium">Top Collaborator this week</span>
               </div>
+              <SampleNote className="text-amber-200" />
             </div>
             <span
               className="material-symbols-outlined absolute -bottom-4 -right-4 text-white/10 text-8xl sm:text-9xl pointer-events-none"
@@ -128,9 +187,13 @@ const AIInsightsRecommendations = () => {
             >psychology</span>
           </div>
 
-          {/* Personalized Study Roadmap */}
+          {/* Personalized Study Roadmap — BLOCKED ON BACKEND: no roadmap
+              generation endpoint exists. Still sample content. */}
           <div className="sm:col-span-1 lg:col-span-7 bg-surface-container-lowest p-5 sm:p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg sm:text-xl font-bold font-headline mb-5">Personalized Study Roadmap</h3>
+            <div className="flex items-start justify-between gap-3 mb-5">
+              <h3 className="text-lg sm:text-xl font-bold font-headline">Personalized Study Roadmap</h3>
+              <SampleNote className="flex-shrink-0 mt-1" />
+            </div>
             <div className="flex flex-col gap-3 sm:gap-4">
               <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-surface-container-low rounded-md">
                 <div className="text-primary bg-white p-2 rounded-md shadow-sm flex-shrink-0">
@@ -156,15 +219,20 @@ const AIInsightsRecommendations = () => {
           </div>
         </div>
 
-        {/* ── AI Recommendations ── */}
+        {/* ── AI Recommendations — BLOCKED ON BACKEND: no recommendation-
+            generation endpoint exists. Still sample content, including the
+            stock photos. ── */}
         <section>
-          <div className="flex items-center gap-3 mb-5 sm:mb-6">
-            <span
-              className="material-symbols-outlined text-tertiary"
-              data-icon="lightbulb"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >lightbulb</span>
-            <h3 className="text-xl sm:text-2xl font-bold font-headline">AI Recommendations</h3>
+          <div className="flex items-center justify-between gap-3 mb-5 sm:mb-6">
+            <div className="flex items-center gap-3">
+              <span
+                className="material-symbols-outlined text-tertiary"
+                data-icon="lightbulb"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >lightbulb</span>
+              <h3 className="text-xl sm:text-2xl font-bold font-headline">AI Recommendations</h3>
+            </div>
+            <SampleNote />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -175,7 +243,7 @@ const AIInsightsRecommendations = () => {
                 tagColor: "text-primary",
                 tag: "Skill Enhancement",
                 title: "Advance Mathematical Logic",
-                desc: "Based on Alex's quick grasp of Algebra, we suggest the 'Introduction to Calculus' bridge course starting next month.",
+                desc: `Based on ${displayName}'s quick grasp of Algebra, we suggest the 'Introduction to Calculus' bridge course starting next month.`,
               },
               {
                 img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAYc-hSp3GBC3kaWnYALUBIR-OqfzMA1CwI9eWRdGN0QSoOoBqJO2ONs9iqF2O4KUqxuRyPhRhN45WAdIyOcQLs5204RFRWlAJstjP7jNSWL_KTPmfL09lrQ4NIf187t9mU8RKnCsi4vaeGgRoIfEY2OLw9qNk4aUb_2mCFVsrEYQkqSU61oCHGvGEj6-8CVV0_1XI-9FHgJp0q2Mv_WtuswYiPxfaqMD151UmZlnU9Ckhs3UwaM7qy2hSYu8vrghHCulOHvsdCcw",
@@ -191,7 +259,7 @@ const AIInsightsRecommendations = () => {
                 tagColor: "text-secondary",
                 tag: "Social Growth",
                 title: "Peer Mentorship Role",
-                desc: "Alex is ready to lead. We recommend the 'Junior Lab Assistant' program to build confidence and communication skills.",
+                desc: `${displayName} is ready to lead. We recommend the 'Junior Lab Assistant' program to build confidence and communication skills.`,
               },
             ].map(({ img, alt, tagColor, tag, title, desc }) => (
               <div key={title} className="bg-surface-container-lowest p-1 rounded-lg shadow-sm">
