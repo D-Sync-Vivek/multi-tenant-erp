@@ -1,11 +1,92 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import MainLayout from "../../layouts/MainLayout";
 import { getMonthName } from "../../utils/calculations";
 import { useStudent } from "../../context/StudentProvider";
 
+
+
 function Skeleton({ className = "" }) {
   return <div className={`animate-pulse bg-gray-200 rounded-md ${className}`} />;
+}
+
+// ── Add this helper at the top of Dashboard.jsx (outside component) ──
+function buildRecentActivity(grades, submissions, attendanceRecords) {
+  const events = [];
+
+  // From grades
+  (grades || []).forEach((g) => {
+    if (!g.created_at && !g.updated_at) return;
+    events.push({
+      id: `grade-${g.id}`,
+      type: 'grade',
+      title: `Grade Updated: ${g.subject_name || g.subject || 'Subject'}`,
+      detail: (
+        <>
+          You received a{' '}
+          <span className="font-bold text-green-700">
+            {g.letter_grade || g.grade || `${g.marks_obtained}/${g.max_marks}`}
+          </span>{' '}
+          for {g.exam_name || g.exam_type || 'your exam'}.
+        </>
+      ),
+      timestamp: new Date(g.updated_at || g.created_at),
+      icon: 'check_circle',
+      iconBg: 'bg-green-100',
+      iconColor: 'text-green-700',
+    });
+  });
+
+  // From submissions
+  (submissions || []).forEach((s) => {
+    if (!s.submitted_at && !s.created_at) return;
+    events.push({
+      id: `sub-${s.id}`,
+      type: 'submission',
+      title: 'Submission Received',
+      detail: s.assignment_title || s.assignment_name || 'Assignment submitted successfully.',
+      timestamp: new Date(s.submitted_at || s.created_at),
+      icon: 'upload',
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-700',
+    });
+  });
+
+  // From attendance records
+  (attendanceRecords || []).forEach((r) => {
+    if (!r.date) return;
+    events.push({
+      id: `att-${r.id || r.date}`,
+      type: 'attendance',
+      title: 'Attendance Marked',
+      detail: `${r.status} for ${r.subject_name || r.period || 'the day'}.`,
+      timestamp: new Date(r.date),
+      icon: r.status === 'Present' ? 'event_available'
+          : r.status === 'Absent'  ? 'event_busy'
+          : 'info',
+      iconBg: r.status === 'Present' ? 'bg-green-100'
+            : r.status === 'Absent'  ? 'bg-red-100'
+            : 'bg-amber-100',
+      iconColor: r.status === 'Present' ? 'text-green-700'
+               : r.status === 'Absent'  ? 'text-red-700'
+               : 'text-amber-700',
+    });
+  });
+
+  // Sort newest first, return top 5
+  return events
+    .filter((e) => !isNaN(e.timestamp))
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 5);
+}
+
+function timeAgo(date) {
+  const diff = Math.floor((Date.now() - date) / 1000);
+  if (diff < 60)                        return 'just now';
+  if (diff < 3600)                      return `${Math.floor(diff / 60)} mins ago`;
+  if (diff < 86400)                     return `${Math.floor(diff / 3600)} hours ago`;
+  if (diff < 86400 * 7)                 return `${Math.floor(diff / 86400)} days ago`;
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
 function DashboardSkeleton() {
@@ -110,10 +191,15 @@ export default function Dashboard() {
     enrollment: enroll,
     academic,
     attendanceRecords,
+     submissions,  
     loading,
     error,
     reload,
   } = useStudent();
+// console.log('enrollment:', enroll);
+// console.log('academic:', academic);
+// console.log('studentData:', studentData);
+  const [showAllActivity, setShowAllActivity] = React.useState(false); // ← add this
 
   const now       = useMemo(() => new Date(), []);
   const year      = now.getFullYear();
@@ -454,38 +540,72 @@ export default function Dashboard() {
               </div>
             </section>
 
-            <section className="bg-surface-container-lowest rounded-xl p-5 custom-shadow">
-              <h3 className="text-sm font-black text-on-surface-variant uppercase tracking-widest mb-5">Recent Activity</h3>
-              <div className="relative space-y-5 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container">
-                <div className="relative pl-8">
-                  <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-green-100 flex items-center justify-center ring-4 ring-white">
-                    <span className="material-symbols-outlined text-green-700 text-xs">check_circle</span>
-                  </div>
-                  <p className="text-sm font-bold text-on-surface">Grade Updated: Physics Lab</p>
-                  <p className="text-xs text-on-surface-variant">You received an <span className="font-bold text-green-700">A</span> for the Optics experiment.</p>
-                  <span className="text-2xs text-outline-variant mt-1 block">15 mins ago</span>
-                </div>
-                <div className="relative pl-8">
-                  <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center ring-4 ring-white">
-                    <span className="material-symbols-outlined text-blue-700 text-xs">upload</span>
-                  </div>
-                  <p className="text-sm font-bold text-on-surface">Submission Received</p>
-                  <p className="text-xs text-on-surface-variant">English Literature Essay: &quot;Modernism in 1920s&quot;</p>
-                  <span className="text-2xs text-outline-variant mt-1 block">2 hours ago</span>
-                </div>
-                <div className="relative pl-8">
-                  <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center ring-4 ring-white">
-                    <span className="material-symbols-outlined text-amber-700 text-xs">info</span>
-                  </div>
-                  <p className="text-sm font-bold text-on-surface">Attendance Marked</p>
-                  <p className="text-xs text-on-surface-variant">Present for Period 4: Computer Science.</p>
-                  <span className="text-2xs text-outline-variant mt-1 block">4 hours ago</span>
-                </div>
+           
+               {/* Recent Activity — dynamic */}
+{/* // Replace the entire Recent Activity block in your JSX with this: */}
+{(() => {
+  const grades     = studentData?.grades?.results || [];
+  const recentActs = buildRecentActivity(grades, submissions, attendanceRecords);
+  
+  // Local state for show more — use useState at top of Dashboard component
+  // Add this line at the top of Dashboard() with your other state:
+  // const [showAllActivity, setShowAllActivity] = React.useState(false);
+  
+  const INITIAL_SHOW = 3;
+  const displayed = showAllActivity ? recentActs : recentActs.slice(0, INITIAL_SHOW);
+  const hasMore   = recentActs.length > INITIAL_SHOW;
+
+  return (
+    <section className="bg-surface-container-lowest rounded-xl p-5 custom-shadow">
+      <h3 className="text-sm font-black text-on-surface-variant uppercase tracking-widest mb-5">
+        Recent Activity
+      </h3>
+
+      {recentActs.length === 0 ? (
+        <p className="text-xs text-on-surface-variant text-center py-4">
+          No recent activity yet.
+        </p>
+      ) : (
+        <div className="relative space-y-5 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container">
+          {displayed.map((act) => (
+            <div key={act.id} className="relative pl-8">
+              <div className={`absolute left-0 top-1 w-6 h-6 rounded-full flex items-center justify-center ring-4 ring-white ${act.iconBg}`}>
+                <span className={`material-symbols-outlined text-xs ${act.iconColor}`}>
+                  {act.icon}
+                </span>
               </div>
-              <button className="w-full mt-5 py-3 border-t border-surface-container text-xs font-bold text-primary hover:text-primary-container transition-colors uppercase tracking-tight">
-                Show More History
-              </button>
-            </section>
+              <p className="text-sm font-bold text-on-surface">{act.title}</p>
+              <p className="text-xs text-on-surface-variant">{act.detail}</p>
+              <span className="text-2xs text-outline-variant mt-1 block">
+                {timeAgo(act.timestamp)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {hasMore && (
+        <button
+          onClick={() => setShowAllActivity(prev => !prev)}
+          className="w-full mt-5 py-3 border-t border-surface-container text-xs font-bold text-primary hover:text-primary-container transition-colors uppercase tracking-tight flex items-center justify-center gap-1"
+        >
+          <span className="material-symbols-outlined text-sm">
+            {showAllActivity ? 'expand_less' : 'expand_more'}
+          </span>
+          {showAllActivity
+            ? 'Show Less'
+            : `Show  More`}
+        </button>
+      )}
+
+      {!hasMore && recentActs.length > 0 && (
+        <p className="text-center text-2xs text-outline mt-4 pt-3 border-t border-surface-container">
+          You're all caught up!
+        </p>
+      )}
+    </section>
+  );
+})()}
 
             <div className="relative p-5 rounded-lg bg-surface-container-highest overflow-hidden">
               <div className="absolute top-4 right-4 bg-white/40 backdrop-blur-md px-3 py-1 rounded-full text-2xs font-black uppercase tracking-widest text-on-surface">Active</div>
