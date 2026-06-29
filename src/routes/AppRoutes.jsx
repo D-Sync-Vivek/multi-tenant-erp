@@ -45,13 +45,13 @@ import EditStudent from "../pages/schoolAdmin/EditStudent";
 import TeacherDetails from "../pages/schoolAdmin/TeacherDetails";
 import MappingDetail from "../pages/schoolAdmin/MappingDetail";
 import EditTeacherAssignment from "../pages/schoolAdmin/EditTeacherAssignment";
-import ClassLevels from "../pages/schoolAdmin/ClassLevels"; // Adjust the folder path if yours is slightly different!
+import ClassLevels from "../pages/schoolAdmin/ClassLevels";
 import CreateClassSection from "../pages/schoolAdmin/CreateClassSection";
 import CreateSubject from '../pages/schoolAdmin/CreateSubject';
 import CreateSection from '../pages/schoolAdmin/CreateSection';
 import SchoolAdminNotifications from "../pages/schoolAdmin/Notifications";
 
-/* ================= STUDENT ================= */
+/* STUDENT */
 import StudentDashboard from "../pages/student/Dashboard";
 import Notifications from "../pages/student/Notifications";
 import Assignments from "../pages/student/Assignments";
@@ -69,9 +69,11 @@ import Settings from "../pages/student/Settings";
 import Recommendations from "../pages/student/Recommendations";
 import AiTutor from "../pages/student/AiTutor";
 import GradesCard from "../pages/student/GradesCard";
-import Circulars from "../pages/student/Circulars";
-import { StudentProvider } from '../context/StudentProvider';
 import StudentTimetable from '../pages/student/StudentTimetable';
+import Grievance from "../pages/student/Grievance";
+import Circulars from "../pages/student/Circulars";
+
+import { StudentProvider } from '../context/StudentProvider';
 
 /* TEACHER PAGES */
 import MyClassesHub from "../pages/teacher/MyClassesHub";
@@ -112,6 +114,7 @@ import GradesAssessmentHub from "../pages/parent/GradesAssessmentHub";
 import NotificationsHub from "../pages/parent/NotificationsHub";
 import AllInsightsRecommendations from "../pages/parent/AllInsightsRecommendations";
 import ParentPortalSettings from "../pages/parent/ParentPortalSettings";
+import ParentCirculars from "../pages/parent/ParentCirculars";
 
 /* Redirect logged-in users to their dashboard when visiting "/" */
 function RootRedirect() {
@@ -348,16 +351,22 @@ function AppRoutes() {
             </StudentProvider>
           }
         />
-<<<<<<< HEAD
-         <Route
-  path="/student/timetable"
-  element={
-    <StudentProvider>
-      <StudentTimetable />
-    </StudentProvider>
-  }
-/>
-=======
+        <Route
+          path="/student/timetable"
+          element={
+            <StudentProvider>
+              <StudentTimetable />
+            </StudentProvider>
+          }
+        />
+        <Route
+          path="/student/grievance"
+          element={
+            <StudentProvider>
+              <Grievance />
+            </StudentProvider>
+          }
+        />
         <Route
           path="/student/circulars"
           element={
@@ -366,7 +375,6 @@ function AppRoutes() {
             </StudentProvider>
           }
         />
->>>>>>> upstream/main
 
         {/* ================= TEACHER ================= */}
         <Route path="/teacher" element={<Navigate to="/teacher/dashboard" />} />
@@ -400,7 +408,6 @@ function AppRoutes() {
         <Route path="/teacher/notifications" element={<TeacherNotificationsHub />} />
 
         {/* ================= PARENT ================= */}
-        {/* ================= PARENT ================= */}
         <Route path="/parent" element={<ParentProvider><ParentDashboard /></ParentProvider>} />
         <Route path="/parent/child-overview" element={<ParentProvider><ChildOverview /></ParentProvider>} />
         <Route path="/parent/attendance" element={<ParentProvider><AttendanceTracker /></ParentProvider>} />
@@ -409,6 +416,7 @@ function AppRoutes() {
         <Route path="/parent/ai-insights" element={<ParentProvider><AllInsightsRecommendations /></ParentProvider>} />
         <Route path="/parent/notifications" element={<ParentProvider><NotificationsHub /></ParentProvider>} />
         <Route path="/parent/settings" element={<ParentProvider><ParentPortalSettings /></ParentProvider>} />
+        <Route path="/parent/circulars" element={<ParentProvider><ParentCirculars /></ParentProvider>} />
       </Routes>
     </BrowserRouter>
   );
