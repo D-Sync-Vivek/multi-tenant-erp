@@ -29,6 +29,7 @@ module.exports = {
         outline: "var(--color-outline)",
         "outline-variant": "var(--color-outline-variant)",
         error: "var(--color-error)",
+        success: "var(--color-success)",
       },
       fontFamily: {
         headline: ["Manrope"],

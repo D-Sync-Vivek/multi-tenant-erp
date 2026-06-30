@@ -261,9 +261,9 @@ export default function TeacherDetails() {
         {/* Toast */}
         {toast && (
           <div className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 transition-all duration-300 ${toast.type === "success"
-              ? "bg-green-600 text-white"
+              ? "bg-success text-white"
               : toast.type === "error"
-                ? "bg-red-600 text-white"
+                ? "bg-error text-white"
                 : "bg-gray-100 text-gray-800"
             }`}>
             <span className="material-symbols-outlined text-base">

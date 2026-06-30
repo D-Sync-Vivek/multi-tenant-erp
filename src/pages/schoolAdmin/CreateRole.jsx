@@ -229,9 +229,9 @@ export default function CreateRole() {
         {/* Toast Notification */}
         {toast && (
           <div className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-3 transition-all duration-300 ${toast.type === "success"
-              ? "bg-green-600 text-white"
+              ? "bg-sucess text-white"
               : toast.type === "error"
-                ? "bg-red-600 text-white"
+                ? "bg-error text-white"
                 : "bg-gray-100 text-gray-800"
             }`}>
             <span className="material-symbols-outlined text-base">
@@ -417,7 +417,7 @@ export default function CreateRole() {
                                   <p className="text-xs font-bold text-on-surface leading-none mb-0.5 font-body">
                                     {p.name}
                                   </p>
-                                  <p className="text-2xs text-on-surface-variant font-mono font-body">
+                                  <p className="text-2xs text-on-surface-variant font-body">
                                     coden: {p.codename}
                                   </p>
                                 </div>

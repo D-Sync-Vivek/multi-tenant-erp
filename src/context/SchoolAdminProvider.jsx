@@ -12,15 +12,8 @@ import apiClient from "../services/axiosClient";
 const SchoolAdminContext = createContext();
 
 const LOAD_LABELS = [
-  "classLevels",
-  "sections",
-  "academicYears",
-  "subjects",
-  "teachers",
-  "stats",
-  "trends",
-  "notifications",
-  "settings",
+  "classLevels", "sections", "academicYears", "subjects", 
+  "teachers", "stats", "trends", "notifications", "settings", "leaveStats"
 ];
 
 export const toList = (data) => {
@@ -30,35 +23,46 @@ export const toList = (data) => {
 };
 
 export const SchoolAdminProvider = ({ children }) => {
+  // --- Academic State ---
   const [classLevels, setClassLevels] = useState([]);
   const [sections, setSections] = useState([]);
   const [academicYears, setAcademicYears] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
 
+  // --- Statistics State ---
   const [studentsCount, setStudentsCount] = useState(0);
   const [activeStudents, setActiveStudents] = useState(0);
   const [teachersCount, setTeachersCount] = useState(0);
   const [enrollmentTrends, setEnrollmentTrends] = useState([]);
 
+  // --- Utility / UI State ---
   const [notifications, setNotifications] = useState([]);
   const [settings, setSettings] = useState(null);
-
   const [sectionsByClass, setSectionsByClass] = useState({});
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // --- Leave Management State ---
+  const [leaveStats, setLeaveStats] = useState({ pendingTeacher: 0, pendingStudent: 0 });
+
+  // --- Derived Selectors ---
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.is_read).length,
-    [notifications],
+    [notifications]
   );
 
   const notificationPreviewList = useMemo(
     () => notifications.slice(0, 4),
-    [notifications],
+    [notifications]
   );
 
+  const pendingLeaveCount = useMemo(
+    () => leaveStats.pendingTeacher + leaveStats.pendingStudent,
+    [leaveStats]
+  );
+
+  // --- Isolated Refresh Actions ---
   const refreshAcademics = useCallback(async () => {
     const [classRes, sectionRes, yearRes, subjectRes] = await Promise.allSettled([
       schoolAdminApi.getClassLevels(),
@@ -83,36 +87,24 @@ export const SchoolAdminProvider = ({ children }) => {
       if (statsRes?.total_teachers != null) setTeachersCount(statsRes.total_teachers);
     } catch {
       try {
+        // Fallback for fragmented platforms
         const [studentsRes, teachersRes] = await Promise.all([
           apiClient.get("/school-admin/students/"),
           apiClient.get("/school-admin/teachers/"),
         ]);
-        const totalStu =
-          studentsRes.data?.count ??
-          studentsRes.data?.results?.length ??
-          (Array.isArray(studentsRes.data) ? studentsRes.data.length : 0);
+        const totalStu = studentsRes.data?.count ?? studentsRes.data?.results?.length ?? (Array.isArray(studentsRes.data) ? studentsRes.data.length : 0);
         setStudentsCount(totalStu);
 
         try {
-          const activeRes = await apiClient.get(
-            "/school-admin/students/?is_archived=false&page_size=1",
-          );
-          setActiveStudents(
-            activeRes.data?.count ?? activeRes.data?.results?.length ?? totalStu,
-          );
+          const activeRes = await apiClient.get("/school-admin/students/?is_archived=false&page_size=1");
+          setActiveStudents(activeRes.data?.count ?? activeRes.data?.results?.length ?? totalStu);
         } catch {
           const stuArr = toList(studentsRes.data);
-          const activeFallback = stuArr.filter(
-            (s) => s.is_archived === false || s.status === "ACTIVE" || s.is_active === true,
-          ).length;
+          const activeFallback = stuArr.filter(s => s.is_archived === false || s.status === "ACTIVE" || s.is_active === true).length;
           setActiveStudents(activeFallback || totalStu);
         }
 
-        setTeachersCount(
-          teachersRes.data?.count ??
-            teachersRes.data?.results?.length ??
-            (Array.isArray(teachersRes.data) ? teachersRes.data.length : 0),
-        );
+        setTeachersCount(teachersRes.data?.count ?? teachersRes.data?.results?.length ?? (Array.isArray(teachersRes.data) ? teachersRes.data.length : 0));
       } catch (err) {
         console.error("Failed to refresh school admin stats:", err);
       }
@@ -159,19 +151,40 @@ export const SchoolAdminProvider = ({ children }) => {
     }
   }, []);
 
+  // Pending-leave counts, split by applicant role so a sidebar badge or
+  // dashboard card can call out "N teacher / N student" leaves waiting.
+  const refreshLeaveStats = useCallback(async () => {
+    try {
+      const data = await schoolAdminApi.getLeaveRequests({ status: "Pending" });
+      const list = toList(data);
+      setLeaveStats({
+        pendingTeacher: list.filter((l) => l.applicant_role === "Teacher").length,
+        pendingStudent: list.filter((l) => l.applicant_role === "Student").length,
+      });
+    } catch (err) {
+      console.error("Failed to refresh leave stats:", err);
+    }
+  }, []);
+
+  // FIXED: Removed 'sectionsByClass' dependency to eliminate UI-freezing infinite render loop.
   const fetchSectionsByClass = useCallback(
     async (classId) => {
       if (!classId) return [];
-      if (sectionsByClass[classId]) return sectionsByClass[classId];
+      
+      let localCache;
+      setSectionsByClass(prev => {
+        localCache = prev[classId];
+        return prev;
+      });
+      if (localCache) return localCache;
 
-      const cached = sections.filter(
-        (s) =>
-          String(s.class_level) === String(classId) ||
-          String(s.class_level?.id) === String(classId),
+      const cachedFromList = sections.filter(
+        (s) => String(s.class_level) === String(classId) || String(s.class_level?.id) === String(classId)
       );
-      if (cached.length > 0) {
-        setSectionsByClass((prev) => ({ ...prev, [classId]: cached }));
-        return cached;
+      
+      if (cachedFromList.length > 0) {
+        setSectionsByClass((prev) => ({ ...prev, [classId]: cachedFromList }));
+        return cachedFromList;
       }
 
       const data = await schoolAdminApi.getSectionsByClass(classId);
@@ -179,13 +192,11 @@ export const SchoolAdminProvider = ({ children }) => {
       setSectionsByClass((prev) => ({ ...prev, [classId]: list }));
       return list;
     },
-    [sections, sectionsByClass],
+    [sections]
   );
 
   const markNotificationRead = useCallback((id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
   }, []);
 
   const markAllNotificationsRead = useCallback(() => {
@@ -213,6 +224,7 @@ export const SchoolAdminProvider = ({ children }) => {
         schoolAdminApi.getEnrollmentTrends(),
         schoolAdminApi.getNotifications(),
         schoolAdminApi.getSettings(),
+        schoolAdminApi.getLeaveRequests({ status: "Pending" }),
       ]);
 
       results.forEach((r, i) => {
@@ -222,32 +234,16 @@ export const SchoolAdminProvider = ({ children }) => {
       });
 
       const [
-        classResult,
-        sectionResult,
-        yearResult,
-        subjectResult,
-        teacherResult,
-        statsResult,
-        trendsResult,
-        notificationsResult,
-        settingsResult,
+        classResult, sectionResult, yearResult, subjectResult,
+        teacherResult, statsResult, trendsResult, notificationsResult, settingsResult,
+        leaveStatsResult
       ] = results;
-
-      setClassLevels(
-        classResult.status === "fulfilled" ? toList(classResult.value) : [],
-      );
-      setSections(
-        sectionResult.status === "fulfilled" ? toList(sectionResult.value) : [],
-      );
-      setAcademicYears(
-        yearResult.status === "fulfilled" ? toList(yearResult.value) : [],
-      );
-      setSubjects(
-        subjectResult.status === "fulfilled" ? toList(subjectResult.value) : [],
-      );
-      setTeachers(
-        teacherResult.status === "fulfilled" ? toList(teacherResult.value) : [],
-      );
+      
+      setClassLevels(classResult.status === "fulfilled" ? toList(classResult.value) : []);
+      setSections(sectionResult.status === "fulfilled" ? toList(sectionResult.value) : []);
+      setAcademicYears(yearResult.status === "fulfilled" ? toList(yearResult.value) : []);
+      setSubjects(subjectResult.status === "fulfilled" ? toList(subjectResult.value) : []);
+      setTeachers(teacherResult.status === "fulfilled" ? toList(teacherResult.value) : []);
 
       if (statsResult.status === "fulfilled" && statsResult.value) {
         const stats = statsResult.value;
@@ -259,23 +255,24 @@ export const SchoolAdminProvider = ({ children }) => {
       }
 
       if (trendsResult.status === "fulfilled") {
-        const arr =
-          trendsResult.value?.results ??
-          trendsResult.value?.data ??
-          trendsResult.value;
+        const arr = trendsResult.value?.results ?? trendsResult.value?.data ?? trendsResult.value;
         setEnrollmentTrends(Array.isArray(arr) ? arr : []);
       }
 
-      setNotifications(
-        notificationsResult.status === "fulfilled"
-          ? toList(notificationsResult.value)
-          : [],
-      );
-      setSettings(
-        settingsResult.status === "fulfilled" ? settingsResult.value : null,
-      );
+      const rawNotifications = notificationsResult.status === "fulfilled" ? notificationsResult.value : null;
+      const parsedNotifications = rawNotifications?.notifications ?? toList(rawNotifications);
 
+      setNotifications(parsedNotifications);
+      setSettings(settingsResult.status === "fulfilled" ? settingsResult.value : null);
       setSectionsByClass({});
+
+      if (leaveStatsResult.status === "fulfilled") {
+        const leaveList = toList(leaveStatsResult.value);
+        setLeaveStats({
+          pendingTeacher: leaveList.filter((l) => l.applicant_role === "Teacher").length,
+          pendingStudent: leaveList.filter((l) => l.applicant_role === "Student").length,
+        });
+      }
     } catch (err) {
       console.error("Failed to load school admin context", err);
       setError(err.message || "Something went wrong loading school admin data.");
@@ -288,41 +285,31 @@ export const SchoolAdminProvider = ({ children }) => {
     loadAllData();
   }, [loadAllData]);
 
+  // Context bundle
+  const contextValue = useMemo(() => ({
+    classLevels, sections, academicYears, subjects, teachers,
+    studentsCount, activeStudents, teachersCount, enrollmentTrends,
+    notifications, notificationPreviewList, unreadCount, settings,
+    leaveStats, pendingLeaveCount,
+    loading, error,
+    reload: loadAllData,
+    refreshAcademics, refreshStats, refreshTrends, refreshTeachers,
+    refreshNotifications, refreshSettings, fetchSectionsByClass,
+    refreshLeaveStats,
+    markNotificationRead, markAllNotificationsRead, updateSettings
+  }), [
+    classLevels, sections, academicYears, subjects, teachers,
+    studentsCount, activeStudents, teachersCount, enrollmentTrends,
+    notifications, notificationPreviewList, unreadCount, settings,
+    leaveStats, pendingLeaveCount,
+    loading, error, loadAllData, refreshAcademics, refreshStats, 
+    refreshTrends, refreshTeachers, refreshNotifications, refreshSettings, 
+    fetchSectionsByClass, refreshLeaveStats,
+    markNotificationRead, markAllNotificationsRead, updateSettings
+  ]);
+
   return (
-    <SchoolAdminContext.Provider
-      value={{
-        classLevels,
-        sections,
-        academicYears,
-        subjects,
-        teachers,
-
-        studentsCount,
-        activeStudents,
-        teachersCount,
-        enrollmentTrends,
-
-        notifications,
-        notificationPreviewList,
-        unreadCount,
-        settings,
-
-        loading,
-        error,
-
-        reload: loadAllData,
-        refreshAcademics,
-        refreshStats,
-        refreshTrends,
-        refreshTeachers,
-        refreshNotifications,
-        refreshSettings,
-        fetchSectionsByClass,
-        markNotificationRead,
-        markAllNotificationsRead,
-        updateSettings,
-      }}
-    >
+    <SchoolAdminContext.Provider value={contextValue}>
       {children}
     </SchoolAdminContext.Provider>
   );

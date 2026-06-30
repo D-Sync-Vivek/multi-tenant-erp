@@ -16,6 +16,7 @@ export default function SchoolSidebar() {
     { name: "Teacher Assignment",    icon: "assignment_ind",  path: "/school-admin/teacher-assignment" },
     { name: "Grievance",             icon: "gavel",           path: "/school-admin/grievances" }, // ← ADDED
     { name: "Circulars", icon: "power", path: "/school-admin/circulars" },
+    { name: "Leave Management", icon: "event_busy", path: "/school-admin/leave-management" },
     { name: "Settings",              icon: "settings",        path: "/school-admin/settings" },
   ];
 
