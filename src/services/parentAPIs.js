@@ -116,3 +116,18 @@ export const updateParentStudentMapping = async (mappingId, payload) => {
   );
   return response.data;
 };
+
+/* ---------- Circulars ---------- */
+/* Read-only for parents — admin handles create/update/delete.
+   Backend filters to is_published=True + target_audience in [Parent, All]
+   for non-admin roles, same as the student-side endpoint. */
+
+export const getParentCirculars = async () => {
+  try {
+    const response = await api.get(`/school-admin/circulars/`);
+    return response.data.results || response.data || [];
+  } catch (error) {
+    if (isNotFoundError(error) || isForbiddenError(error)) return [];
+    throw error;
+  }
+};

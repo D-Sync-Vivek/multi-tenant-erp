@@ -14,7 +14,6 @@ const navItems = [
   { icon: 'event_busy', label: 'Leave Portal', path: '/student/leave' },
   { icon: 'psychology', label: 'AI Tutor', path: '/student/ai-tutor' },
   { icon: 'gavel', label: 'Grievance', path: '/student/grievance' },
-  { icon: 'campaign', label: 'Circulars', path: '/student/circulars' },
   { icon: 'account_balance_wallet', label: 'Fees', path: '/student/fees' },
   { icon: 'support_agent', label: 'Help Desk', path: '/student/help' },
 ];

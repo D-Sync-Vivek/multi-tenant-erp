@@ -326,3 +326,18 @@ export const getStudentDashboardData = async () => {
     reportCard: reportCardResult.status === "fulfilled" ? reportCardResult.value : null,
   };
 };
+
+// ── Circulars ──
+
+export const getCirculars = async () => {
+  try {
+    const response = await api.get(`/school-admin/circulars/`);
+    return response.data.results || response.data || [];
+  } catch (error) {
+    if (isIgnorableClientError(error)) {
+      logIgnoredError("getCirculars", error);
+      return [];
+    }
+    throw error;
+  }
+};
