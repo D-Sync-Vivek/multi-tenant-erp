@@ -8,6 +8,7 @@ import {
   getAssignments,
   getSubmissions,
   getAttendanceRecords,
+  getCirculars,
 } from "../services/studentAPIs";
 
 const StudentContext = createContext();
@@ -21,6 +22,7 @@ const LOAD_LABELS = [
   "assignments",
   "submissions",
   "attendanceRecords",
+  "circulars",
 ];
 
 export const StudentProvider = ({ children }) => {
@@ -33,16 +35,21 @@ export const StudentProvider = ({ children }) => {
     assignments: [],
     submissions: [],
     attendanceRecords: [],
+    circulars: [],
   });
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
-  // ✅ FIX 1: useCallback so this function reference is stable across renders
   const refreshSubmissions = useCallback(async () => {
     const subs = await getSubmissions();
     setContextData((prev) => ({ ...prev, submissions: subs }));
-  }, []); // no deps needed — setContextData is stable
+  }, []);
+
+  const refreshCirculars = useCallback(async () => {
+    const circulars = await getCirculars();
+    setContextData((prev) => ({ ...prev, circulars }));
+  }, []);
 
   const loadAllData = useCallback(async () => {
     setLoading(true);
@@ -58,6 +65,7 @@ export const StudentProvider = ({ children }) => {
         getAssignments(),
         getSubmissions(),
         getAttendanceRecords(),
+        getCirculars(),
       ]);
 
       results.forEach((r, i) => {
@@ -75,6 +83,7 @@ export const StudentProvider = ({ children }) => {
         assignmentsResult,
         submissionsResult,
         attendanceRecordsResult,
+        circularsResult,
       ] = results;
 
       const profile = profileResult.status === "fulfilled" ? profileResult.value : null;
@@ -86,6 +95,7 @@ export const StudentProvider = ({ children }) => {
       const submissions = submissionsResult.status === "fulfilled" ? submissionsResult.value : [];
       const attendanceRecords =
         attendanceRecordsResult.status === "fulfilled" ? attendanceRecordsResult.value : [];
+      const circulars = circularsResult.status === "fulfilled" ? circularsResult.value : [];
 
       setContextData({
         profile,
@@ -96,6 +106,7 @@ export const StudentProvider = ({ children }) => {
         assignments,
         submissions,
         attendanceRecords,
+        circulars,
       });
 
       if (!profile) {
@@ -115,17 +126,14 @@ export const StudentProvider = ({ children }) => {
     loadAllData();
   }, [loadAllData]);
 
-  // ✅ FIX 2: useMemo so the context value object is only recreated
-  // when the actual data changes — not on every render cycle.
-  // This stops Sidebar and other consumers from re-rendering unnecessarily,
-  // which was causing the repeated profile-picture fetches.
   const contextValue = useMemo(() => ({
     ...contextData,
     loading,
     error: loadError,
     reload: loadAllData,
     refreshSubmissions,
-  }), [contextData, loading, loadError, loadAllData, refreshSubmissions]);
+    refreshCirculars,
+  }), [contextData, loading, loadError, loadAllData, refreshSubmissions, refreshCirculars]);
 
   return (
     <StudentContext.Provider value={contextValue}>

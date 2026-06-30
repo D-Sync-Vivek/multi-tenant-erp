@@ -11,6 +11,7 @@ import {
   switchActiveChild,
   getChildGrades,
   getChildAttendance,
+  getParentCirculars,
 } from "../services/parentAPIs";
 
 const ParentContext = createContext();
@@ -26,15 +27,27 @@ export const ParentProvider = ({ children: appChildren }) => {
   const [attendanceData, setAttendanceData] = useState(null); // { summary, records[] }
   const [gradesData, setGradesData]         = useState(null); // { child, summary, exams[] }
 
+  // School-wide data (not child-specific)
+  const [circulars, setCirculars]           = useState([]);
+
   const [loading, setLoading]               = useState(true);
   const [childDataLoading, setChildDataLoading] = useState(false);
   const [error, setError]                   = useState(null);
 
-  // ── Initial load: ONE call — parent + all children + each child's dashboard ──
+  // ── Initial load: parent + all children + each child's dashboard + circulars ──
   useEffect(() => {
     const init = async () => {
       try {
-        const data = await getParentFullDashboard();
+        const [dashboardData, circularsList] = await Promise.allSettled([
+          getParentFullDashboard(),
+          getParentCirculars(),
+        ]);
+
+        if (dashboardData.status !== "fulfilled") {
+          throw dashboardData.reason || new Error("Failed to load dashboard.");
+        }
+
+        const data = dashboardData.value;
         // data.children[] each has: id (student UUID), name, email, enrollment_number,
         // relationship, is_primary_contact, can_view_academics, can_pay_fees, dashboard{}
         const list = data.children || [];
@@ -43,6 +56,7 @@ export const ParentProvider = ({ children: appChildren }) => {
         setParent(data.parent || null);
         setStudents(list);
         setLastUpdated(data.last_updated || null);
+        setCirculars(circularsList.status === "fulfilled" ? circularsList.value : []);
 
         const saved = localStorage.getItem(ACTIVE_CHILD_STORAGE_KEY);
         const savedStillValid = saved && list.some((c) => c.id === saved);
@@ -123,6 +137,15 @@ export const ParentProvider = ({ children: appChildren }) => {
     }
   }, []);
 
+  const refreshCirculars = useCallback(async () => {
+    try {
+      const list = await getParentCirculars();
+      setCirculars(list);
+    } catch (err) {
+      console.error("Failed to refresh circulars", err);
+    }
+  }, []);
+
   // ── Derived convenience values ──
   // activeChild.dashboard shape:
   //   { class_info{ class, section, academic_year, roll_number },
@@ -193,6 +216,10 @@ export const ParentProvider = ({ children: appChildren }) => {
         gradesSummary,
         gradesExams,        // array of exam objects with .subjects[]
         gradesFlat,         // flat array of subject grade rows
+
+        // ── Circulars (school-wide, not child-specific) ──
+        circulars,
+        refreshCirculars,
 
         // ── Loading / error ──
         loading,

@@ -16,8 +16,25 @@ export default function MainLayout({ children, title, headerActions }) {
     iPad-width screen (768–1024px) leaves too little content width and
     squeezes multi-column grids (e.g. the 3 stat cards on the dashboard).
     Below 1280px the sidebar overlays content instead of pushing it.
+
+    ── INITIAL STATE FIX ──
+    Sidebar.jsx persists its expanded/collapsed state in localStorage under
+    'student_sidebar_expanded'. Previously this component always started
+    with sidebarExpanded = true and only corrected itself once a
+    'sidebar-toggle' event fired (i.e. only after the user clicked the
+    toggle button again). On a hard refresh while the sidebar was
+    collapsed, no event fires, so this component kept assuming the sidebar
+    was expanded (288px margin) while the actual sidebar rendered collapsed
+    (64px wide) — causing the leftover blank gap seen after refresh.
+
+    Fix: read the same localStorage key during initial state setup (lazy
+    initializer), so on first render this already matches what Sidebar.jsx
+    will render, with no flash/gap while waiting for an event.
   */
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
+    const stored = localStorage.getItem('student_sidebar_expanded');
+    return stored !== null ? stored === 'true' : true;
+  });
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {

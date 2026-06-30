@@ -57,14 +57,14 @@ function buildRecentActivity(grades, submissions, attendanceRecords) {
       detail: `${r.status} for ${r.subject_name || r.period || 'the day'}.`,
       timestamp: new Date(r.date),
       icon: r.status === 'Present' ? 'event_available'
-          : r.status === 'Absent'  ? 'event_busy'
+        : r.status === 'Absent' ? 'event_busy'
           : 'info',
       iconBg: r.status === 'Present' ? 'bg-green-100'
-            : r.status === 'Absent'  ? 'bg-red-100'
-            : 'bg-amber-100',
+        : r.status === 'Absent' ? 'bg-red-100'
+          : 'bg-amber-100',
       iconColor: r.status === 'Present' ? 'text-green-700'
-               : r.status === 'Absent'  ? 'text-red-700'
-               : 'text-amber-700',
+        : r.status === 'Absent' ? 'text-red-700'
+          : 'text-amber-700',
     });
   });
 
@@ -76,9 +76,9 @@ function buildRecentActivity(grades, submissions, attendanceRecords) {
 
 function timeAgo(date) {
   const diff = Math.floor((Date.now() - date) / 1000);
-  if (diff < 60)        return 'just now';
-  if (diff < 3600)      return `${Math.floor(diff / 60)} mins ago`;
-  if (diff < 86400)     return `${Math.floor(diff / 3600)} hours ago`;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)} mins ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
   if (diff < 86400 * 7) return `${Math.floor(diff / 86400)} days ago`;
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
@@ -186,6 +186,7 @@ export default function Dashboard() {
     academic,
     attendanceRecords,
     submissions,
+    circulars,
     loading,
     error,
     reload,
@@ -194,15 +195,15 @@ export default function Dashboard() {
   const [showAllActivity, setShowAllActivity] = useState(false);
   const [showIDCard, setShowIDCard] = useState(false);
 
-  const now       = useMemo(() => new Date(), []);
-  const year      = now.getFullYear();
-  const month     = now.getMonth();
+  const now = useMemo(() => new Date(), []);
+  const year = now.getFullYear();
+  const month = now.getMonth();
   const monthWord = getMonthName(month);
 
-  const daysCount      = new Date(year, month + 1, 0).getDate();
-  const days           = Array.from({ length: daysCount }, (_, i) => i + 1);
+  const daysCount = new Date(year, month + 1, 0).getDate();
+  const days = Array.from({ length: daysCount }, (_, i) => i + 1);
   const firstDayOfWeek = new Date(year, month, 1).getDay();
-  const emptyDays      = Array.from({ length: firstDayOfWeek }, (_, i) => i);
+  const emptyDays = Array.from({ length: firstDayOfWeek }, (_, i) => i);
 
   const attendanceMap = useMemo(() => {
     if (!Array.isArray(attendanceRecords)) return {};
@@ -225,8 +226,8 @@ export default function Dashboard() {
   }, [attendanceRecords, year, month]);
 
   const top4Subjects = useMemo(() => {
-    const grades   = studentData?.grades?.results || [];
-    const subjects = academic?.subs              || [];
+    const grades = studentData?.grades?.results || [];
+    const subjects = academic?.subs || [];
     const seen = new Set();
     const uniqueSubjects = subjects.filter((sub) => {
       const key = sub.name.trim().toLowerCase();
@@ -248,7 +249,7 @@ export default function Dashboard() {
       }))
       .sort((a, b) => {
         if (a.gradeInfo && !b.gradeInfo) return -1;
-        if (!a.gradeInfo && b.gradeInfo) return  1;
+        if (!a.gradeInfo && b.gradeInfo) return 1;
         if (a.gradeInfo && b.gradeInfo) {
           return (
             b.gradeInfo.marks_obtained / b.gradeInfo.max_marks -
@@ -285,50 +286,50 @@ export default function Dashboard() {
 
   const percentageStatus =
     parseFloat(percentage) >= 75
-      ? { label: "EXCELLENT",    className: "text-green-800 bg-green-100"  }
+      ? { label: "EXCELLENT", className: "text-green-800 bg-green-100" }
       : parseFloat(percentage) >= 60
-      ? { label: "GOOD",         className: "text-blue-800  bg-blue-100"   }
-      : parseFloat(percentage) >= 45
-      ? { label: "SATISFACTORY", className: "text-amber-800 bg-amber-100"  }
-      : { label: "AT RISK",      className: "text-red-800   bg-red-100"    };
+        ? { label: "GOOD", className: "text-blue-800  bg-blue-100" }
+        : parseFloat(percentage) >= 45
+          ? { label: "SATISFACTORY", className: "text-amber-800 bg-amber-100" }
+          : { label: "AT RISK", className: "text-red-800   bg-red-100" };
 
   const attendanceStatus =
     attendanceRate >= 80
-      ? { label: "ON TRACK",     className: "text-green-800 bg-green-100" }
+      ? { label: "ON TRACK", className: "text-green-800 bg-green-100" }
       : attendanceRate >= 65
-      ? { label: "SATISFACTORY", className: "text-amber-800 bg-amber-100" }
-      : { label: "AT RISK",      className: "text-red-800 bg-red-100"     };
+        ? { label: "SATISFACTORY", className: "text-amber-800 bg-amber-100" }
+        : { label: "AT RISK", className: "text-red-800 bg-red-100" };
 
   const getSubjectIcon = (name = "") => {
     const n = name.toLowerCase();
-    if (n.includes("math"))                            return { icon: "calculate",     bg: "bg-blue-50   text-blue-600"   };
-    if (n.includes("phys"))                            return { icon: "rocket_launch", bg: "bg-purple-50 text-purple-600" };
-    if (n.includes("comp") || n.includes("code"))      return { icon: "code",          bg: "bg-orange-50 text-orange-600" };
-    if (n.includes("eng")  || n.includes("lit"))       return { icon: "history_edu",   bg: "bg-indigo-50 text-indigo-600" };
-    if (n.includes("chem"))                            return { icon: "science",        bg: "bg-green-50  text-green-600"  };
-    if (n.includes("bio"))                             return { icon: "biotech",        bg: "bg-teal-50   text-teal-600"   };
-    if (n.includes("hindi") || n.includes("sanskrit")) return { icon: "translate",      bg: "bg-rose-50   text-rose-600"   };
-    return                                                    { icon: "menu_book",      bg: "bg-slate-100 text-slate-600"  };
+    if (n.includes("math")) return { icon: "calculate", bg: "bg-blue-50   text-blue-600" };
+    if (n.includes("phys")) return { icon: "rocket_launch", bg: "bg-purple-50 text-purple-600" };
+    if (n.includes("comp") || n.includes("code")) return { icon: "code", bg: "bg-orange-50 text-orange-600" };
+    if (n.includes("eng") || n.includes("lit")) return { icon: "history_edu", bg: "bg-indigo-50 text-indigo-600" };
+    if (n.includes("chem")) return { icon: "science", bg: "bg-green-50  text-green-600" };
+    if (n.includes("bio")) return { icon: "biotech", bg: "bg-teal-50   text-teal-600" };
+    if (n.includes("hindi") || n.includes("sanskrit")) return { icon: "translate", bg: "bg-rose-50   text-rose-600" };
+    return { icon: "menu_book", bg: "bg-slate-100 text-slate-600" };
   };
 
   const getGradeLetter = (obtained, max) => {
     const p = (obtained / max) * 100;
-    if (p >= 90) return { letter: "A+", cls: "text-green-700  bg-green-100"  };
-    if (p >= 80) return { letter: "A",  cls: "text-blue-700   bg-blue-100"   };
+    if (p >= 90) return { letter: "A+", cls: "text-green-700  bg-green-100" };
+    if (p >= 80) return { letter: "A", cls: "text-blue-700   bg-blue-100" };
     if (p >= 70) return { letter: "B+", cls: "text-yellow-700 bg-yellow-100" };
-    if (p >= 60) return { letter: "B",  cls: "text-orange-700 bg-orange-100" };
-    return              { letter: "C",  cls: "text-red-700    bg-red-100"    };
+    if (p >= 60) return { letter: "B", cls: "text-orange-700 bg-orange-100" };
+    return { letter: "C", cls: "text-red-700    bg-red-100" };
   };
 
   const dayStatusCls = {
     Present: "bg-green-100  text-green-700  border-green-200",
-    Absent:  "bg-red-100    text-red-700    border-red-200",
-    Late:    "bg-yellow-100 text-yellow-700 border-yellow-200",
+    Absent: "bg-red-100    text-red-700    border-red-200",
+    Late: "bg-yellow-100 text-yellow-700 border-yellow-200",
   };
 
   const INITIAL_SHOW = 3;
   const displayedActs = showAllActivity ? recentActs : recentActs.slice(0, INITIAL_SHOW);
-  const hasMoreActs   = recentActs.length > INITIAL_SHOW;
+  const hasMoreActs = recentActs.length > INITIAL_SHOW;
 
   return (
     <>
@@ -444,21 +445,20 @@ export default function Dashboard() {
                   </div>
                   <div className="flex-1">
                     <div className="grid grid-cols-7 gap-0.5">
-                      {["S","M","T","W","T","F","S"].map((d, i) => (
+                      {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
                         <div key={i} className="text-center text-[8px] font-bold text-outline pb-0.5">{d}</div>
                       ))}
                       {emptyDays.map((_, i) => <div key={`e-${i}`} />)}
                       {days.map((day) => {
-                        const dateKey = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-                        const record  = attendanceMap[dateKey];
+                        const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                        const record = attendanceMap[dateKey];
                         return (
                           <div
                             key={day}
-                            className={`aspect-square flex items-center justify-center rounded text-3xs font-semibold border transition-all ${
-                              record
+                            className={`aspect-square flex items-center justify-center rounded text-3xs font-semibold border transition-all ${record
                                 ? (dayStatusCls[record.status] ?? "bg-surface-container border-surface-container")
                                 : "bg-surface-container-lowest border-surface-container text-on-surface-variant"
-                            }`}
+                              }`}
                           >
                             {day}
                           </div>
@@ -468,9 +468,9 @@ export default function Dashboard() {
                   </div>
                   <div className="flex gap-3 mt-3 pt-2 border-t border-surface-container-low flex-wrap">
                     {[
-                      { color: "bg-green-400",  label: "Present", count: monthlyDist.Present },
-                      { color: "bg-red-400",    label: "Absent",  count: monthlyDist.Absent  },
-                      { color: "bg-yellow-400", label: "Late",    count: monthlyDist.Late    },
+                      { color: "bg-green-400", label: "Present", count: monthlyDist.Present },
+                      { color: "bg-red-400", label: "Absent", count: monthlyDist.Absent },
+                      { color: "bg-yellow-400", label: "Late", count: monthlyDist.Late },
                     ].map(({ color, label, count }) => (
                       <div key={label} className="flex items-center gap-1">
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${color}`} />
@@ -574,53 +574,41 @@ export default function Dashboard() {
                 </div>
               </section>
 
-              {/* Recent Activity — dynamic */}
-              <section className="bg-surface-container-lowest rounded-xl p-5 custom-shadow">
-                <h3 className="text-sm font-black text-on-surface-variant uppercase tracking-widest mb-5">
-                  Recent Activity
-                </h3>
-
-                {recentActs.length === 0 ? (
-                  <p className="text-xs text-on-surface-variant text-center py-4">
-                    No recent activity yet.
-                  </p>
-                ) : (
-                  <div className="relative space-y-5 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container">
-                    {displayedActs.map((act) => (
-                      <div key={act.id} className="relative pl-8">
-                        <div className={`absolute left-0 top-1 w-6 h-6 rounded-full flex items-center justify-center ring-4 ring-white ${act.iconBg}`}>
-                          <span className={`material-symbols-outlined text-xs ${act.iconColor}`}>
-                            {act.icon}
-                          </span>
-                        </div>
-                        <p className="text-sm font-bold text-on-surface">{act.title}</p>
-                        <p className="text-xs text-on-surface-variant">{act.detail}</p>
-                        <span className="text-2xs text-outline-variant mt-1 block">
-                          {timeAgo(act.timestamp)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {hasMoreActs && (
-                  <button
-                    onClick={() => setShowAllActivity((prev) => !prev)}
-                    className="w-full mt-5 py-3 border-t border-surface-container text-xs font-bold text-primary hover:text-primary-container transition-colors uppercase tracking-tight flex items-center justify-center gap-1"
-                  >
-                    <span className="material-symbols-outlined text-sm">
-                      {showAllActivity ? 'expand_less' : 'expand_more'}
+              {/* Circulars — replaces Recent Activity */}
+              <Link to="/student/circulars" className="block group">
+                <section className="bg-surface-container-lowest rounded-xl p-5 custom-shadow border border-outline-variant/10 group-hover:border-primary/40 transition-all duration-200">
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-sm font-black text-on-surface-variant uppercase tracking-widest">
+                      Circulars
+                    </h3>
+                    <span className="flex items-center gap-0.5 text-2xs font-bold text-primary group-hover:underline">
+                      View all
+                      <span className="material-symbols-outlined text-xs">arrow_forward</span>
                     </span>
-                    {showAllActivity ? 'Show Less' : 'Show More'}
-                  </button>
-                )}
+                  </div>
 
-                {!hasMoreActs && recentActs.length > 0 && (
-                  <p className="text-center text-2xs text-outline mt-4 pt-3 border-t border-surface-container">
-                    You&apos;re all caught up!
-                  </p>
-                )}
-              </section>
+                  {(!circulars || circulars.length === 0) ? (
+                    <p className="text-xs text-on-surface-variant text-center py-4">
+                      No circulars yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {circulars.slice(0, 3).map((c) => (
+                        <div key={c.id} className="flex items-start gap-3">
+                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 bg-primary" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-on-surface truncate">{c.title}</p>
+                            <p className="text-2xs text-on-surface-variant mt-0.5">
+                              {c.created_by_name || 'School Administration'}
+                              {c.created_at && ` · ${new Date(c.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </Link>
 
               {/* Course Credits */}
               <div className="relative p-5 rounded-lg bg-surface-container-highest overflow-hidden">
