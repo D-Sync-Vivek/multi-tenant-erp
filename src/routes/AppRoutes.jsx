@@ -221,6 +221,8 @@ function AppRoutes() {
           <Route path='leave-management' element={<LeaveDashboard />} />
           <Route path="grievance" element={<GrievanceManagement />} />
           <Route path="circulars" element={<CircularsPage />} />
+          <Route path="grievances" element={<GrievanceManagement />} />
+          <Route path="circulars" element={<CircularsPage />} />
         </Route>
 
         {/* ================= STUDENT ================= */}
