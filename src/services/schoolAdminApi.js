@@ -345,6 +345,52 @@ export const getGrievanceById = async (id) => {
     return response.data;
 };
 
+// --- Leave Management ---
+export const getLeaveRequests = async (filters = {}) => {
+    // filters: { status, applicant_role, leave_type }
+    const params = new URLSearchParams(
+        Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
+    );
+    const response = await apiClient.get(`/leave-management/leave-requests/?${params.toString()}`);
+    return response.data;
+};
+
+export const getLeaveRequestById = async (id) => {
+    const response = await apiClient.get(`/leave-management/leave-requests/${id}/`);
+    return response.data;
+};
+
+export const getMyLeaveRequests = async (status = "") => {
+    const params = status ? `?status=${encodeURIComponent(status)}` : "";
+    const response = await apiClient.get(`/leave-management/leave-requests/me/${params}`);
+    return response.data;
+};
+
+export const getPendingLeaveReviews = async () => {
+    const response = await apiClient.get('/leave-management/leave-requests/pending-review/');
+    return response.data;
+};
+
+export const createLeaveRequest = async (data) => {
+    const response = await apiClient.post('/leave-management/leave-requests/', data);
+    return response.data;
+};
+
+export const approveLeaveRequest = async (id, remarks = "") => {
+    const response = await apiClient.post(`/leave-management/leave-requests/${id}/approve/`, { remarks });
+    return response.data;
+};
+
+export const rejectLeaveRequest = async (id, remarks = "") => {
+    const response = await apiClient.post(`/leave-management/leave-requests/${id}/reject/`, { remarks });
+    return response.data;
+};
+
+export const cancelLeaveRequest = async (id) => {
+    const response = await apiClient.post(`/leave-management/leave-requests/${id}/cancel/`, {});
+    return response.data;
+};
+
 // --- Bundled Export ---
 export const schoolAdminApi = {
     getDashboardStats,
@@ -413,4 +459,13 @@ export const schoolAdminApi = {
     updateCircular,
     toggleCircularPublish,
     deleteCircular,
+    // leave management
+    getLeaveRequests,
+    getLeaveRequestById,
+    getMyLeaveRequests,
+    getPendingLeaveReviews,
+    createLeaveRequest,
+    approveLeaveRequest,
+    rejectLeaveRequest,
+    cancelLeaveRequest,
 };

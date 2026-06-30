@@ -215,7 +215,7 @@ export default function CreateSection() {
                 <button
                   type="submit"
                   disabled={submitting || loadingLevels}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition font-body disabled:opacity-60"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-success text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition font-body disabled:opacity-60"
                 >
                   <span className="material-symbols-outlined text-base">add_circle</span>
                   {submitting ? "Creating..." : "Create Section"}
