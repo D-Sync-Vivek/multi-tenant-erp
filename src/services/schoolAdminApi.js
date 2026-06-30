@@ -62,6 +62,7 @@ export const getPermissions = async () => {
     return response.data;
 };
 
+
 // --- Profiles & Academics ---
 export const createClassLevel = async (data) => {
     const response = await apiClient.post('/academics/class-levels/', data);
@@ -176,6 +177,34 @@ export const getSettings = async () => {
 
 export const updateSettings = async (data) => {
     const response = await apiClient.patch('/school-admin/settings/', data);
+    return response.data;
+};
+
+// --- Circulars ---
+export const getCirculars = async (page = 1, search = "") => {
+    const params = new URLSearchParams({ page });
+    if (search) params.append("search", search);
+    const response = await apiClient.get(`/school-admin/circulars/?${params.toString()}`);
+    return response.data;
+};
+
+export const createCircular = async (data) => {
+    const response = await apiClient.post('/school-admin/circulars/', data);
+    return response.data;
+};
+
+export const updateCircular = async (id, data) => {
+    const response = await apiClient.patch(`/school-admin/circulars/${id}/`, data);
+    return response.data;
+};
+
+export const toggleCircularPublish = async (id) => {
+    const response = await apiClient.patch(`/school-admin/circulars/${id}/toggle-publish/`);
+    return response.data;
+};
+
+export const deleteCircular = async (id) => {
+    const response = await apiClient.delete(`/school-admin/circulars/${id}/`);
     return response.data;
 };
 
@@ -301,4 +330,9 @@ export const schoolAdminApi = {
     getSectionsByClass,
     deleteClassLevelById,
     deleteSectionById,
+    getCirculars,
+    createCircular,
+    updateCircular,
+    toggleCircularPublish,
+    deleteCircular,
 };
