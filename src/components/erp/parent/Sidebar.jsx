@@ -50,6 +50,7 @@ export default function Sidebar({ isExpanded, isMobile, onToggle, onClose }) {
     { to: "/parent/assignments",    end: false, icon: "assignment",     label: "Assignments"     },
     { to: "/parent/grades",         end: false, icon: "assessment",     label: "Grades & Report" },
     { to: "/parent/circulars",      end: false, icon: "campaign",       label: "Circulars"       },
+    { to: "/parent/timetable",      end: false, icon: "calendar_month", label: "Timetable"       },
     { to: "/parent/ai-insights",    end: false, icon: "psychology",     label: "AI Insights"     },
   ];
 

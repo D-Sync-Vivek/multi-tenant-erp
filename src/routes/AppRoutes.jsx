@@ -116,6 +116,9 @@ import AllInsightsRecommendations from "../pages/parent/AllInsightsRecommendatio
 import ParentPortalSettings from "../pages/parent/ParentPortalSettings";
 import ParentCirculars from "../pages/parent/ParentCirculars";
 
+
+import ParentTimetable from '../pages/parent/ParentTimetable';
+
 /* Redirect logged-in users to their dashboard when visiting "/" */
 function RootRedirect() {
   const token = localStorage.getItem('access_token');
@@ -417,6 +420,7 @@ function AppRoutes() {
         <Route path="/parent/notifications" element={<ParentProvider><NotificationsHub /></ParentProvider>} />
         <Route path="/parent/settings" element={<ParentProvider><ParentPortalSettings /></ParentProvider>} />
         <Route path="/parent/circulars" element={<ParentProvider><ParentCirculars /></ParentProvider>} />
+        <Route path="/parent/timetable" element={<ParentProvider><ParentTimetable /></ParentProvider>} />
       </Routes>
     </BrowserRouter>
   );
