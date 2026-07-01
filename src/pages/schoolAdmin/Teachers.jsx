@@ -167,7 +167,7 @@ export default function Teachers() {
 
   // Debounce search
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 500);
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
@@ -178,10 +178,10 @@ export default function Teachers() {
 
   // Fetch teachers
   useEffect(() => {
-    fetchAllTeachers(debouncedSearch, statusFilter);
-  }, [debouncedSearch, statusFilter]);
+    fetchAllTeachers();
+  }, []);
 
-  const fetchAllTeachers = async (search, status) => {
+  const fetchAllTeachers = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -189,7 +189,7 @@ export default function Teachers() {
       let results = [];
       let hasNext = true;
       while (hasNext) {
-        const data = await schoolAdminApi.getTeachers(page, search, status);
+        const data = await schoolAdminApi.getTeachers(page, "", "ALL", "");
         results = [...results, ...(data.results || data || [])];
         hasNext = Boolean(data.next);
         page += 1;
@@ -203,17 +203,32 @@ export default function Teachers() {
     }
   };
 
+  // Client-side search + filters, computed on every render from the already-fetched list — no network round-trip, no loading flash.
+
+  const filteredTeachers = useMemo(() => {
+    return allTeachers.filter((s) => {
+      if(statusFilter === "ACTIVE" && s.is_archived) return false;
+      if(statusFilter === "ARCHIVED" && !s.is_archived) return false;
+
+      if(debouncedSearch){
+        const q = debouncedSearch.toLocaleLowerCase();
+        const fName = s.first_name || s.user?.first_name || "";
+        const lName = s.last_name || s.user?.last_name || "";
+        const email = s.email || s.user?.email || "";
+        const employeeId = s.employee_id || s.user?.employee_id || "";
+        const haystack = `${fName} ${lName} ${email} ${employeeId}`.toLocaleLowerCase();
+        if(!haystack.includes(q)) return false;
+      }
+
+      return true;
+    })
+  }, [allTeachers, statusFilter, debouncedSearch])
+  
+
   // Stats (always reflect the full directory, unaffected by the status filter)
   const totalTeachers = allTeachers.length;
   const activeTeachers = allTeachers.filter(t => !t.is_archived).length;
   const archivedTeachers = totalTeachers - activeTeachers;
-
-  // Apply the status filter client-side (the list endpoint doesn't support it)
-  const filteredTeachers = useMemo(() => {
-    if (statusFilter === "ACTIVE") return allTeachers.filter(t => !t.is_archived);
-    if (statusFilter === "ARCHIVED") return allTeachers.filter(t => t.is_archived);
-    return allTeachers;
-  }, [allTeachers, statusFilter]);
 
   const filteredCount = filteredTeachers.length;
 

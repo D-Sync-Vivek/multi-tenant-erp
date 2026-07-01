@@ -169,7 +169,7 @@ export default function Parents() {
 
   // Debounce search
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 500);
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
@@ -180,10 +180,10 @@ export default function Parents() {
 
   // Fetch parents (status filter applied on frontend)
   useEffect(() => {
-    fetchAllParents(debouncedSearch);
-  }, [debouncedSearch]);
+    fetchAllParents();
+  }, []);
 
-  const fetchAllParents = async (search) => {
+  const fetchAllParents = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -191,7 +191,7 @@ export default function Parents() {
       let results = [];
       let hasNext = true;
       while (hasNext) {
-        const data = await schoolAdminApi.getParents(page, search);
+        const data = await schoolAdminApi.getParents(page, "", "ALL", "");
         results = [...results, ...(data.results || data || [])];
         hasNext = Boolean(data.next);
         page += 1;
@@ -207,20 +207,24 @@ export default function Parents() {
 
   // ── Filters ──
   const filteredParents = useMemo(() => {
-    return allParents.filter(p => {
-      // Search filter
-      const searchStr = debouncedSearch.toLowerCase();
-      const nameMatch = (p.first_name || "").toLowerCase().includes(searchStr) ||
-        (p.last_name || "").toLowerCase().includes(searchStr) ||
-        (p.email || "").toLowerCase().includes(searchStr) ||
-        (p.phone_number || "").includes(searchStr);
-      if (!nameMatch) return false;
+      return allParents.filter((p) => {
+        if(statusFilter === "ACTIVE" && p.is_archived) return false;
+        if(statusFilter === "ARCHIVED" && !p.is_archived) return false;
 
-      // Status filter
-      if (statusFilter === "ACTIVE") return p.is_archived === false;
-      if (statusFilter === "ARCHIVED") return p.is_archived === true;
-      return true; // ALL
-    });
+        if(debouncedSearch){
+          const q = debouncedSearch.toLocaleLowerCase();
+          const fName = p.first_name || p.user?.first_name || "";
+          const lName = p.last_name || p.user?.last_name || "";
+          const email = p.email || p.user?.email || "";
+          const phone = p.phone_number || p.user?.phone_number || "";
+
+          const haystack = `${fName} ${lName} ${email} ${phone}`.toLocaleLowerCase();
+
+          if(!haystack.includes(q)) return false;
+        }
+
+        return true;
+      })
   }, [allParents, debouncedSearch, statusFilter]);
 
   // Stats

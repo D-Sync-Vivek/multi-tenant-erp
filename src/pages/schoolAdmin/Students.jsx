@@ -168,21 +168,25 @@ export default function Students() {
 
   // Debounce search
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 500);
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Reset page when filters change
+  // Reset page whenever the filtered set could change shape, so users
+  // don't land on an empty page after narrowing a search/filter.
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch, statusFilter, classFilter, pageSize]);
 
-  // Fetch students
+  // Fetch the full student directory once on mount. Search and filters are
+  // applied client-side below so typing in the search box never re-triggers a fetch or flashes the
+  // full-page skeleton.
   useEffect(() => {
-    fetchAllStudents(debouncedSearch, statusFilter, classFilter);
-  }, [debouncedSearch, statusFilter, classFilter]);
+    fetchAllStudents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const fetchAllStudents = async (search, status, classId) => {
+  const fetchAllStudents = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -190,7 +194,7 @@ export default function Students() {
       let results = [];
       let hasNext = true;
       while (hasNext) {
-        const data = await schoolAdminApi.getStudents(page, search, status, classId);
+        const data = await schoolAdminApi.getStudents(page, "", "ALL", "");
         results = [...results, ...(data.results || data || [])];
         hasNext = Boolean(data.next);
         page += 1;
@@ -203,20 +207,48 @@ export default function Students() {
     }
   };
 
-  // Stats
+  // Stats — always reflect the full directory, not the current search/filter.
   const totalStudents = allStudents.length;
   const activeStudents = allStudents.filter(s => !s.is_archived).length;
   const archivedStudents = totalStudents - activeStudents;
 
+  // Client-side search + filters, computed on every render from the already-fetched list — no network round-trip, no loading flash.
+  const filteredStudents = useMemo(() => {
+    return allStudents.filter((s) => {
+      if (statusFilter === "ACTIVE" && s.is_archived) return false;
+      if (statusFilter === "ARCHIVED" && !s.is_archived) return false;
+
+      if (classFilter) {
+        const classId = String(s.class_level?.id ?? s.class_level ?? s.class_level_id ?? "");
+        if (classId !== String(classFilter)) return false;
+      }
+
+      if (debouncedSearch) {
+        const q = debouncedSearch.toLowerCase();
+        const fName = s.first_name || s.user?.first_name || "";
+        const lName = s.last_name || s.user?.last_name || "";
+        const email = s.email || s.user?.email || "";
+        const enrollment = s.enrollment_number || "";
+        const phone = s.phone_number || "";
+        const haystack = `${fName} ${lName} ${email} ${enrollment} ${phone}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+
+      return true;
+    });
+  }, [allStudents, statusFilter, classFilter, debouncedSearch]);
+
+  const filteredCount = filteredStudents.length;
+
   // Pagination
-  const totalPages = Math.max(1, Math.ceil(totalStudents / pageSize));
+  const totalPages = Math.max(1, Math.ceil(filteredCount / pageSize));
   const paginatedStudents = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return allStudents.slice(start, start + pageSize);
-  }, [allStudents, currentPage, pageSize]);
+    return filteredStudents.slice(start, start + pageSize);
+  }, [filteredStudents, currentPage, pageSize]);
 
-  const rangeStart = totalStudents === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const rangeEnd = Math.min(currentPage * pageSize, totalStudents);
+  const rangeStart = filteredCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const rangeEnd = Math.min(currentPage * pageSize, filteredCount);
 
   // Helper for initials
   const getInitials = (first, last, email) => {
@@ -308,8 +340,15 @@ export default function Students() {
           </div>
 
           <div className="flex items-center justify-end gap-2 ml-auto shrink-0">
+            <button
+              onClick={fetchAllStudents}
+              className="p-2 rounded-lg border border-outline-variant/20 text-on-surface-variant hover:bg-surface-container-high/50 transition"
+              title="Refresh"
+            >
+              <span className={`material-symbols-outlined text-[18px] ${loading ? "animate-spin" : ""}`}>refresh</span>
+            </button>
             <span className="text-xs font-semibold text-on-surface-variant">
-              {totalStudents} {totalStudents === 1 ? "student" : "students"} found
+              {filteredCount} {filteredCount === 1 ? "student" : "students"} found
             </span>
           </div>
         </div>
@@ -390,7 +429,7 @@ export default function Students() {
           </div>
 
           {/* Responsive Pagination Strip */}
-          {totalStudents > 0 && (
+          {filteredCount > 0 && (
             <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-center border-t border-outline-variant/10 bg-surface-container-high/30">
               <div className="flex items-center justify-between w-full sm:w-auto gap-2 text-xs font-body text-on-surface-variant">
                 <div className="flex items-center gap-2">
@@ -405,7 +444,7 @@ export default function Students() {
                     ))}
                   </select>
                 </div>
-                <span>Showing {rangeStart}-{rangeEnd} of {totalStudents}</span>
+                <span>Showing {rangeStart}-{rangeEnd} of {filteredCount}</span>
               </div>
               <div className="flex items-center justify-between w-full sm:w-auto gap-3">
                 <button
