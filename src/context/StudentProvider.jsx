@@ -25,6 +25,17 @@ const LOAD_LABELS = [
   "circulars",
 ];
 
+// ─── MOCK DATA (static) ─────────────────────────────────────────────────────
+const MOCK_ATTENDANCE = {
+  summary: { total_days: 100, present: 85, absent: 10, late: 5, attendance_percentage: 85 },
+  records: Array.from({ length: 30 }).map((_, i) => ({
+    date: new Date(Date.now() - i * 86400000).toISOString().split('T')[0],
+    status: i % 7 === 0 ? "Absent" : i % 5 === 0 ? "Late" : "Present",
+    remarks: ""
+  }))
+};
+// ────────────────────────────────────────────────────────────────────────────
+
 export const StudentProvider = ({ children }) => {
   const [contextData, setContextData] = useState({
     profile: null,
@@ -86,26 +97,40 @@ export const StudentProvider = ({ children }) => {
         circularsResult,
       ] = results;
 
-      const profile = profileResult.status === "fulfilled" && profileResult.value ? profileResult.value : { id: "mock-student", user: { first_name: "Mock", last_name: "Student", email: "student@example.com" } };
-      const dashboard = dashboardResult.status === "fulfilled" && dashboardResult.value ? dashboardResult.value : { stats: { total_assignments: 5, total_exams: 3 } };
-      const enrollment = enrollmentResult.status === "fulfilled" && enrollmentResult.value ? enrollmentResult.value : { class_level_name: "Grade 10", section_name: "A", roll_number: "10A-01", academic_year_name: "2026-2027" };
-      const parents = parentsResult.status === "fulfilled" && parentsResult.value ? parentsResult.value : [];
-      const academic = academicResult.status === "fulfilled" && academicResult.value ? academicResult.value : { years: [], subs: [] };
-      const assignments = assignmentsResult.status === "fulfilled" && assignmentsResult.value ? assignmentsResult.value : [];
-      const submissions = submissionsResult.status === "fulfilled" && submissionsResult.value ? submissionsResult.value : [];
+      const profile = profileResult.status === "fulfilled" && profileResult.value
+        ? profileResult.value
+        : { id: "mock-student", user: { first_name: "Mock", last_name: "Student", email: "student@example.com" } };
 
-      const MOCK_ATTENDANCE = {
-        summary: { total_days: 100, present: 85, absent: 10, late: 5, attendance_percentage: 85 },
-        records: Array.from({ length: 30 }).map((_, i) => ({
-          date: new Date(Date.now() - i * 86400000).toISOString().split('T')[0],
-          status: i % 7 === 0 ? "Absent" : i % 5 === 0 ? "Late" : "Present",
-          remarks: ""
-        }))
-      };
+      const dashboard = dashboardResult.status === "fulfilled" && dashboardResult.value
+        ? dashboardResult.value
+        : { stats: { total_assignments: 5, total_exams: 3 } };
 
-      const attendanceRecords = attendanceRecordsResult.status === "fulfilled" && attendanceRecordsResult.value
+      const enrollment = enrollmentResult.status === "fulfilled" && enrollmentResult.value
+        ? enrollmentResult.value
+        : { class_level_name: "Grade 10", section_name: "A", roll_number: "10A-01", academic_year_name: "2026-2027" };
+
+      const parents = parentsResult.status === "fulfilled" && parentsResult.value
+        ? parentsResult.value
+        : [];
+
+      const academic = academicResult.status === "fulfilled" && academicResult.value
+        ? academicResult.value
+        : { years: [], subs: [] };
+
+      const assignments = assignmentsResult.status === "fulfilled" && assignmentsResult.value
+        ? assignmentsResult.value
+        : [];
+
+      const submissions = submissionsResult.status === "fulfilled" && submissionsResult.value
+        ? submissionsResult.value
+        : [];
+
+      // ✅ FIX: Extract the `records` array, not the whole object
+      const attendanceData = attendanceRecordsResult.status === "fulfilled" && attendanceRecordsResult.value
         ? attendanceRecordsResult.value
         : MOCK_ATTENDANCE;
+
+      const attendanceRecords = attendanceData.records || [];
 
       const circulars = circularsResult.status === "fulfilled" && circularsResult.value
         ? circularsResult.value
@@ -125,7 +150,6 @@ export const StudentProvider = ({ children }) => {
 
     } catch (err) {
       console.error("Failed to load global student data", err);
-      // Removed setLoadError so pages can still render dummy data
     } finally {
       setLoading(false);
     }

@@ -53,6 +53,7 @@ import SchoolAdminNotifications from "../pages/schoolAdmin/Notifications";
 import LeaveDashboard from '../pages/schoolAdmin/LeaveDashboard';
 import GrievanceManagement from "../pages/schoolAdmin/GrievanceManagement";
 import CircularsPage from "../pages/schoolAdmin/Circulars";
+import TimetableManagement from "../pages/schoolAdmin/TimetableManagement";
 
 /* STUDENT */
 import StudentDashboard from "../pages/student/Dashboard";
@@ -122,6 +123,7 @@ import ParentGrievance from "../pages/parent/ParentGrievance";
 import ParentCirculars from "../pages/parent/ParentCirculars";
 import TrackStudent from "../pages/parent/TrackStudent";
 import ParentLeavePortal from "../pages/parent/ParentLeavePortal"; // 👈 NEW
+import ParentTimetable from '../pages/parent/ParentTimetable';
 
 /* Redirect logged-in users to their dashboard when visiting "/" */
 function RootRedirect() {
@@ -223,6 +225,7 @@ function AppRoutes() {
           <Route path="circulars" element={<CircularsPage />} />
           <Route path="grievances" element={<GrievanceManagement />} />
           <Route path="circulars" element={<CircularsPage />} />
+          <Route path="timetable" element={<TimetableManagement />} />
         </Route>
 
         {/* ================= STUDENT ================= */}
@@ -440,6 +443,7 @@ function AppRoutes() {
         <Route path="/parent/circulars" element={<ParentProvider><ParentCirculars /></ParentProvider>} />
         <Route path="/parent/track-student" element={<ParentProvider><TrackStudent /></ParentProvider>} />
         <Route path="/parent/leave" element={<ParentProvider><ParentLeavePortal /></ParentProvider>} />  {/* 👈 NEW */}
+        <Route path="/parent/timetable" element={<ParentProvider><ParentTimetable /></ParentProvider>} />
       </Routes>
     </BrowserRouter>
   );
