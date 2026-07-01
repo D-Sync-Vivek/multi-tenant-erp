@@ -396,6 +396,12 @@ export const cancelLeaveRequest = async (id) => {
     return response.data;
 };
 
+export const deleteLeaveRequest = async (id) => {
+    console.log("delete")
+    const response = await apiClient.delete(`/leave-management/leave-requests/${id}/`, {});
+    return response.data
+}
+
 // --- Bundled Export ---
 export const schoolAdminApi = {
     getDashboardStats,
@@ -476,4 +482,5 @@ export const schoolAdminApi = {
     approveLeaveRequest,
     rejectLeaveRequest,
     cancelLeaveRequest,
+    deleteLeaveRequest
 };
